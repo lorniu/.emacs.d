@@ -1,0 +1,7 @@
+alias la ls -a
+alias m make
+alias ff find-file $1
+alias pss ps a -o pid,ppid,stat,args,wchan
+alias c clear
+alias ll ls -lF --color=tty $1
+alias l ls -a $1

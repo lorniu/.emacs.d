@@ -1,0 +1,9 @@
+/*
+!.gitignore
+!README.md
+!init.el
+!/core
+!/ext
+!/misc
+!/snippets
+__pycache__/

@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: sss
+# key: sss
+# --
+<%= $0 %>
