@@ -49,11 +49,6 @@
 ;;; for windows
 (when (eq system-type 'windows-nt)
 
-  (setq default-frame-alist
-        '((top . 30) (left . 780) (height . 38) (width . 75)
-          (alpha . 95) (cursor-type . bar)
-          (line-spacing . 1) (tool-bar-lines . 0) (menu-bar-lines . 20 )))
-
   (setq global-hl-line-mode   t
         mouse-wheel-scroll-amount '(1 ((control) . 5))
         default-process-coding-system '(cp936-dos . utf-8-unix))
@@ -61,19 +56,26 @@
   (global-set-key [C-wheel-up]   'text-scale-increase)
   (global-set-key [C-wheel-down] 'text-scale-decrease)
 
-  (let ((e (find-if 'x-list-fonts '("Source Code Pro" "Monaco" "Consolas" "Courier New"))))
-    (set-frame-font (font-spec :family e :size 16 :weight 'normal) t))
-  (dolist (charset '(kana han symbol cjk-misc bopomofo))
-    (set-fontset-font (frame-parameter nil 'font) charset (font-spec :family "微软雅黑 Light" :weight 'extra-light)))
-  (setq face-font-rescale-alist '(("微软雅黑 Light" . 1) ("SimSun" . 2)))
+  
+  (setq default-frame-alist
+        '((width . 90) (height . 35) (top . 35) (left . 320)
+          (alpha . 95) (cursor-type . bar)
+          (line-spacing . 1) (tool-bar-lines . 0) (menu-bar-lines . 20 )))
 
+  (defun config-font (font-size)
+    (let* ((en '("Source Code Pro" "Monaco" "Consolas" "Courier New"))
+           (zh (font-spec :family "微软雅黑 Light" :weight 'extra-light)))
+      (set-frame-font (font-spec :family (find-if 'x-list-fonts en) :size font-size) t)
+      (set-fontset-font "fontset-default" 'unicode zh)
+      (setq face-font-rescale-alist '(("微软雅黑 Light" . 1)))))
   
   (cond
-   ((string= user-login-name "Administrator")
+   ((string= user-login-name "lol")
     (setf (alist-get 'fullscreen default-frame-alist) 'maximized)
-    (set-face-attribute 'default nil :height 120))
+    (config-font 30))
    
-   (t (load-theme 'spacemacs-dark t))))
+   (t (load-theme 'spacemacs-dark t)
+      (config-font 16))))
 
 
 
