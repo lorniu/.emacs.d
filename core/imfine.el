@@ -70,8 +70,10 @@
       (setq face-font-rescale-alist '(("微软雅黑 Light" . 1)))))
   
   (cond
-   ((string= user-login-name "lol")
-    (setf (alist-get 'fullscreen default-frame-alist) 'maximized)
+   ((string= user-login-name "lol")  ;; classroom computer
+    (setf (alist-get 'height default-frame-alist) '23
+          (alist-get 'width default-frame-alist)  '60)
+    ;; (setf (alist-get 'fullscreen default-frame-alist) 'maximized)
     (config-font 30))
    
    (t (load-theme 'spacemacs-dark t)
@@ -82,13 +84,13 @@
 ;;; for linux
 (when (eq system-type 'gnu/linux)
   
-  (when (display-graphic-p)
+  (when (display-graphic-p)  ;; xmonad interface
     (tool-bar-mode 0)
     (menu-bar-mode 0)
     (set-face-attribute 'default nil :height 110))
   
   (cond
-   ((string= (system-name) "remote")
+   ((string= (system-name) "remote")  ;; debian vps
     (load-theme 'origin t)
     (menu-bar-mode 0)
     (xterm-mouse-mode)  ;; enable mouse
