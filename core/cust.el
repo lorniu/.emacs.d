@@ -9,7 +9,7 @@
               company yasnippet counsel-projectile magit org-download
               web-mode js2-mode emmet-mode htmlize yaml-mode sass-mode
               slime php-mode groovy-mode haskell-mode robe elpy c-eldoc erlang lua-mode
-              xcscope)))
+              graphviz-dot-mode xcscope)))
   (unless package-archive-contents (package-refresh-contents))
   (mapc 'package-install (delete-if #'package-installed-p packages-required)))
 
@@ -126,7 +126,7 @@
      (home . :html-link-home))))
  '(package-selected-packages
    (quote
-    (lua-mode sqlplus xcscope c-eldoc elpy robe haskell-mode groovy-mode php-mode slime sass-mode yaml-mode htmlize emmet-mode js2-mode web-mode org-download magit counsel-projectile yasnippet company spacemacs-theme rcirc-styles diminish rainbow-delimiters session origami iedit anzu))))
+    (graphviz-dot-mode lua-mode sqlplus xcscope c-eldoc elpy robe haskell-mode groovy-mode php-mode slime sass-mode yaml-mode htmlize emmet-mode js2-mode web-mode org-download magit counsel-projectile yasnippet company spacemacs-theme rcirc-styles diminish rainbow-delimiters session origami iedit anzu))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
