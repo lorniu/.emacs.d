@@ -226,7 +226,7 @@
 ;;
 ;; var
 (setq quicklisp-home "~/.quicklisp"
-      slime-initial  "~/.showcase/lang-lisp/imodule/slime-init.lisp"
+      slime-initial  "~/.showcase/lang-lisp/misc/slime-init.lisp"
       inferior-lisp-program (find-if #'executable-find '("sbcl" "ccl" "clisp")))
 
 ;; setup
@@ -236,22 +236,22 @@
 (add-hook-lambda slime-connected-hook
   ;; initialize quicklisp
   ;; install or load config file
-  (let* ((home (file-name-as-directory quicklisp-home))
-         (url "http://beta.quicklisp.org/quicklisp.lisp")
-         (dist (concat home "quicklisp.lisp")))
-    (if (file-exists-p dist)
+  (let* ((qhome (file-name-as-directory quicklisp-home))
+         (qurl "http://beta.quicklisp.org/quicklisp.lisp")
+         (qdist (concat qhome "quicklisp.lisp")))
+    (if (file-exists-p qdist)
         (when (file-exists-p slime-initial) ;; custom file
           (with-temp-buffer
             (insert-file-contents slime-initial)
             (slime-eval-buffer))
-          (sit-for 1)
+          (sit-for 2)
           (ignore-errors (slime-repl-set-package "IMFINE")))
-      (make-directory home)
-      (url-copy-file url dist)
+      (make-directory qhome)
+      (url-copy-file qurl qdist)
       (with-temp-buffer
-        (insert-file-contents dist)
+        (insert-file-contents qdist)
         (goto-char (point-max))
-        (insert (format "\n(quicklisp-quickstart:install :path \"%s\")" home))
+        (insert (format "\n(quicklisp-quickstart:install :path \"%s\")" qhome))
         (insert "(let ((*do-not-prompt* t)) (ql:add-to-init-file))")
         (slime-eval-buffer))))
   ;; auto switch to repl buffer

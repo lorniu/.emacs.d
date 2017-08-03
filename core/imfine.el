@@ -45,58 +45,58 @@
     (add-hook 'after-save-hook 'im/el-autocompile)))
 
 
-
-;;; for windows
-(when (eq system-type 'windows-nt)
-
-  (setq global-hl-line-mode   t
-        mouse-wheel-scroll-amount '(1 ((control) . 5))
-        default-process-coding-system '(cp936-dos . utf-8-unix))
-
-  (global-set-key [C-wheel-up]   'text-scale-increase)
-  (global-set-key [C-wheel-down] 'text-scale-decrease)
-
-  
-  (setq default-frame-alist
-        '((width . 90) (height . 35) (top . 35) (left . 320)
-          (alpha . 95) (cursor-type . bar)
-          (line-spacing . 1) (tool-bar-lines . 0) (menu-bar-lines . 20 )))
-
-  (defun config-font (font-size)
-    (let* ((en '("Source Code Pro" "Monaco" "Consolas" "Courier New"))
-           (zh (font-spec :family "微软雅黑 Light" :weight 'extra-light)))
-      (set-frame-font (font-spec :family (find-if 'x-list-fonts en) :size font-size) t)
-      (set-fontset-font "fontset-default" 'unicode zh)
-      (setq face-font-rescale-alist '(("微软雅黑 Light" . 1)))))
-  
-  (cond
-   ((string= user-login-name "lol")  ;; classroom computer
-    (setf (alist-get 'height default-frame-alist) '23
-          (alist-get 'width default-frame-alist)  '60)
-    ;; (setf (alist-get 'fullscreen default-frame-alist) 'maximized)
-    (config-font 30))
-   
-   (t (load-theme 'spacemacs-dark t)
-      (config-font 16))))
+;;;
+;;; environments definition
+(define-environments
+  ((with-windows    . (eq system-type 'windows-nt))
+   (with-classroom  . (string= user-login-name "lol"))
+   (with-linux      . (eq system-type 'gnu/linux))
+   (with-linux-g    . (and (eq system-type 'gnu/linux) (display-graphic-p)))
+   (with-debian-vps . (string= (system-name) "remote"))))
 
 
+;;;
+;;; different environments
+;;;
+(with-windows   ;; for windows
+ (setq global-hl-line-mode   t
+       mouse-wheel-scroll-amount '(1 ((control) . 5))
+       default-process-coding-system '(cp936-dos . utf-8-unix))
 
-;;; for linux
-(when (eq system-type 'gnu/linux)
-  
-  (when (display-graphic-p)  ;; xmonad interface
-    (tool-bar-mode 0)
-    (menu-bar-mode 0)
-    (set-face-attribute 'default nil :height 110))
-  
-  (cond
-   ((string= (system-name) "remote")  ;; debian vps
-    (load-theme 'origin t)
-    (menu-bar-mode 0)
-    (xterm-mouse-mode)  ;; enable mouse
-    (global-set-key [mouse-4] (ilambda (scroll-down 1)))
-    (global-set-key [mouse-5] (ilambda (scroll-up 1))))))
+ (global-set-key [C-wheel-up]   'text-scale-increase)
+ (global-set-key [C-wheel-down] 'text-scale-decrease)
 
+ (setq default-frame-alist
+       '((width . 90) (height . 35) (top . 35) (left . 320)
+         (alpha . 95) (cursor-type . bar)
+         (line-spacing . 1) (tool-bar-lines . 0) (menu-bar-lines . 20 ))))
+
+(defun config-font (font-size) ;; font config
+  (let* ((en '("Source Code Pro" "Monaco" "Consolas" "Courier New"))
+         (zh (font-spec :family "微软雅黑 Light" :weight 'extra-light)))
+    (set-frame-font (font-spec :family (find-if 'x-list-fonts en) :size font-size) t)
+    (set-fontset-font "fontset-default" 'unicode zh)
+    (setq face-font-rescale-alist '(("微软雅黑 Light" . 1)))))
+
+(with-classroom          ;; classroom environment
+ (setf (alist-get 'height default-frame-alist) '23)
+ (setf (alist-get 'width default-frame-alist)  '60)
+ (config-font 30))
+
+(when (and (with-windows) (not (with-classroom))) ;; other wins
+  (load-theme 'spacemacs-dark t)
+  (config-font 16))
+
+(with-linux-g            ;; linux graphic environment
+ (tool-bar-mode 0) (menu-bar-mode 0)
+ (set-face-attribute 'default nil :height 110))
+
+(with-debian-vps         ;; debian vps environment
+ (load-theme 'origin t)
+ (menu-bar-mode 0)
+ (xterm-mouse-mode)
+ (global-set-key [mouse-4] (ilambda (scroll-down 1)))
+ (global-set-key [mouse-5] (ilambda (scroll-up 1))))
 
 
 

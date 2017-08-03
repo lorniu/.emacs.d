@@ -8,7 +8,7 @@
   (  [f6]           toggle-truncate-lines)
   (  [f7]           (ilambda (find-file-read-only "~/.emacs.d/core/immor.el")))
   (  [f8]           calendar             )
-  (  [f9]           menu-bar-mode        )
+  (  [f9]           compile              )
   (  [f10]          shrink-window        )
   (  [f11]          enlarge-window       )
   (  [f12]          im/toggle-fullscreen )
@@ -149,7 +149,7 @@
            :html-preamble        nil
            :auto-sitemap         t
            :sitemap-filename     "index.org"
-           :sitemap-title        "IMFINEANDU"
+           :sitemap-title        ,(if (with-classroom) "List Of Contents" "IMFINEANDU")
            :html-link-up         "index.html"
            :html-link-home       "index.html"
            :publishing-function  org-html-publish-to-html
@@ -184,8 +184,6 @@
 (add-hook-lambda org-mode-hook
   ;; Time English Style
   (set (make-local-variable 'system-time-locale) "C"))
-
-
 
 
 
