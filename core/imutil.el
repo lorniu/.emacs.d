@@ -3,8 +3,14 @@
 ;;;==============================
 
 
+;;; define different environments
+(defmacro define-environments (envs)
+  `(progn ,@(mapcar (lambda (e) `(defmacro ,(car e) (&rest body) `(when ,',(cdr e) ,@body ,',(cdr e)))) envs)))
+
+
+
 ;;;
-;;; i want to sing, i want to fly
+;;; i want to sing, i want to fly, some helper macros
 ;;;
 (defmacro aif (test then &optional else)
   (declare (indent defun))
