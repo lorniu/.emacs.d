@@ -179,6 +179,12 @@
 (advice-add 'gnus :before (lambda (&rest args) (require 'imnet)))
 
 
+;;; sqlplus mode
+(add-hook-lambda sqlplus-mode-hook
+  (let ((encoding 'gbk))
+    (set-process-coding-system (get-process (sqlplus-get-process-name sqlplus-connect-string)) encoding encoding)))
+
+
 
 
 

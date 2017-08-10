@@ -71,7 +71,8 @@
          (alpha . 95) (cursor-type . bar)
          (line-spacing . 1) (tool-bar-lines . 0) (menu-bar-lines . 20 ))))
 
-(defun config-font (font-size) ;; font config
+(defun im/config-font (font-size) ;; font config
+  (interactive (list (cl-parse-integer (read-from-minibuffer "font size: "))))
   (let* ((en '("Source Code Pro" "Monaco" "Consolas" "Courier New"))
          (zh (font-spec :family "微软雅黑 Light" :weight 'extra-light)))
     (set-frame-font (font-spec :family (find-if 'x-list-fonts en) :size font-size) t)
@@ -81,11 +82,11 @@
 (with-classroom          ;; classroom environment
  (setf (alist-get 'height default-frame-alist) '23)
  (setf (alist-get 'width default-frame-alist)  '60)
- (config-font 30))
+ (im/config-font 30))
 
 (when (and (with-windows) (not (with-classroom))) ;; other wins
   (load-theme 'spacemacs-dark t)
-  (config-font 16))
+  (im/config-font 16))
 
 (with-linux-g            ;; linux graphic environment
  (tool-bar-mode 0) (menu-bar-mode 0)

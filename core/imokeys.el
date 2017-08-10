@@ -94,10 +94,10 @@
 
 ;;; variables
 (let* ((notes-home "~/.showcase/notes/")
-       (base/res "res/") (base/out "out/")
-       (download/image (concat base/res "images/"))
-       (html/css (concat base/res "imorg.css"))
-       (html/js  (concat base/res "imorg.js"))
+       (base/res "assets/") (base/out "html/")
+       (download/image (concat base/res "image/"))
+       (html/css (concat base/res "base.css"))
+       (html/js  (concat base/res "base.js"))
        (base/res/out (concat base/out base/res)))
   
   (setq org-directory             (or (getenv "NOTES_HOME") notes-home)
@@ -124,8 +124,8 @@
         org-export-with-sub-superscripts     nil
         org-publish-list-skipped-files       nil
 
-        org-html-doctype                     "html5"
         org-html-html5-fancy                 t
+        org-html-doctype                     "html5"
         org-html-container-element           "section"
         org-html-validation-link             "Go ahead, never stop."
         org-html-htmlize-output-type         'css
@@ -134,14 +134,8 @@
         org-html-head  (format "<meta name='viewport' content='width=device-width,initial-scale=1'>\n<link rel='stylesheet' href='%s'>\n<script src='%s'></script>\n" html/css html/js))
 
   (setq org-publish-project-alist
-        `(("notes" :components ("res" "org"))
-          ("res"
-           :base-directory       ,(concat org-directory base/res)
-           :publishing-directory ,(concat org-directory base/res/out)
-           :base-extension       "css\\|js\\|png\\|jpe?g\\|gif\\|svg"
-           :publishing-function  org-publish-attachment
-           :recursive            t)
-          ("org"
+        `(("notes" :components ("resources" "org-files"))
+          ("org-files"
            :base-directory       ,org-directory
            :publishing-directory ,(concat org-directory base/out)
            :headline-levels      3
@@ -153,7 +147,13 @@
            :html-link-up         "index.html"
            :html-link-home       "index.html"
            :publishing-function  org-html-publish-to-html
-           :recursive            t)))
+           :recursive            t)
+          ("resources"
+           :base-directory       ,(concat org-directory base/res)
+           :publishing-directory ,(concat org-directory base/res/out)
+           :base-extension       "css\\|js\\|png\\|jpe?g\\|gif\\|svg"
+           :publishing-function  org-publish-attachment
+           :recursive t)))
   
   (setq org-startup-with-inline-images       t
         org-download-image-dir               download/image
