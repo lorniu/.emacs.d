@@ -1,21 +1,48 @@
-
+;;;
 ;;; packages initialize
+;;;
 (setq package-user-dir "~/.emacs.d/packages")
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")))
+(setq package-archives
+      '( ("melpa"    . "http://melpa.org/packages/")
+         ;("melpa-cn" . "http://elpa.emacs-china.org/melpa/")
+         ("org-cn"   . "http://elpa.emacs-china.org/org/")
+         ("gnu-cn"   . "http://elpa.emacs-china.org/gnu/")) )
 (package-initialize)
 (let ((packages-required
-       '(anzu iedit origami session sqlplus
-              rainbow-delimiters diminish rcirc-styles spacemacs-theme
-              company yasnippet counsel-projectile magit org-download
-              web-mode js2-mode emmet-mode htmlize yaml-mode sass-mode
-              slime php-mode groovy-mode haskell-mode robe elpy c-eldoc erlang lua-mode
-              graphviz-dot-mode xcscope)))
+       '(ag anzu iedit origami session hideshowvis ssh
+            rainbow-delimiters diminish rcirc-styles spacemacs-theme
+            yasnippet counsel-projectile magit org-download
+            web-mode emmet-mode htmlize js2-mode yaml-mode sass-mode sqlplus
+            slime php-mode haskell-mode robe elpy c-eldoc erlang lua-mode go-mode
+            kotlin-mode scala-mode clojure-mode groovy-mode
+            company tern company-tern company-ghc
+            graphviz-dot-mode xcscope)))
   (unless package-archive-contents (package-refresh-contents))
   (mapc 'package-install (delete-if #'package-installed-p packages-required)))
 
 
 
-;; load-path/theme-path
+;;;
+;;; customs
+;;;
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (ssh ag xcscope graphviz-dot-mode company-ghc company-tern tern company groovy-mode clojure-mode scala-mode kotlin-mode go-mode lua-mode erlang c-eldoc elpy robe yasnippet yaml-mode web-mode sqlplus spacemacs-theme slime session sass-mode rcirc-styles rainbow-delimiters php-mode origami org-download magit js2-mode inf-ruby iedit htmlize hideshowvis haskell-mode emmet-mode diminish counsel-projectile anzu))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
+
+
+
+;;; load-path and theme-path
 (dolist (dir (directory-files "~/.emacs.d/ext" t))
   (if (and (not (eq (file-name-extension dir) ""))
            (file-directory-p dir))
@@ -25,7 +52,8 @@
 
 
 ;;; basic variables
-(setq user-full-name           "imfine"
+(setq default-directory        "~/"
+      user-full-name           "imfine"
       user-mail-address        "lorniu@gmail.com"
       bbdb-file                "~/.emacs.d/.cache/_bbdb"
       diary-file               "~/.emacs.d/.cache/_diary"
@@ -35,7 +63,7 @@
       eshell-directory-name    "~/.emacs.d/.cache/eshell"
       eshell-aliases-file      "~/.emacs.d/ext/eshell-alias"
       custom-file              "~/.emacs.d/core/cust.el"
-      server-auth-dir          "~/.emacs.d/.cache/server/"
+      temporary-file-directory "~/.emacs.d/.cache/temp/"
       org-publish-timestamp-directory "~/.emacs.d/.cache/.org-timestamps/"
 
       auto-save-list-file-prefix     nil
@@ -61,9 +89,6 @@
       enable-recursive-minibuffers t
       column-number-mode       1
 
-      sentence-end-double-space nil
-      sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*"
-
       kill-ring-max            200
       select-enable-clipboard  t
       help-window-select       t
@@ -77,22 +102,6 @@
 
 (setenv "TZ" "PRC")
 (fset 'yes-or-no-p 'y-or-n-p)
-(setq default-directory "~/")
-
-
-
-;;; syntax table
-(dolist (c '(?， ?。 ?！ ?； ?？ ?： ?/))
-  (modify-syntax-entry c "'" (standard-syntax-table)))
-
-
-;;; coding
-(set-locale-environment   "utf-8")
-(set-language-environment 'utf-8)
-(prefer-coding-system     'gb2312)
-(prefer-coding-system     'cp936)
-(prefer-coding-system     'utf-16)
-(prefer-coding-system     'utf-8-unix)
 
 
 
@@ -106,40 +115,6 @@
 
 
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(org-html-infojs-options
-   (quote
-    ((path . "iii.js")
-     (view . "info")
-     (toc . :with-toc)
-     (ftoc . "0")
-     (tdepth . "max")
-     (sdepth . "max")
-     (mouse . "underline")
-     (buttons . "0")
-     (ltoc . "1")
-     (up . :html-link-up)
-     (home . :html-link-home))))
- '(package-selected-packages
-   (quote
-    (graphviz-dot-mode lua-mode sqlplus xcscope c-eldoc elpy robe haskell-mode groovy-mode php-mode slime sass-mode yaml-mode htmlize emmet-mode js2-mode web-mode org-download magit counsel-projectile yasnippet company spacemacs-theme rcirc-styles diminish rainbow-delimiters session origami iedit anzu))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
-(defface hi-org-break
-  `((t (:foreground ,(pcase system-type
-                       ('gnu/linux "#222222")
-                       ('windows-nt "#eeeeee"))))) "for org mode \\ break")
-
-
-
 ;; init-benchmark
 (defun display-startup-echo-area-message ()
   (message ">> 加载完成，耗时 %.2f 秒." (float-time (time-subtract after-init-time before-init-time))))
@@ -147,5 +122,7 @@
 
 
 
+
 (provide 'cust)
+
 ;;; cust.el ends here
