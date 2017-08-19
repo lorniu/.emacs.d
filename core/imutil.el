@@ -3,12 +3,6 @@
 ;;;==============================
 
 
-;;; define different environments
-(defmacro define-environments (envs)
-  `(progn ,@(mapcar (lambda (e) `(defmacro ,(car e) (&rest body) `(when ,',(cdr e) ,@body ,',(cdr e)))) envs)))
-
-
-
 ;;;
 ;;; i want to sing, i want to fly, some helper macros
 ;;;
@@ -34,14 +28,15 @@
 
 
 
-
+;;;
+;;; useful functions
+;;;
 (cl-defun im/el-autocompile (&optional (dir "~/.emacs.d/core/"))
   "compile current to .elc"
   (save-window-excursion
     (when (and (eq major-mode 'emacs-lisp-mode)
                (file-exists-p (concat dir (buffer-name))))
       (byte-compile-file (buffer-file-name)))))
-
 
 
 (defun im/view-url-cursor ()
@@ -56,7 +51,6 @@
     (delete-region (point-min) (1+ (point)))
     (replace-string "><" ">\n<") (delete-blank-lines)
     (set-auto-mode)))
-
 
 
 (defun grep-cursor (word)
@@ -77,7 +71,6 @@
         (grep-apply-setting 'grep-find-command oldcmd)))))
 
 
-
 (defun tiny-code (a z)
   "indent codes according mode"
   (interactive "r")
@@ -90,7 +83,6 @@
         (t (indent-according-to-mode))))
 
 
-
 (defun wy-go-to-char (n char)
   "`f' in vim"
   (interactive "p\ncGo to char:")
@@ -101,7 +93,6 @@
   (setq unread-command-events (list last-input-event)))
 
 
-
 (defun his-match-paren (arg)
   "`%' in vim"
   (interactive "p")
@@ -110,7 +101,6 @@
     (cond ((string-match "[[{(]" next-char) (forward-sexp 1))
           ((string-match "[\]})]" prev-char) (backward-sexp 1))
           (t (self-insert-command (or arg 1))))))
-
 
 
 (defun im/count-words (beg end)
@@ -126,7 +116,6 @@
           total-byte (+ cn-word (abs (- beg end))))
     (message (format "Count Result: %d words(cn: %d, en: %d), %d bytes."
                      total-word cn-word en-word total-byte))))
-
 
 
 (defun ascii-table-show ()
@@ -160,14 +149,12 @@
     (read-only-mode 1)))
 
 
-
 (defun resume-scratch ()
   "this sends you to the *Scratch* buffer"
   (interactive)
   (let ((eme-scratch-buffer (get-buffer-create "*scratch*")))
     (switch-to-buffer eme-scratch-buffer)
     (funcall initial-major-mode)))
-
 
 
 (defun im/toggle-dedicated ()
@@ -182,7 +169,6 @@
        '(:foreground "red")
      '(:foreground "black")))
   (current-buffer))
-
 
 
 (defun im/trans-word (word)
@@ -239,7 +225,6 @@
      (list word) t t)))
 
 
-
 (defun try-expand-slime (old)
   "hippie expand word forslime"
   (when (not old)
@@ -255,7 +240,6 @@
     (message "Slime Expand") t))
 
 
-
 (defun im/copy-current-line ()
   "copy-current-line or region"
   (interactive)
@@ -263,7 +247,6 @@
       (call-interactively 'kill-ring-save)
     (copy-region-as-kill (line-beginning-position) (line-end-position))
     (message "Copied")))
-
 
 
 (defun im/copy-lines (&optional d)
@@ -288,7 +271,6 @@
     (if d (previous-line))))
 
 
-
 (defun im/kill-lines ()
   "fast move/del like in eclipse"
   (interactive)
@@ -301,7 +283,6 @@
         (goto-char (setq z (line-end-position)))
         (kill-region a z))
     (kill-whole-line)))
-
 
 
 (defmacro defkey (&rest alists)
@@ -321,165 +302,30 @@
                alists))))
 
 
-(defun imshell ()
-  "在 windows 下，使用 msys2 的 sh"
-  (interactive)
-  (aif (getenv "MSYS_HOME")
-    (let ((explicit-shell-file-name (concat it "\\usr\\bin\\sh.exe"))
-          (curr_env (getenv "PATH")))
-      (if (not (string-match-p it curr_env))
-          (setenv "PATH" (concat it "\\usr\\bin;" curr_env)))
-      (call-interactively 'shell))
-    (call-interactively 'shell)))
+(cl-defun im/find-ft (&rest names)
+  "find the proper font in the names"
+  (cl-flet ((find--ft (name &optional (filter "8859-1"))
+                      (let* ((fs (sort (x-list-fonts name) 'string-greaterp)))
+                        (find-if (lambda (f) (string-match-p (format ".*%s.*" filter) f)) fs))))
+    (dolist (name names)
+      (let ((full-name (find--ft name)))
+        (if full-name (return full-name))))))
 
 
+(defun im/start-server()
+  (setq server-auth-dir "~/.emacs.d/.cache/server/")
+  (unless (server-running-p)
+    (ignore-errors (delete-file (concat server-auth-dir "server")))
+    (server-start)))
 
-
-
-;;;
-;;; third party and unused BEGIN HERE
-;;;
-;; save or restore window configurations.
-(defvar winstack-stack '()
-  "A Stack holding window configurations. Use `winstack-push' and `winstack-pop' to modify it.")
-(defun winstack-push()
-  "Push the current window configuration onto `winstack-stack'."
-  (interactive)
-  (if (and (window-configuration-p (first winstack-stack))
-           (compare-window-configurations (first winstack-stack) (current-window-configuration)))
-      (message "Current config already pushed")
-    (progn (push (current-window-configuration) winstack-stack)
-           (message (concat "pushed " (number-to-string (length (window-list (selected-frame)))) " frame config")))))
-(defun winstack-pop()
-  "Pop the last window configuration off `winstack-stack' and apply it."
-  (interactive)
-  (if (first winstack-stack)
-      (progn (set-window-configuration (pop winstack-stack))
-             (message "popped"))
-    (message "End of window stack")))
-;;;
-;;; third party and unused END HERE
-
-
-
-
-
-;;;
-;;; for org-mode begin
-;;;
-(defun* im/org-wrap-code (&optional (a "#+BEGIN_SRC") (z "#+END_SRC"))
-  "helper to generate CODE wrapper"
-  (interactive)
-  (if (use-region-p)
-      (let ((ra (region-beginning)) (rz (region-end))
-            (lang (read-from-minibuffer "Please input your type: ")))
-        (save-excursion
-          (goto-char rz) (end-of-line)
-          (newline) (insert z) (newline)
-          (goto-char ra) (beginning-of-line)
-          (open-line 1) (insert (concat a " " lang))
-          (indent-according-to-mode)))
-    (let (p)
-      (insert a) (indent-according-to-mode) (setq p (point))
-      (newline-and-indent) (insert z) (newline) (goto-char p))))
-;;;
-;;; for org-mode end
-
-
-
-
-
-;;;
-;;; for the main mode mmm~mode
-;;;
-(defmacro mmm/load-modes (&optional stat)
-  "load/toggle these modes"
-  (declare (indent defun))
-  `(progn ,@(mapcar (lambda (mode)
-                      (list mode (or stat 1)))
-                    mmm/modes-to-load)))
-
-(defmacro mmm/diminish ()
-  "`diminish-mode' helper.\n\nUsage:\n\n (dim-these a b (c \"x\"))"
-  `(progn
-     (defun refresh-diminish ()
-       "dim minor modes"
-       (interactive)
-       ,@(mapcar (lambda (m)
-                   (if (listp m)
-                       `(diminish ',(car m) ,(cadr m))
-                     `(diminish ',m)))
-                 mmm/list-to-dim))
-     (add-hook 'find-file-hook 'refresh-diminish)))
-
-(defmacro mmm/add-keywords ()
-  "add face to words for any mode"
-  `(progn
-     ,@(mapcar (lambda (item)
-                 `(add-hook-lambda ,(car item)
-                    (font-lock-add-keywords nil ',(cdr item))))
-               mmm/keywords-to-add)))
-;;;
-;;; for mmm~mode end here
-
-
-
-
-(defmacro im/with-directory-buffers(dir filter &rest form)
-  "walk the directory, operate each with current buffer."
-  (declare (indent defun))
-  (let ((file (gensym)))
-    `(save-window-excursion
-       (dolist (,file (directory-files-recursively ,dir (or ,filter "*")))
-         (with-current-buffer (find-file ,file)
-           (unwind-protect (progn ,@form)
-             (if (buffer-modified-p)
-                 (save-buffer)
-               (kill-buffer)))))
-       (message "\n||| FINISHED |||\n") 1)))
-
-
-(defun tramp ()
-  "a shortcut for tramp my remote site"
-  (interactive)
-  (ivy-mode -1)
-  (find-file (completing-read "sss: " '("/sshx:root@45.32.42.177:~/")))
-  (ivy-mode 1))
-
-
-(defun im/make-openwith-reg-for-win ()
-  "生成一个注册表文件，导入后，会为 windows 右键添加 `用 Emacs 打开` 的选项"
-  (interactive)
-
-  (unless (eq system-type 'windows-nt) (error "您用的不是 Windows，这个函数对您没卵用！"))
-
-  (flet ((win-path (path) (replace-regexp-in-string "/" "\\\\" (file-truename path) t t)))
-    (let* ((buffer-file-coding-system 'gbk)
-           (emacs-home  (win-path (car (split-string exec-directory "libexec"))))
-           (emacs-bin-path (concat emacs-home "bin\\\\"))
-           (server-file (win-path (concat server-auth-dir "server")))
-           (reg-file    (concat emacs-home "OpenWithEmacs.reg"))
-           (reg-string  "Windows Registry Editor Version 5.00\n
-[HKEY_CLASSES_ROOT\\*\\shell\\Open with GNU &Emacs]\n
-[HKEY_CLASSES_ROOT\\*\\shell\\Open with GNU &Emacs\\Command]
-@=\"\\\"%s\\\" --no-wait --server-file=\\\"%s\\\" --alternate-editor=\\\"%s\\\" \\\"%%1\\\"\" "))
-    
-      (with-temp-file reg-file
-        (insert (format reg-string
-                        (concat emacs-bin-path "emacsclientw.exe")
-                        server-file
-                        (concat emacs-bin-path "runemacs.exe"))))
-
-      (if (yes-or-no-p (format "已保存为 %s。跳转？" reg-file))
-        (w32-shell-execute "open" emacs-home)))))
-
-
-
-
+(defun im/pp (list)
+  "loop princ a list"
+  (dolist (l list t) (princ l) (terpri)))
 
 
 
 
 
 (provide 'imutil)
+
 ;;; imutil.el ends here

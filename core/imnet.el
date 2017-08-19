@@ -4,29 +4,6 @@
 ;;;========================================
 
 
-
-
-
-;;; DEMOS
-(defun im/refactor-encoding-in-directory ()
-  "emacs style batch mode / change coding under the dir"
-  (dolist (file (directory-files-recursively "/var/www/" ".*\.rb"))
-    (with-current-buffer (find-file file)
-      (when (or (eq buffer-file-coding-system 'chinese-gbk-dos)
-                (eq buffer-file-coding-system 'chinese-gbk-unix))
-        (set-buffer-file-coding-system 'utf-8)
-        (save-buffer))
-      (kill-buffer))))
-
-  
-
-
-
-
-
-
-
-
 ;;; rcirc
 (require 'rcirc-styles)
 
@@ -110,16 +87,15 @@
 
 
 
-
-;;; gnus
-
+;;;============
+;;;    gnus
+;;;============
 ;; server list
 (setq gnus-select-method
       '(nnimap "gmail"
                (nnimap-address "imap.gmail.com")
                (nnimap-server-port "imaps")
                (nnimap-stream ssl)))
-
 (setq gnus-secondary-select-methods
       (list
        ;;'(nntp "news.gmane.org")
@@ -127,7 +103,6 @@
        ;;'(nntp "news.newsfan.net")
        ;;'(nntp "adult.newsgroup.la")
        ))
-
 ;; basic
 (setq gnus-novice-user nil)
 (setq gnus-expert-user t)
@@ -140,7 +115,6 @@
 (setq mm-inline-large-images t)
 (setq send-mail-function 'smtpmail-send-it)
 (setq gnus-fetch-old-headers 'some)
-
 ;; Display formate
 (setq gnus-summary-same-subject ""
       gnus-sum-thread-tree-indent "  "
@@ -157,8 +131,6 @@
       "%{%M%S%p%} %0{%1y%} %P%4{%G%}\n"
       gnus-summary-line-format
       "%U%R%z%O %{%-5&user-date;%} %{%ua%} %B %(%I%-50,50s%)\n")
-
-
 ;; Display User
 (defun gnus-user-format-function-a (header)
   (let ((myself (concat "nicol.tao"))
@@ -169,12 +141,10 @@
             (and (stringp message-id)
                  (string-match myself message-id)))
         "X" "│")))
-
 ;; time etc
 (add-hook 'gnus-article-prepare-hook 'gnus-article-date-local)
 (add-hook 'gnus-select-group-hook 'gnus-group-set-timestamp)
 (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
-
 ;; Header
 (setq gnus-visible-headers
       (mapconcat 'regexp-quote
@@ -187,12 +157,10 @@
                    "X-Spam-Status:" "X-Now-Playing"
                    "X-Attachments" "X-Diagnostic")
                  "\\|"))
-
 (setq gnus-message-archive-group
       '((if (message-news-p)
             "nnfolder+archive:nnfolder"
           "nnmaildir+Gmail:inbox")))
-
 (setq gnus-posting-styles
       '((".*"
          (name "lorxiu")
@@ -201,7 +169,6 @@
         ((message-mail-p)
          (name "lorniu")
          (address "lorniu@gmail.com"))))
-
 (setq gnus-default-charset 'utf-8
       gnus-group-charset-alist
       '(("newsgroup\\.la" big5)
@@ -227,4 +194,5 @@
 
 
 (provide 'imnet)
+
 ;;; imnet.el ends here
