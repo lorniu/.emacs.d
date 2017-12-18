@@ -15,7 +15,7 @@
             web-mode emmet-mode htmlize js2-mode yaml-mode sass-mode sqlplus
             slime php-mode haskell-mode robe elpy c-eldoc erlang lua-mode go-mode
             kotlin-mode scala-mode clojure-mode groovy-mode
-            company tern company-tern company-ghc
+            company tern company-tern company-ghc company-php
             graphviz-dot-mode xcscope)))
   (unless package-archive-contents (package-refresh-contents))
   (mapc 'package-install (delete-if #'package-installed-p packages-required)))

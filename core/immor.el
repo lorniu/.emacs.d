@@ -392,11 +392,8 @@
 
 
 ;;; PHP
-(with-eval-after-load 'php
-  ;; temprary deal the error when org-publish: 'php-variable-name-face not found'
-  (defface php-variable-name-face '((t (:inherit font-lock-variable-name-face)))
-    "PHP Mode face used to highlight variable names."
-    :group 'php-faces))
+(with-eval-after-load 'php-mode
+  (add-to-list 'company-backends 'company-ac-php-backend ))
 
 
 
