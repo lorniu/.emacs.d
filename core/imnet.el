@@ -20,7 +20,7 @@
       rcirc-keywords       '("money" "lisp")
       rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY"))
 
-(add-hook-lambda rcirc-mode-hook
+(add-hook-lambda 'rcirc-mode-hook
   (rcirc-track-minor-mode 1)
   (unless rcirc-omit-mode
     (rcirc-omit-mode)

@@ -4,14 +4,16 @@
 
 
 (defun im/initialize-emacs-for-win ()
+    (interactive)
   "Initialization ContextMenu for Windows, etc:
 1. execute this function, and import the generated `.reg` file to os;
 2. put the symlink of `runemacs.exe` with arg `--daemon` to `shell:start`
-3. put the symlink of `emacsclientw.exe` with arg `-n -c -a ""` to Desktop "
-  (interactive)
+3. put the symlink of `emacsclientw.exe` with arg `-n -c -a ""` to Desktop
+4. if CYGWIN exist, put Cygwin Home to 'CYGWIN' env."
+
   (unless (eq system-type 'windows-nt) (error "NO-WINNT, this is useless!"))
 
-  (flet ((win-path (n path) (replace-regexp-in-string "/" (if (> n 1) "\\\\" "\\") (file-truename path) t t)))
+  (cl-flet ((win-path (n path) (replace-regexp-in-string "/" (if (> n 1) "\\\\" "\\") (file-truename path) t t)))
     (let* ((emacs-home (win-path 2 (car (split-string exec-directory "libexec"))))
            (reg-file    (concat emacs-home "OpenWithEmacs.reg"))
            (reg-string  "Windows Registry Editor Version 5.00\n
@@ -23,7 +25,7 @@
       (start-process "a" "f" "setx" "EMACS_SERVER_FILE"
          (win-path 1 (concat server-auth-dir "server")))
 
-      ;; Generate ContextMenu.reg    
+      ;; Generate ContextMenu.reg
       (with-temp-file reg-file
         (insert (format reg-string
                         (concat emacs-home "bin\\\\" "emacsclientw.exe")
