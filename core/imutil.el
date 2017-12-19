@@ -1,11 +1,10 @@
 ;;;==============================
-;;;   functions
+;;;   functions & s o
 ;;;==============================
 
 
-;;;
-;;; i want to sing, i want to fly, some helper macros
-;;;
+;;; I want to sing, I want to fly.
+
 (defmacro aif (test then &optional else)
   (declare (indent defun))
   `(let ((it ,test)) (if it ,then ,else)))
@@ -19,23 +18,33 @@
 
 (defmacro add-hook-lambda (hook &rest body)
   (declare (indent defun))
-  `(add-hook ',hook (lambda () ,@body)))
-
-(defmacro pm (expr)
-  `(pp (macroexpand-1 ',expr)))
-;;;
-;;; global macros end
+  `(add-hook ,hook (lambda () ,@body)))
 
 
 
-;;;
+
+;;; helper
+
+(defmacro pm (expr) `(pp (macroexpand-1 ',expr)))
+(defun ppp (list) (dolist (l list t) (princ l) (terpri)))
+
+
+
+
 ;;; useful functions
-;;;
-(cl-defun im/el-autocompile (&optional (dir "~/.emacs.d/core/"))
+
+(defun time (&optional time nano)
+  "get the time string"
+  (format-time-string
+   (if nano (concat "%F %T.%" (number-to-string nano) "N") "%F %T")
+   time))
+
+
+(defun im/el-autocompile (&optional dir)
   "compile current to .elc"
   (save-window-excursion
     (when (and (eq major-mode 'emacs-lisp-mode)
-               (file-exists-p (concat dir (buffer-name))))
+               (file-exists-p (concat (or dir "~/.emacs.d/core/") (buffer-name))))
       (byte-compile-file (buffer-file-name)))))
 
 
@@ -49,14 +58,16 @@
     (goto-char (point-min))
     (re-search-forward "^$")
     (delete-region (point-min) (1+ (point)))
-    (replace-string "><" ">\n<") (delete-blank-lines)
+    (search-forward "><")
+    (replace-match ">\n<")
+    (delete-blank-lines)
     (set-auto-mode)))
 
 
 (defun grep-cursor (word)
   "grep the current word in the files"
   (interactive (list (if (use-region-p)
-                         (buffer-substring (region-beginning region-end))
+                         (buffer-substring region-beginning region-end)
                        (current-word))))
   (if (or (not word) (< (length word) 3))
       (message "word not available")
@@ -71,10 +82,10 @@
         (grep-apply-setting 'grep-find-command oldcmd)))))
 
 
-(defun tiny-code (a z)
+(defun tiny-code ()
   "indent codes according mode"
-  (interactive "r")
-  (cond ((use-region-p) (indent-region a z))
+  (interactive)
+  (cond ((use-region-p) (indent-region (region-beginning) (region-end)))
         ((string-match-p ")\\|}" (char-to-string (preceding-char)))
          (let ((point-ori (point)))
            (backward-sexp 1)
@@ -157,19 +168,6 @@
     (funcall initial-major-mode)))
 
 
-(defun im/toggle-dedicated ()
-  "whether the current active window is dedicated or not"
-  (interactive)
-  (face-remap-add-relative
-   'mode-line-buffer-id
-   (if (let ((window (get-buffer-window (current-buffer))))
-         (set-window-dedicated-p
-          window 
-          (not (window-dedicated-p window))))
-       '(:foreground "red")
-     '(:foreground "black")))
-  (current-buffer))
-
 
 (defun im/trans-word (word)
   "translate with YouDao online"
@@ -204,13 +202,13 @@
                         (string-as-multibyte
                          (or (match-string 1) ""))))
               (pnetic (propertize pnetic 'face 'font-lock-string-face))
-              (apoint (re-search-forward "<ul>" nil t))
-              (zpoint (re-search-forward "</ul>" nil t))
+              (beg (re-search-forward "<ul>" nil t))
+              (end (re-search-forward "</ul>" nil t))
               (str (propertize word 'face '(:foreground "red")))
               (res (list (concat str " " pnetic))))
-         (goto-char apoint)
+         (goto-char beg)
          (while (and (< (incf num) im/trans-limit)
-                     (re-search-forward regstr zpoint t))
+                     (re-search-forward regstr end t))
            (setq str (string-as-multibyte
                       (or (replace-regexp-in-string
                            "<.+?>" ""
@@ -226,7 +224,7 @@
 
 
 (defun try-expand-slime (old)
-  "hippie expand word forslime"
+  "hippie expand word for slime"
   (when (not old)
     (he-init-string (slime-symbol-start-pos) (slime-symbol-end-pos))
     (setq he-expand-list
@@ -253,35 +251,35 @@
   "copy lines down/up, like in eclipse"
   (interactive)
   (if (use-region-p)
-      (let ((a (region-beginning))
-            (z (region-end)))
-        (goto-char a)
-        (setq a (line-beginning-position))
-        (goto-char z)
-        (goto-char (setq z (line-end-position)))
-        (kill-ring-save a z)
+      (let ((beg (region-beginning))
+            (end (region-end)))
+        (goto-char beg)
+        (setq beg (line-beginning-position))
+        (goto-char end)
+        (goto-char (setq end (line-end-position)))
+        (kill-ring-save beg end)
         (newline)
         (yank)
-        (if d (goto-char z)))
+        (if d (goto-char end)))
     (kill-ring-save (line-beginning-position)
                     (line-end-position))
     (end-of-line)
     (newline)
     (yank)
-    (if d (previous-line))))
+    (if d (forward-line -1))))
 
 
 (defun im/kill-lines ()
   "fast move/del like in eclipse"
   (interactive)
   (if (use-region-p)
-      (let ((a (region-beginning))
-            (z (region-end)))
-        (goto-char a)
-        (setq a (line-beginning-position))
-        (goto-char z)
-        (goto-char (setq z (line-end-position)))
-        (kill-region a z))
+      (let ((beg (region-beginning))
+            (end (region-end)))
+        (goto-char beg)
+        (setq beg (line-beginning-position))
+        (goto-char end)
+        (goto-char (setq end (line-end-position)))
+        (kill-region beg end))
     (kill-whole-line)))
 
 
@@ -306,7 +304,7 @@
   "find the proper font in the names"
   (cl-flet ((find--ft (name &optional (filter "8859-1"))
                       (let* ((fs (sort (x-list-fonts name) 'string-greaterp)))
-                        (find-if (lambda (f) (string-match-p (format ".*%s.*" filter) f)) fs))))
+                        (seq-find (lambda (f) (string-match-p (format ".*%s.*" filter) f)) fs))))
     (dolist (name names)
       (let ((full-name (find--ft name)))
         (if full-name (return full-name))))))
@@ -318,9 +316,35 @@
     (ignore-errors (delete-file (concat server-auth-dir "server")))
     (server-start)))
 
-(defun im/pp (list)
-  "loop princ a list"
-  (dolist (l list t) (princ l) (terpri)))
+
+
+
+;;; utils
+
+(defun im/toggle-fullscreen ()
+  "[F12] save the window configuration before delete windows"
+  (interactive)
+  (if (> (count-windows) 1)
+      (progn (window-configuration-to-register 99)
+             (delete-other-windows))
+    (if (get-register 99)
+        (jump-to-register 99)
+      (message "never save window configurations"))))
+
+(defun im/toggle-dedicated ()
+  "whether the current active window is dedicated or not"
+  (interactive)
+  (face-remap-add-relative
+   'mode-line-buffer-id
+   (if (let ((window (get-buffer-window (current-buffer))))
+         (set-window-dedicated-p
+          window
+          (not (window-dedicated-p window))))
+       '(:foreground "red")
+     '(:foreground "black")))
+  (current-buffer))
+
+
 
 
 
