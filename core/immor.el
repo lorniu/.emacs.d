@@ -16,7 +16,7 @@
 
 ;;; Hooks
 (defun im/task-after-open-file ()
-  (if (string-match-p "^/usr/.*" buffer-file-name)
+  (if (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs-lisp/" buffer-file-name)
       (read-only-mode 1)))
 
 (defun im/task-when-idle ()
@@ -32,7 +32,7 @@
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 (add-hook 'after-save-hook 'im/el-autocompile)
 (add-hook 'auto-save-hook 'im/task-when-idle)
-(add-hook 'after-find-file 'im/task-after-open-file)
+(add-hook 'find-file-hook 'im/task-after-open-file)
 
 
 ;;; Auto-mode-alist
