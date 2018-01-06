@@ -1,38 +1,106 @@
-;;;
-;;; packages initialize
-;;;
-(defun im/refresh-package (&optional block)
-  (interactive)
-  (setq package-user-dir "~/.emacs.d/packages"
+;;; cust.el --- Packages Initialize And Basic Configurations
+;;; Commentary:
+
+;;; Code:
+
+;;; Initialization
+
+(defun im/refresh-package (packages-required &optional block)
+  (setq package-enable-at-startup nil
+        package-user-dir "~/.emacs.d/packages"
         package-archives
         `(("melpa" . ,(if block "http://elpa.emacs-china.org/melpa/"
                         "http://melpa.org/packages/"))
           ("org"   . "http://elpa.emacs-china.org/org/")
-          ("gnu"   . "http://elpa.emacs-china.org/gnu/"))
-
-        packages-required
-        '(use-package diminish bind-key
-
-           spacemacs-theme rainbow-delimiters rcirc-styles anzu
-           ag session iedit origami org-download graphviz-dot-mode sqlplus magit
-           exec-path-from-shell multiple-cursors neotree
-
-           slime php-mode intero robe elpy c-eldoc erlang lua-mode go-mode
-           kotlin-mode scala-mode clojure-mode groovy-mode
-
-           web-mode js2-mode emmet-mode htmlize yaml-mode sass-mode impatient-mode
-
-           counsel-projectile yasnippet xcscope js2-refactor web-beautify
-           company-statistics company-web tern company-tern company-ghc company-go company-php
-
-           ))
+          ("gnu"   . "http://elpa.emacs-china.org/gnu/")))
   (package-initialize)
   (unless package-archive-contents (package-refresh-contents))
-  (mapc 'package-install (seq-remove #'package-installed-p packages-required)))
+  (mapc 'package-install (seq-remove 'package-installed-p packages-required)))
 
+(im/refresh-package
+ '(use-package diminish bind-key
 
-;;; packages
-(im/refresh-package)
+    spacemacs-theme rainbow-delimiters rcirc-styles anzu beacon
+    ag session iedit org-download graphviz-dot-mode sqlplus magit
+    exec-path-from-shell multiple-cursors neotree
+
+    slime php-mode intero robe elpy c-eldoc erlang lua-mode go-mode
+    kotlin-mode scala-mode clojure-mode groovy-mode
+
+    web-mode js2-mode emmet-mode htmlize yaml-mode sass-mode impatient-mode
+
+    counsel-projectile yasnippet xcscope web-beautify tide
+    company-statistics company-web company-ghc company-go company-php
+    ))
+
+;;; Load-Path/Theme-Path
+
+(dolist (dir (directory-files "~/.emacs.d/ext" t))
+  (if (and (not (eq (file-name-extension dir) ""))
+           (file-directory-p dir))
+      (add-to-list 'load-path dir)))
+
+(add-to-list 'custom-theme-load-path "~/.emacs.d/ext/themes")
+
+;;; Basic Variables
+
+(setq
+ default-directory        "~/"
+ user-full-name           "imfine"
+ user-mail-address        "lorniu@gmail.com"
+ custom-file              "~/.emacs.d/core/cust.el"
+ eshell-aliases-file      "~/.emacs.d/ext/eshell-alias"
+ _CACHE_                  "~/.emacs.d/.cache/"
+ bbdb-file                (concat _CACHE_ "_bbdb")
+ diary-file               (concat _CACHE_ "_diary")
+ bookmark-default-file    (concat _CACHE_ "_bookmark")
+ abbrev-file-name         (concat _CACHE_ "_abbrevs")
+ recentf-save-file        (concat _CACHE_ "_recentf")
+ eshell-directory-name    (concat _CACHE_ "eshell")
+ temporary-file-directory (concat _CACHE_ "/temp/")
+
+ auto-save-interval 0
+ auto-save-list-file-prefix nil
+ backup-directory-alist `((".*" . ,temporary-file-directory))
+ auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
+
+ inhibit-startup-message  t
+ gnus-inhibit-startup-message t
+ track-eol                t
+ visible-bell             nil
+ ring-bell-function       'ignore
+
+ scroll-step              1
+ scroll-margin            0
+ hscroll-step             1
+ hscroll-margin           1
+ scroll-conservatively    101
+
+ resize-mini-windows      t
+ enable-recursive-minibuffers t
+ column-number-mode       1
+ fringes-outside-margins  t
+
+ kill-ring-max            200
+ select-enable-clipboard  t
+ help-window-select       t
+ man-notify-method        'pushy
+ woman-use-own-frame      nil)
+
+(setq-default
+ tab-width                4
+ indent-tabs-mode         nil
+ truncate-lines           t
+ show-trailing-whitespace nil)
+
+(setenv "TZ" "PRC")
+(fset 'yes-or-no-p 'y-or-n-p)
+
+(mapc (lambda (x) (put x 'disabled nil))
+      '(narrow-to-region narrow-to-page downcase-region upcase-region set-goal-column erase-buffer))
+
+;;; Use-Package
+
 (defvar im/need-idle-loads nil)
 (mapc 'require '(use-package diminish bind-key))
 
@@ -48,13 +116,8 @@
        ,(if (seq-contains flag ?w) `(add-to-list 'im/need-idle-loads ',name))
        (use-package ,name ,@x-options ,@args))))
 
+;;; Custom-Set
 
-
-
-
-;;;
-;;; customs
-;;;
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -62,85 +125,14 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (company-clang yaml-mode web-mode web-beautify use-package ssh sqlplus spacemacs-theme slime session scala-mode sbt-mode sass-mode robe rcirc-styles rainbow-delimiters origami org-download neotree magit lua-mode kotlin-mode js2-refactor intero impatient-mode iedit hideshowvis groovy-mode graphviz-dot-mode exec-path-from-shell erlang emmet-mode elpy diminish delight counsel-projectile company-web company-tern company-statistics company-php company-go company-ghc clojure-mode c-eldoc anzu ag ac-html-csswatcher ac-html-bootstrap))))
+    (company-php company-go company-ghc company-web company-statistics tide web-beautify xcscope yasnippet counsel-projectile impatient-mode sass-mode yaml-mode htmlize emmet-mode js2-mode web-mode groovy-mode clojure-mode scala-mode kotlin-mode go-mode lua-mode erlang c-eldoc elpy robe intero php-mode slime neotree multiple-cursors exec-path-from-shell magit sqlplus graphviz-dot-mode org-download iedit session ag beacon anzu rcirc-styles rainbow-delimiters spacemacs-theme bind-key diminish use-package)))
+ '(send-mail-function (quote smtpmail-send-it)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-
-
-
-;;; basic variables
-(setq default-directory        "~/"
-      user-full-name           "imfine"
-      user-mail-address        "lorniu@gmail.com"
-      custom-file              "~/.emacs.d/core/cust.el"
-      eshell-aliases-file      "~/.emacs.d/ext/eshell-alias"
-      _CACHE_                  "~/.emacs.d/.cache/"
-      bbdb-file                (concat _CACHE_ "_bbdb")
-      diary-file               (concat _CACHE_ "_diary")
-      bookmark-default-file    (concat _CACHE_ "_bookmark")
-      abbrev-file-name         (concat _CACHE_ "_abbrevs")
-      recentf-save-file        (concat _CACHE_ "_recentf")
-      eshell-directory-name    (concat _CACHE_ "eshell")
-      temporary-file-directory (concat _CACHE_ "/temp/")
-      org-publish-timestamp-directory (concat _CACHE_ ".org-timestamps/")
-
-      auto-save-interval             0
-      auto-save-list-file-prefix     nil
-      backup-directory-alist         `((".*" . ,temporary-file-directory))
-      auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
-
-(setq debug-on-error           nil
-      inhibit-startup-message  t
-      gnus-inhibit-startup-message t
-      track-eol                t
-      visible-bell             nil
-      ring-bell-function       'ignore
-
-      scroll-step              1
-      scroll-margin            0
-      hscroll-step             1
-      hscroll-margin           1
-      scroll-conservatively    101
-
-      gc-cons-threshold        100000000)
-
-(setq resize-mini-windows      t
-      enable-recursive-minibuffers t
-      column-number-mode       1
-      fringes-outside-margins  t
-
-      kill-ring-max            200
-      select-enable-clipboard  t
-      help-window-select       t
-      man-notify-method        'pushy
-      woman-use-own-frame      nil  )
-
-(setq-default tab-width          4 )
-(setq-default indent-tabs-mode nil )
-(setq-default truncate-lines     t )
-(setq-default show-trailing-whitespace nil)
-
-(setenv "TZ" "PRC")
-(fset 'yes-or-no-p 'y-or-n-p)
-
-
-
-;;; enable
-(put 'narrow-to-region    'disabled nil)
-(put 'narrow-to-page      'disabled nil)
-(put 'downcase-region     'disabled nil)
-(put 'upcase-region       'disabled nil)
-(put 'set-goal-column     'disabled nil)
-(put 'erase-buffer        'disabled nil)
-
-
-
-
-
 
 (provide 'cust)
 

@@ -1,4 +1,4 @@
-;;; This is my personal emacs configuration.
+;;; imfine.el --- This is my personal emacs configuration.
 
 ;; Copyright 2008 by imfine. All rights reserved.
 
@@ -6,52 +6,39 @@
 ;; Version: 0.01
 ;; License: GPLv3
 
+;;; Commentary:
+
 ;;; Code:
 
+(require 'bm)
+(require 'imutil)
 
-;;;
-;;; different environments
-;;;
+(setq debug-on-error t)
+(setq gc-cons-threshold 100000000)
+
+;;; Environments
+
 (defmacro define-environments (envs)
   `(progn ,@(mapcar (lambda (e) `(defmacro ,(car e) (&rest body) `(when ,',(cdr e) ,@body ,',(cdr e)))) envs)))
 
 (define-environments
-  ((with-windows    . (eq system-type 'windows-nt))
-   (with-classroom  . (string= user-login-name "lol"))
-   (with-linux      . (eq system-type 'gnu/linux))
-   (with-linux-g    . (and (eq system-type 'gnu/linux) (display-graphic-p)))
-   (with-linux-vps  . (string= (system-name) "remote"))
-   (with-graphic    . (display-graphic-p))))
+  ((env-windows    . (eq system-type 'windows-nt))
+   (env-classroom  . (string= user-login-name "lol"))
+   (env-linux      . (eq system-type 'gnu/linux))
+   (env-linux-g    . (and (eq system-type 'gnu/linux) (display-graphic-p)))
+   (env-linux-vps  . (string= (system-name) "remote"))
+   (env-graphic    . (display-graphic-p))))
 
+;;; Modules
 
-
-;;;
-;;; load-path and theme-path
-;;;
-(dolist (dir (directory-files "~/.emacs.d/ext" t))
-  (if (and (not (eq (file-name-extension dir) ""))
-           (file-directory-p dir))
-      (add-to-list 'load-path dir)))
-(add-to-list 'custom-theme-load-path "~/.emacs.d/ext/themes")
-
-
-
-;;;
-;;; load modules
-;;;
-(require 'bm)
 (require 'cust)
-(require 'server)
-(require 'imutil)
 (require 'imokeys)
 (require 'immor)
+(require 'imnet)
 (require 'imface)
-(with-windows (im/start-server))
 (require 'imsilly)
-
-
-
+(env-windows (im/start-server))
 
 (provide 'imfine)
 
-;;; file ends here
+;;; imfine.el ends here

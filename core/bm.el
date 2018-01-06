@@ -1,6 +1,9 @@
-;;; benchmarking
+;;; bm.el --- BenchMarking
+;;; Commentary:
+;;; Code:
 
 (defvar bm/time nil)
+
 (defvar bm/last-time nil)
 
 (defun time-subtract-seconds (b a)
@@ -30,10 +33,11 @@
          (lambda (a b) (> (cdr a) (cdr b)))))
   (setq bm/last-time (copy-tree bm/time)) t)
 
-
 (defun display-startup-echo-area-message ()
   (message ">> 加载完成，耗时 %.2f 秒."
            (time-subtract-seconds after-init-time before-init-time)))
 
 
 (provide 'bm)
+
+;;; bm.el ends here
