@@ -1,9 +1,9 @@
-;;;==============================
-;;;   functions & s o
-;;;==============================
+;;; imutil.el --- Functions And Utils
+;;; Commentary:
 
+;;; Code:
 
-;;; I want to sing, I want to fly.
+;;; Macros
 
 (defmacro aif (test then &optional else)
   (declare (indent defun))
@@ -13,40 +13,46 @@
   (declare (indent defun))
   `(aif ,test (progn ,@rest)))
 
-(defmacro ilambda (&rest body)
+(defmacro lambdai (&rest body)
   `(lambda () (interactive) ,@body))
 
 (defmacro add-hook-lambda (hook &rest body)
   (declare (indent defun))
   `(add-hook ,hook (lambda () ,@body)))
 
+;;; Helpers
 
+(defmacro pm (expr)
+  `(pp (macroexpand-1 ',expr)))
 
+(defun ppp (list)
+  (dolist (l list t) (princ l) (terpri)))
 
-;;; helper
+(defmacro mmm (&rest expr)
+  `(message ,@expr))
 
-(defmacro pm (expr) `(pp (macroexpand-1 ',expr)))
-(defun ppp (list) (dolist (l list t) (princ l) (terpri)))
-
-
-
-
-;;; useful functions
+;;; Utility
 
 (defun time (&optional time nano)
-  "get the time string"
+  "Format TIME to String. if TIME is nil, return current time."
   (format-time-string
    (if nano (concat "%F %T.%" (number-to-string nano) "N") "%F %T")
    time))
 
+(defun im/read-file-content (file &optional listp)
+  "Read the FILE, return content as String, or List if listp not nil."
+  (with-temp-buffer
+    (insert-file-contents file)
+    (if listp
+        (split-string (buffer-string) "\n" t)
+      (buffer-string))))
 
 (defun im/el-autocompile (&optional dir)
-  "compile current to .elc"
+  "Compile Emacs files in DIR to .elc."
   (save-window-excursion
     (when (and (eq major-mode 'emacs-lisp-mode)
                (file-exists-p (concat (or dir "~/.emacs.d/core/") (buffer-name))))
       (byte-compile-file (buffer-file-name)))))
-
 
 (defun im/view-url-cursor ()
   "Open a new buffer containing the contents of URL."
@@ -63,11 +69,10 @@
     (delete-blank-lines)
     (set-auto-mode)))
 
-
 (defun grep-cursor (word)
-  "grep the current word in the files"
+  "Grep the current WORD in the files."
   (interactive (list (if (use-region-p)
-                         (buffer-substring region-beginning region-end)
+                         (buffer-substring (region-beginning) (region-end))
                        (current-word))))
   (if (or (not word) (< (length word) 3))
       (message "word not available")
@@ -81,9 +86,8 @@
             (call-interactively 'grep-find))
         (grep-apply-setting 'grep-find-command oldcmd)))))
 
-
-(defun tiny-code ()
-  "indent codes according mode"
+(defun im/tiny-code ()
+  "Indent codes according mode."
   (interactive)
   (cond ((use-region-p) (indent-region (region-beginning) (region-end)))
         ((string-match-p ")\\|}" (char-to-string (preceding-char)))
@@ -93,9 +97,8 @@
            (forward-sexp 1)))
         (t (indent-according-to-mode))))
 
-
 (defun wy-go-to-char (n char)
-  "`f' in vim"
+  "Jump to the Nth CHAR inline, as `f' in vim."
   (interactive "p\ncGo to char:")
   (search-forward (string char) nil nil n)
   (while (char-equal (read-char)
@@ -103,19 +106,17 @@
     (search-forward (string char) nil nil n))
   (setq unread-command-events (list last-input-event)))
 
-
-(defun his-match-paren (arg)
-  "`%' in vim"
+(defun his-match-paren (n)
+  "Like `%' in vim. N is self-insert times."
   (interactive "p")
   (let ((prev-char (char-to-string (preceding-char)))
         (next-char (char-to-string (following-char))))
     (cond ((string-match "[[{(]" next-char) (forward-sexp 1))
           ((string-match "[\]})]" prev-char) (backward-sexp 1))
-          (t (self-insert-command (or arg 1))))))
-
+          (t (self-insert-command (or n 1))))))
 
 (defun im/count-words (beg end)
-  "Count Chinese and English words in marked region."
+  "Count words in marked region(BEG to END)."
   (interactive "r")
   (let ((cn-word 0)
         (en-word 0)
@@ -128,9 +129,8 @@
     (message (format "Count Result: %d words(cn: %d, en: %d), %d bytes."
                      total-word cn-word en-word total-byte))))
 
-
 (defun ascii-table-show ()
-  "Print the ascii table"
+  "Print ASCII table."
   (interactive)
   (with-current-buffer
       (switch-to-buffer "*ASCII table*")
@@ -159,18 +159,15 @@
     (local-set-key "Q" 'kill-this-buffer)
     (read-only-mode 1)))
 
-
 (defun resume-scratch ()
-  "this sends you to the *Scratch* buffer"
+  "This sends you to the *Scratch* buffer."
   (interactive)
   (let ((eme-scratch-buffer (get-buffer-create "*scratch*")))
     (switch-to-buffer eme-scratch-buffer)
     (funcall initial-major-mode)))
 
-
-
 (defun im/trans-word (word)
-  "translate with YouDao online"
+  "Translate WORD with YouDao online."
   (interactive (list
                 (let ((w (if (use-region-p)
                              (buffer-substring-no-properties (region-beginning) (region-end))
@@ -207,7 +204,7 @@
               (str (propertize word 'face '(:foreground "red")))
               (res (list (concat str " " pnetic))))
          (goto-char beg)
-         (while (and (< (incf num) im/trans-limit)
+         (while (and (< (setq num (1+ num)) im/trans-limit)
                      (re-search-forward regstr end t))
            (setq str (string-as-multibyte
                       (or (replace-regexp-in-string
@@ -222,9 +219,8 @@
          (kill-buffer)))
      (list word) t t)))
 
-
 (defun try-expand-slime (old)
-  "hippie expand word for slime"
+  "Hippie Expand OLD word for slime."
   (when (not old)
     (he-init-string (slime-symbol-start-pos) (slime-symbol-end-pos))
     (setq he-expand-list
@@ -237,18 +233,16 @@
     (setq he-expand-list (cdr he-expand-list))
     (message "Slime Expand") t))
 
-
 (defun im/copy-current-line ()
-  "copy-current-line or region"
+  "Copy-current-line-or-region."
   (interactive)
   (if (use-region-p)
       (call-interactively 'kill-ring-save)
     (copy-region-as-kill (line-beginning-position) (line-end-position))
     (message "Copied")))
 
-
-(defun im/copy-lines (&optional d)
-  "copy lines down/up, like in eclipse"
+(defun im/copy-lines (&optional direction)
+  "Copy lines down/up, like in Eclipse."
   (interactive)
   (if (use-region-p)
       (let ((beg (region-beginning))
@@ -260,17 +254,15 @@
         (kill-ring-save beg end)
         (newline)
         (yank)
-        (if d (goto-char end)))
-    (kill-ring-save (line-beginning-position)
-                    (line-end-position))
+        (if direction (goto-char end)))
+    (kill-ring-save (line-beginning-position) (line-end-position))
     (end-of-line)
     (newline)
     (yank)
-    (if d (forward-line -1))))
-
+    (forward-line -1)))
 
 (defun im/kill-lines ()
-  "fast move/del like in eclipse"
+  "Fast move/del like in eclipse."
   (interactive)
   (if (use-region-p)
       (let ((beg (region-beginning))
@@ -282,47 +274,47 @@
         (kill-region beg end))
     (kill-whole-line)))
 
-
-(defmacro defkey (&rest alists)
-  " define a list of keys. Usage: (defkey ( \"key\" 'function mode ) ... )"
-  (declare (indent defun))
-  (let ((default-mode
-          (if (typep (first alists) 'symbol)
-              (pop alists)
-            '(current-global-map))))
-    `(progn ,@(mapcar
-               (lambda (x)
-                 (let ((key (first x)) (fun (second x)))
-                   (list 'define-key
-                         (or (third x) default-mode)
-                         (if (stringp key) `(kbd ,key) key)
-                         (if (typep fun 'symbol) `',fun fun))))
-               alists))))
-
-
-(cl-defun im/find-ft (&rest names)
-  "find the proper font in the names"
-  (cl-flet ((find--ft (name &optional (filter "8859-1"))
-                      (let* ((fs (sort (x-list-fonts name) 'string-greaterp)))
-                        (seq-find (lambda (f) (string-match-p (format ".*%s.*" filter) f)) fs))))
+(defun im/find-ft (&rest names)
+  "Find the proper font in NAMES."
+  (catch 'ret
     (dolist (name names)
-      (let ((full-name (find--ft name)))
-        (if full-name (return full-name))))))
+      (let ((full-name (-im/find-font-in-sys name)))
+        (if full-name
+            (throw 'ret full-name))))))
 
+(defun -im/find-font-in-sys (name &optional filter)
+  (let* ((fs (sort (x-list-fonts name) 'string-greaterp)))
+    (seq-find (lambda (f) (string-match-p (format ".*%s.*" (or filter "8859-1")) f)) fs)))
 
-(defun im/start-server()
+(defun im/start-server ()
+  "Wrapper for Start Emacs server."
+  (require 'server)
   (setq server-auth-dir "~/.emacs.d/.cache/server/")
   (unless (server-running-p)
     (ignore-errors (delete-file (concat server-auth-dir "server")))
     (server-start)))
 
+(defun im/html-viewport ()
+  "Return the Viewport Meta for Html Page."
+  (format "<meta  name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n"))
 
+(defmacro im/open-file-view (file &rest args)
+  "Open a file with View-Mode."
+  `(progn (find-file ,file ,@args) (view-mode +1)))
 
+(defmacro im/with-mode-silent (modes &rest something)
+  "Doing SOMETHING with some MODES absent."
+  (declare (indent 1))
+  (unless (listp modes) (setq modes (list modes)))
+  `(progn
+     ,@(mapcar (lambda (m) `(,m -1)) modes)
+     ,@something
+     ,@(mapcar (lambda (m) `(,m +1)) modes)))
 
-;;; utils
+;;; Miscellaneous
 
 (defun im/toggle-fullscreen ()
-  "[F12] save the window configuration before delete windows"
+  "Toggle fullscreen, use [F12] to save the window configuration before delete windows."
   (interactive)
   (if (> (count-windows) 1)
       (progn (window-configuration-to-register 99)
@@ -332,7 +324,7 @@
       (message "never save window configurations"))))
 
 (defun im/toggle-dedicated ()
-  "whether the current active window is dedicated or not"
+  "Whether the current active window is dedicated."
   (interactive)
   (face-remap-add-relative
    'mode-line-buffer-id
@@ -343,12 +335,6 @@
        '(:foreground "red")
      '(:foreground "black")))
   (current-buffer))
-
-
-
-
-
-
 
 (provide 'imutil)
 
