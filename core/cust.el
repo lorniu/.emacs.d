@@ -44,54 +44,52 @@
 
 ;;; Basic Variables
 
-(setq
- default-directory        "~/"
- user-full-name           "imfine"
- user-mail-address        "lorniu@gmail.com"
- custom-file              "~/.emacs.d/core/cust.el"
- eshell-aliases-file      "~/.emacs.d/ext/eshell-alias"
- _CACHE_                  "~/.emacs.d/.cache/"
- bbdb-file                (concat _CACHE_ "_bbdb")
- diary-file               (concat _CACHE_ "_diary")
- bookmark-default-file    (concat _CACHE_ "_bookmark")
- abbrev-file-name         (concat _CACHE_ "_abbrevs")
- recentf-save-file        (concat _CACHE_ "_recentf")
- eshell-directory-name    (concat _CACHE_ "eshell")
- temporary-file-directory (concat _CACHE_ "/temp/")
+(setq default-directory        "~/"
+      user-full-name           "imfine"
+      user-mail-address        "lorniu@gmail.com"
+      custom-file              "~/.emacs.d/core/cust.el"
+      eshell-aliases-file      "~/.emacs.d/ext/eshell-alias"
+      _CACHE_                  "~/.emacs.d/.cache/"
+      bbdb-file                (concat _CACHE_ "_bbdb")
+      diary-file               (concat _CACHE_ "_diary")
+      bookmark-default-file    (concat _CACHE_ "_bookmark")
+      abbrev-file-name         (concat _CACHE_ "_abbrevs")
+      recentf-save-file        (concat _CACHE_ "_recentf")
+      eshell-directory-name    (concat _CACHE_ "eshell")
+      temporary-file-directory (concat _CACHE_ "/temp/")
 
- auto-save-interval 0
- auto-save-list-file-prefix nil
- backup-directory-alist `((".*" . ,temporary-file-directory))
- auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
+      auto-save-interval 0
+      auto-save-list-file-prefix nil
+      backup-directory-alist `((".*" . ,temporary-file-directory))
+      auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
 
- inhibit-startup-message  t
- gnus-inhibit-startup-message t
- track-eol                t
- visible-bell             nil
- ring-bell-function       'ignore
+      inhibit-startup-message  t
+      gnus-inhibit-startup-message t
+      track-eol                t
+      visible-bell             nil
+      ring-bell-function       'ignore
 
- scroll-step              1
- scroll-margin            0
- hscroll-step             1
- hscroll-margin           1
- scroll-conservatively    101
+      scroll-step              1
+      scroll-margin            0
+      hscroll-step             1
+      hscroll-margin           1
+      scroll-conservatively    101
 
- resize-mini-windows      t
- enable-recursive-minibuffers t
- column-number-mode       1
- fringes-outside-margins  t
+      resize-mini-windows      t
+      enable-recursive-minibuffers t
+      column-number-mode       1
+      fringes-outside-margins  t
 
- kill-ring-max            200
- select-enable-clipboard  t
- help-window-select       t
- man-notify-method        'pushy
- woman-use-own-frame      nil)
+      kill-ring-max            200
+      select-enable-clipboard  t
+      help-window-select       t
+      man-notify-method        'pushy
+      woman-use-own-frame      nil)
 
-(setq-default
- tab-width                4
- indent-tabs-mode         nil
- truncate-lines           t
- show-trailing-whitespace nil)
+(setq-default tab-width        4
+              truncate-lines   t
+              indent-tabs-mode nil
+              show-trailing-whitespace nil)
 
 (setenv "TZ" "PRC")
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -126,7 +124,7 @@
  '(package-selected-packages
    (quote
     (company-php company-go company-ghc company-web company-statistics tide web-beautify xcscope yasnippet counsel-projectile impatient-mode sass-mode yaml-mode htmlize emmet-mode js2-mode web-mode groovy-mode clojure-mode scala-mode kotlin-mode go-mode lua-mode erlang c-eldoc elpy robe intero php-mode slime neotree multiple-cursors exec-path-from-shell magit sqlplus graphviz-dot-mode org-download iedit session ag beacon anzu rcirc-styles rainbow-delimiters spacemacs-theme bind-key diminish use-package)))
- '(send-mail-function (quote smtpmail-send-it)))
+ )
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
