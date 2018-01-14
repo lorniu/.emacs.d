@@ -28,7 +28,7 @@
 (defun im/task-when-idle ()
   (let ((then (current-time)))
     (message "∵ [%s] Idle loading..." (time then 2))
-    (mapc #'require im/need-idle-loads)
+    (mapc 'require im/need-idle-loads)
     (princ im/need-idle-loads)
     (message "∴ [%s] Idle loaded, %.2fs elapsed."
              (time nil 2) (time-subtract-seconds (current-time) then)))
@@ -178,14 +178,17 @@
 
 (x hideshow
    :diminish hs-minor-mode
-   :bind (([(M-down-mouse-1)] . nil)
-          ([(M-mouse-1)] . hs-mouse-toggle-hiding)
-          ("C-c o" . hs-toggle-hiding)
-          ("C-c O" . (lambda () (interactive)
-                       (defvar im/hs-state nil)
-                       (make-local-variable 'im/hs-state)
-                       (setq im/hs-state (not im/hs-state))
-                       (if im/hs-state (hs-hide-all) (hs-show-all)))))
+   :hook (prog-mode . hs-minor-mode)
+   :bind (:map hs-minor-mode-map
+               ([(M-down-mouse-1)] . nil)
+               ([(M-mouse-1)] . hs-mouse-toggle-hiding)
+               ("C-c C-f" . hs-toggle-hiding)
+               ("C-c f"   . hs-toggle-hiding)
+               ("C-c F"   . (lambda () (interactive)
+                              (defvar im/hs-state nil)
+                              (make-local-variable 'im/hs-state)
+                              (setq im/hs-state (not im/hs-state))
+                              (if im/hs-state (hs-hide-all) (hs-show-all)))))
    :config (add-to-list
             'hs-special-modes-alist
             '(ruby-mode
@@ -232,7 +235,7 @@
    :config (exec-path-from-shell-initialize))
 
 
-;;; View Keybinds
+;;; View
 
 (x view :bind
    (:map view-mode-map
@@ -247,7 +250,7 @@
 (x magit/w :bind ("C-c m" . magit-status))
 
 
-;;; SQLPlus Mode
+;;; SQLPlus
 
 (x sqlplus
    :mode "\\.sqp\\'"
@@ -280,9 +283,27 @@
    :bind (:map prog-mode-map ("C-c C-u" . backward-up-list))
    :init (add-hook-lambda 'prog-mode-hook
            (abbrev-mode 1)
-           (hs-minor-mode 1)
            (rainbow-delimiters-mode 1)
            (which-function-mode 1)))
+
+
+;;; Which-Func
+
+(x which-func/x
+   :config
+   (setq which-func-format
+         `("["
+           (:propertize (:eval (my-which-func-current))
+                        local-map ,which-func-keymap
+                        face which-func
+                        mouse-face mode-line-highlight
+                        help-echo "Singing...")
+           "]"))
+   (defun my-which-func-current ()
+     (let ((current (gethash (selected-window) which-func-table)))
+       (if current
+           (truncate-string-to-width current 20 nil nil "…")
+         which-func-unknown))))
 
 
 ;;; CC-Mode
@@ -377,13 +398,13 @@
          web-mode-css-indent-offset       4
          web-mode-code-indent-offset      4
          web-mode-enable-css-colorization t
-         liveload-port                    5555
          web-mode-content-types-alist '(("jsx"    . "\\.js[x]?\\'"))
          web-mode-engines-alist       '(("blade"  . "\\.blade\\.")
                                         ("ruby"   . "\\.html\\.erb\\'")))
-   ;; hooks
+
    (add-hook-lambda 'web-mode-hook
      ;; (flycheck-mode +1)
+     (hs-minor-mode -1)
      (set (make-local-variable 'company-backends)
           '(company-tide company-web-html company-dabbrev-code company-keywords company-files)))
 
@@ -395,20 +416,12 @@
                 ("css"            '(css-mode))
                 ("javascript"     '(js2-mode))))))
 
-   ;; liveload
-   (x impatient-mode
-      :commands imp-visit-buffer
-      :init
-      (defalias 'liveload 'impatient-mode)
-      (defalias 'liveview 'imp-visit-buffer)
-      (advice-add 'impatient-mode :before
-                  (lambda (&rest args)
-                    (unless (process-status "httpd")
-                      (setq httpd-port liveload-port)
-                      (httpd-start)))))
-
-   ;; misc
-   (add-to-list 'web-mode-indentless-elements "html"))
+   ;; Indent
+   (add-to-list 'web-mode-indentless-elements "html")
+   (advice-add 'web-mode-markup-indentation :around
+               (lambda (name &rest args)
+                 (if (member (get-text-property (car args) 'tag-name) '("head"))
+                     0 (apply name args)))))
 
 (x js2-mode
    :mode "\\.js\\'"
@@ -423,6 +436,17 @@
      (js2-imenu-extras-mode +1))
 
    (x web-beautify :if (executable-find "js-beautify")))
+
+(x impatient-mode
+   :commands imp-visit-buffer
+   :init
+   (defalias 'liveload 'impatient-mode)
+   (defalias 'liveview 'imp-visit-buffer)
+   (advice-add 'impatient-mode :before
+               (lambda (&rest args)
+                 (unless (process-status "httpd")
+                   (setq httpd-port 5555)
+                   (httpd-start)))))
 
 (when (executable-find "node")
   (x tide/w
