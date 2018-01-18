@@ -99,6 +99,13 @@
               (lambda (&rest _) (aif (get-buffer-window "*Occur*") (select-window it)))))
 
 
+;;; Multiple-Cursors
+(x multiple-cursors/e
+   :bind (:map mc/keymap
+               ( [F6]   . mc/mark-next-like-this )
+               ( [S-F6] . mc/mark-all-like-this )))
+
+
 ;;; Dired/Neotree/Ivy/Projectile
 
 (x wdired/e
