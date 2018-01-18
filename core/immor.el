@@ -56,6 +56,31 @@
    (setq ediff-diff-options "-w"))
 
 
+;;; Multiple-Cursor
+(x multiple-cursors
+   :bind (([S-f6]          . mc/mark-all-dwim)
+          ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
+
+
+;;; Isearch/Anzu/Occur
+
+(x anzu/v :init (global-anzu-mode))
+
+(with-eval-after-load "isearch"
+  (bind-key "\C-e" ; Superword-Mode when search
+            (lambda ()
+              (interactive)
+              (superword-mode 1)
+              (isearch-yank-word-or-char)
+              (superword-mode -1)) isearch-mode-map)
+  (bind-key "M-s o" ; Word under cursor first
+            (lambda (str)
+              (interactive (list (aif (symbol-at-point) (symbol-name it))))
+              (occur (read-from-minibuffer "Occurs: " str nil nil 'regexp-history))))
+  (advice-add 'occur :after ; After Ocur, jump to the result buffer.
+              (lambda (&rest _) (aif (get-buffer-window "*Occur*") (select-window it)))))
+
+
 ;;; Ibuffer
 
 (x ibuffer/e :config
@@ -78,32 +103,6 @@
 
    (add-hook-lambda 'ibuffer-mode-hook
      (ibuffer-switch-to-saved-filter-groups "default")))
-
-
-;;; Isearch/Anzu/Occur
-
-(x anzu/v :init (global-anzu-mode))
-
-(with-eval-after-load "isearch"
-  (bind-key "\C-e" ; Superword-Mode when search
-            (lambda ()
-              (interactive)
-              (superword-mode 1)
-              (isearch-yank-word-or-char)
-              (superword-mode -1)) isearch-mode-map)
-  (bind-key "M-s o" ; Word under cursor first
-            (lambda (str)
-              (interactive (list (aif (symbol-at-point) (symbol-name it))))
-              (occur (read-from-minibuffer "Occurs: " str nil nil 'regexp-history))))
-  (advice-add 'occur :after ; After Ocur, jump to the result buffer.
-              (lambda (&rest _) (aif (get-buffer-window "*Occur*") (select-window it)))))
-
-
-;;; Multiple-Cursors
-(x multiple-cursors/e
-   :bind (:map mc/keymap
-               ( [F6]   . mc/mark-next-like-this )
-               ( [S-F6] . mc/mark-all-like-this )))
 
 
 ;;; Dired/Neotree/Ivy/Projectile

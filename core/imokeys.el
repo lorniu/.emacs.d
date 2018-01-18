@@ -3,9 +3,9 @@
 
 ;;; Code:
 
-(bind-keys*
+(bind-keys
  (  [f1]          . info                 )
- (  [f4]          . toggle-truncate-lines)
+ (  [f6]          . toggle-truncate-lines)
  (  [f7]          . (lambda () (interactive) (im/open-file-view "~/.emacs.d/core/immor.el")))
  (  [f8]          . calendar             )
  (  [f10]         . shrink-window        )
