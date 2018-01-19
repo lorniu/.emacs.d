@@ -121,10 +121,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(org-export-with-sub-superscripts (quote {}))
  '(package-selected-packages
    (quote
-    (company-php company-go company-ghc company-web company-statistics tide web-beautify xcscope yasnippet counsel-projectile impatient-mode sass-mode yaml-mode htmlize emmet-mode js2-mode web-mode groovy-mode clojure-mode scala-mode kotlin-mode go-mode lua-mode erlang c-eldoc elpy robe intero php-mode slime neotree multiple-cursors exec-path-from-shell magit sqlplus graphviz-dot-mode org-download iedit session ag beacon anzu rcirc-styles rainbow-delimiters spacemacs-theme bind-key diminish use-package)))
- )
+    (company-php company-go company-ghc company-web company-statistics tide web-beautify xcscope yasnippet counsel-projectile impatient-mode sass-mode yaml-mode htmlize emmet-mode js2-mode web-mode groovy-mode clojure-mode scala-mode kotlin-mode go-mode lua-mode erlang c-eldoc elpy robe intero php-mode slime neotree multiple-cursors exec-path-from-shell magit sqlplus graphviz-dot-mode org-download iedit session ag beacon anzu rcirc-styles rainbow-delimiters spacemacs-theme bind-key diminish use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
