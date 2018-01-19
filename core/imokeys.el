@@ -29,6 +29,12 @@
   "Initialize the Definitions."
   (interactive (list (read-directory-name "选择笔记目录: ")
                      (read-from-minibuffer "输入笔记标题: ")))
+
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   (mapcar (lambda (x) (cons x t))
+           '( emacs-lisp dot sql lisp haskell python ruby java sh )))
+
   (let* ((base/res "assets/")
          (pull/img (concat base/res "image/"))
          (html/css (concat base/res "base.css"))
@@ -67,14 +73,11 @@
           org-html-head-include-default-style nil
           org-html-head                       (im/html-viewport)
 
+          org-use-sub-superscripts            '{}
           org-export-copy-to-kill-ring        nil
           org-publish-list-skipped-files      nil
 
-          org-confirm-babel-evaluate          nil
-          org-babel-load-languages  (mapcar (lambda (x) (cons x t))
-                                            '(emacs-lisp
-                                              dot sql lisp haskell
-                                              python ruby java sh)))
+          org-confirm-babel-evaluate          nil)
 
     (setq org-capture-templates
           `(("t" "新任务" entry (file+headline ,org-default-task-file "Ungrouped") "* TODO %i%?" :jump-to-captured t)
@@ -125,21 +128,24 @@
     ( "C-c n"   . im/org-publish-note )
     ( "C-c C-n" . im/org-publish-note-force )
     :map org-mode-map
-    ( "C-x a a" . (lambda () (interactive)
-                    (let ((beg "#+BEGIN_SRC") (end "#+END_SRC")
-                          (lang (read-from-minibuffer "Please input your type: ")))
-                      (if (use-region-p)
-                          (let ((regin-beg (region-beginning)) (regin-end (region-end)))
-                            (save-excursion
-                              (goto-char regin-end) (end-of-line)
-                              (insert (format "\n%s\n" end))
-                              (goto-char regin-beg) (beginning-of-line) (open-line 1)
-                              (insert (concat beg " " lang))
-                              (org-edit-special) (org-edit-src-exit)))
-                        (insert (format "%s %s\n\n%s\n" beg lang end))
-                        (forward-line -2))))))
+    ( "C-x a a" . im/org-wrap-src))
 
    :init
+   (defun im/org-wrap-src () (interactive)
+     (let ((beg "#+BEGIN_SRC") (end "#+END_SRC")
+           (lang (read-from-minibuffer "Please input your type: ")))
+       (if (use-region-p)
+           (let ((regin-beg (region-beginning)) (regin-end (region-end)))
+             (save-excursion
+               (goto-char regin-end) (end-of-line)
+               (insert (format "\n%s\n" end))
+               (goto-char regin-beg) (beginning-of-line) (open-line 1)
+               (insert (concat beg " " lang))
+               (ignore-errors
+                 (org-edit-special) (org-edit-src-exit) (deactivate-mark))))
+         (insert (format "%s %s\n\n%s\n" beg lang end))
+         (forward-line -2))))
+
    (defun im/org-publish-note (&optional force)
      "For publish, FORCE for full publish."
      (interactive)

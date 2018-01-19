@@ -115,6 +115,8 @@
          ( "z"  . dired-get-size ))
 
    :config
+   ;; directory first
+   (setq dired-listing-switches "-aBhl  --group-directories-first")
    ;; Get the size of file or dir(du), 'z' for short.
    (defun dired-get-size ()
      (interactive)
@@ -316,9 +318,10 @@
 
 (x cc-mode/w
    :config
-   (setq c-default-style   "linux"
-         gdb-many-windows   t
-         gdb-show-main      t )
+   (setq-default c-default-style   "linux"
+                 c-basic-offset     4
+                 gdb-many-windows   t
+                 gdb-show-main      t )
 
    (x xcscope
       :hook (cscope-list-entry-hook)
