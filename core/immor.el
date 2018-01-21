@@ -22,7 +22,8 @@
 ;;; Hooks
 
 (defun im/task-after-open-file ()
-  (if (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs-lisp/" buffer-file-name)
+  (if (and (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs-lisp/" buffer-file-name)
+           (not (string-match-p "autoloads.el$" buffer-file-name)))
       (view-mode 1)))
 
 (defun im/task-when-idle ()
