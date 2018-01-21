@@ -188,16 +188,16 @@
 (x hideshow
    :diminish hs-minor-mode
    :hook (prog-mode . hs-minor-mode)
-   :bind (:map hs-minor-mode-map
-               ([(M-down-mouse-1)] . nil)
-               ([(M-mouse-1)] . hs-mouse-toggle-hiding)
-               ("C-c C-f" . hs-toggle-hiding)
-               ("C-c f"   . hs-toggle-hiding)
-               ("C-c F"   . (lambda () (interactive)
-                              (defvar im/hs-state nil)
-                              (make-local-variable 'im/hs-state)
-                              (setq im/hs-state (not im/hs-state))
-                              (if im/hs-state (hs-hide-all) (hs-show-all)))))
+   :bind* (:map hs-minor-mode-map
+                ([(M-down-mouse-1)] . nil)
+                ([(M-mouse-1)] . hs-mouse-toggle-hiding)
+                ("C-c C-f" . hs-toggle-hiding)
+                ("C-c f"   . hs-toggle-hiding)
+                ("C-c F"   . (lambda () (interactive)
+                               (defvar im/hs-state nil)
+                               (make-local-variable 'im/hs-state)
+                               (setq im/hs-state (not im/hs-state))
+                               (if im/hs-state (hs-hide-all) (hs-show-all)))))
    :config (add-to-list
             'hs-special-modes-alist
             '(ruby-mode
@@ -581,10 +581,13 @@
 ;;; PHP
 
 (x php-mode :config
-   (add-hook-lambda 'php-mode-hook
-     (ac-php-core-eldoc-setup)
-     (make-local-variable 'company-backends)
-     (add-to-list 'company-backends 'company-ac-php-backend)))
+   (add-hook 'php-mode-hook
+             '(lambda ()
+                (require 'company-php)
+                (company-mode t)
+                (ac-php-core-eldoc-setup) ;; enable eldoc
+                (make-local-variable 'company-backends)
+                (add-to-list 'company-backends 'company-ac-php-backend))))
 
 
 (provide 'immor)
