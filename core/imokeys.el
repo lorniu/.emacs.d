@@ -7,6 +7,7 @@
  (  [f1]          . info                 )
  (  [f6]          . toggle-truncate-lines)
  (  [f7]          . (lambda () (interactive) (im/open-file-view "~/.emacs.d/core/immor.el")))
+ (  [C-f7]        . (lambda () (interactive) (find-file "~/.cases/notes/misc.task.org")))
  (  [f8]          . calendar             )
  (  [f10]         . shrink-window        )
  (  [f11]         . enlarge-window       )
@@ -25,7 +26,14 @@
 
 ;;;; Org-Mode
 
-(defun im/init-org-n-note (notes-home &optional notes-title css-inline)
+(defun im/org-init ()
+  (interactive)
+  (require 'ox-publish)
+  (if (env-classroom)
+      (im/org-define-configurations "e:/home/share/notes/" "Index")
+    (im/org-define-configurations "~/.cases/notes/")))
+
+(defun im/org-define-configurations (notes-home &optional notes-title css-inline)
   "Initialize the Definitions."
   (interactive (list (read-directory-name "选择笔记目录: ")
                      (read-from-minibuffer "输入笔记标题: ")))
@@ -44,8 +52,8 @@
          (notes-title (if (seq-empty-p notes-title) "imfineandu" notes-title)))
 
     (setq org-directory           notes-home
-          org-default-task-file   (concat org-directory "z.task.org")
-          org-default-notes-file  (concat org-directory "z.journal.org")
+          org-default-task-file   (concat org-directory "misc.task.org")
+          org-default-notes-file  (concat org-directory "misc.journal.org")
           org-agenda-files        (list org-default-task-file org-default-notes-file)
           org-log-into-drawer     t
           org-log-done            'time
@@ -82,7 +90,7 @@
     (setq org-capture-templates
           `(("t" "新任务" entry (file+headline ,org-default-task-file "Ungrouped") "* TODO %i%?" :jump-to-captured t)
             ("d" "Diary"  plain (file+datetree ,org-default-notes-file) "%U\n\n%i%?" :empty-lines 1)
-            ("n" "草稿箱" entry (file ,(concat (file-name-directory  org-default-notes-file) "z.scratch.org")) "* %U\n\n%i%?" :prepend t :empty-lines 1)))
+            ("n" "草稿箱" entry (file ,(concat (file-name-directory  org-default-notes-file) "misc.scratch.org")) "* %U\n\n%i%?" :prepend t :empty-lines 1)))
 
     (setq org-publish-timestamp-directory (concat _CACHE_ ".org-timestamps/")
           org-publish-project-alist
@@ -121,7 +129,8 @@
 
     (message "%s@%s/%s" notes-home notes-title css-inline)))
 
-(x org/w :bind
+(x org/w
+   :bind
    (( "C-c a"   . org-agenda )
     ( "C-c l"   . org-store-link )
     ( "C-c c"   . org-capture )
@@ -131,9 +140,9 @@
     ( "C-x a a" . im/org-wrap-src))
 
    :init
-   (defun im/org-wrap-src () (interactive)
-     (let ((beg "#+BEGIN_SRC") (end "#+END_SRC")
-           (lang (read-from-minibuffer "Please input your type: ")))
+   (defun im/org-wrap-src ()
+     (interactive)
+     (let ((beg "#+BEGIN_SRC") (end "#+END_SRC") (lang (read-from-minibuffer "Please input your type: ")))
        (if (use-region-p)
            (let ((regin-beg (region-beginning)) (regin-end (region-end)))
              (save-excursion
@@ -141,13 +150,11 @@
                (insert (format "\n%s\n" end))
                (goto-char regin-beg) (beginning-of-line) (open-line 1)
                (insert (concat beg " " lang))
-               (ignore-errors
-                 (org-edit-special) (org-edit-src-exit) (deactivate-mark))))
+               (ignore-errors (org-edit-special) (org-edit-src-exit) (deactivate-mark))))
          (insert (format "%s %s\n\n%s\n" beg lang end))
          (forward-line -2))))
 
    (defun im/org-publish-note (&optional force)
-     "For publish, FORCE for full publish."
      (interactive)
      (require 'ox-publish)
      (if force (ignore-errors (delete-directory org-publish-timestamp-directory t)))
@@ -160,9 +167,7 @@
 
    :config
    ;; Load
-   (require 'ox-publish)
-   (if (env-classroom) (im/init-org-n-note "e:/home/share/notes/" "Index")
-     (im/init-org-n-note "~/.cases/notes/"))
+   (im/org-init)
 
    ;; Hook
    (add-hook-lambda 'org-mode-hook
