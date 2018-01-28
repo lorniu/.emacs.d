@@ -54,13 +54,20 @@
     (setq org-directory           notes-home
           org-default-task-file   (concat org-directory "misc.task.org")
           org-default-notes-file  (concat org-directory "misc.journal.org")
-          org-agenda-files        (list org-default-task-file org-default-notes-file)
-          org-log-into-drawer     t
+          org-agenda-files        (list org-default-task-file
+                                        org-default-notes-file
+                                        (concat org-directory "misc.hunter.org"))
+
           org-log-done            'time
           org-tags-column         (* -1 (frame-width))
           org-refile-targets      `((org-agenda-files . (:level . 1)))
           org-tag-alist           '(("Learns" . ?c) ("Work" . ?w) ("Life" . ?l) ("Dodo" . ?d))
-          org-todo-keywords       '((sequence "TODO(t)" "TING(i!)" "|" "DONE(d)" "CANCEL(c)")))
+          org-todo-keywords       '((sequence "TODO(t)" "TING(i!)" "|" "DONE(d)" "CANCEL(c)"))
+
+          org-log-into-drawer     t
+          org-clock-into-drawer   t
+          org-clock-out-remove-zero-time-clocks t
+          org-time-clocksum-format '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
 
     (setq org-startup-indented                t
           org-hide-leading-stars              t
@@ -85,6 +92,7 @@
           org-export-copy-to-kill-ring        nil
           org-publish-list-skipped-files      nil
 
+          org-src-tab-acts-natively           t
           org-confirm-babel-evaluate          nil)
 
     (setq org-capture-templates
@@ -115,7 +123,8 @@
                                                (format "<style>\n%s\n</style>\n<script>\n%s\n</script>\n"
                                                        (im/read-file-content (concat notes-home html/css))
                                                        (im/read-file-content (concat notes-home html/js)))
-                                             (format "<link rel=\"stylesheet\" href=\"%s\">\n<script src=\"%s\"></script>\n" html/css html/js))))
+                                             (format "<link rel=\"stylesheet\" href=\"%s\">\n<script src=\"%s\"></script>\n"
+                                                     html/css html/js))))
 
             ("resources"
              :base-directory       ,(concat org-directory base/res)
