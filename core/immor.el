@@ -35,7 +35,11 @@
              (time nil 2) (time-subtract-seconds (current-time) then)))
   (remove-hook 'auto-save-hook 'im/task-when-idle))
 
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
+(defun im/before-save ()
+  (unless (seq-contains '(org-mode) major-mode)
+    (delete-trailing-whitespace)))
+
+(add-hook 'before-save-hook 'im/before-save)
 (add-hook 'after-save-hook 'im/el-autocompile)
 (add-hook 'auto-save-hook 'im/task-when-idle)
 (add-hook 'find-file-hook 'im/task-after-open-file)
@@ -187,7 +191,7 @@
 
 (x hideshow
    :diminish hs-minor-mode
-   :hook (prog-mode . hs-minor-mode)
+   :hook ((web-mode prog-mode) . hs-minor-mode)
    :bind* (:map hs-minor-mode-map
                 ([(M-down-mouse-1)] . nil)
                 ([(M-mouse-1)] . hs-mouse-toggle-hiding)
@@ -402,7 +406,7 @@
 ;; 20180111, Use Tide-Mode to Autocomplete instead of TERN.
 
 (x web-mode
-   :mode "\\.\\([xp]?html?\\(.erb\\)?\\|[aj]sp\\|css\\|jsx\\|tpl\\)\\'"
+   :mode "\\.\\([xp]?html?\\(.erb\\|.blade\\)?\\|[aj]sp\\|jsx\\|tpl\\|css\\)\\'"
    :config
    (setq web-mode-markup-indent-offset    4
          web-mode-css-indent-offset       4
@@ -416,7 +420,7 @@
      ;; (flycheck-mode +1)
      (hs-minor-mode -1)
      (set (make-local-variable 'company-backends)
-          '(company-tide company-web-html company-dabbrev-code company-keywords company-files)))
+          '(company-css company-tide company-dabbrev-code company-keywords company-files)))
 
    (add-hook-lambda 'yas-before-expand-snippet-hook
      (if (eq major-mode 'web-mode)
