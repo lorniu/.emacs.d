@@ -22,8 +22,8 @@
 
  (setq default-frame-alist
        '((title . "TimKeeper")
-         (top . 60) (left . 540)
-         (width . 100) (height . 45)
+         (top . 30) (left . 640)
+         (width . 85) (height . 40)
          (line-spacing . 0.11)
          (tool-bar-lines . 0)
          (scroll-bar . nil)
