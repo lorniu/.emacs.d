@@ -10,11 +10,11 @@
 
 ;;; Code:
 
+(setq debug-on-error t)
+(setq gc-cons-threshold 100000000)
+
 (require 'bm)
 (require 'imutil)
-
-(setq debug-on-error nil)
-(setq gc-cons-threshold 100000000)
 
 ;;; Environments
 

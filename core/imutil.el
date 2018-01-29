@@ -290,9 +290,8 @@
   "Wrapper for Start Emacs server."
   (require 'server)
   (setq server-auth-dir "~/.emacs.d/.cache/server/")
-  (when (eq (server-running-p) nil)
-    (ignore-errors (delete-file (concat server-auth-dir "server")))
-    (server-start)))
+  (ignore-errors (delete-file (concat server-auth-dir "server")))
+  (server-start))
 
 (defun im/html-viewport ()
   "Return the Viewport Meta for Html Page."
