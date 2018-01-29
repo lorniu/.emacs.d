@@ -21,7 +21,7 @@
                                                tz (pcase font-size (14 14) (30 35) (_ (* size 1.2)))))))
 
  (setq default-frame-alist
-       '((title . "TimKeeper")
+       '((title . "Xombie")
          (top . 30) (left . 640)
          (width . 85) (height . 40)
          (line-spacing . 0.11)

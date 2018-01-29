@@ -16,13 +16,12 @@
 ;;; Loads
 
 (autoload 'grep-apply-setting "grep")
-(autoload 'comint-mode "ls-lisp")
 
 
 ;;; Hooks
 
 (defun im/task-after-open-file ()
-  (if (and (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs-lisp/" buffer-file-name)
+  (if (and (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs" buffer-file-name)
            (not (string-match-p "autoloads.el$" buffer-file-name)))
       (view-mode 1)))
 
@@ -120,17 +119,12 @@
          ( "z"  . dired-get-size ))
 
    :config
-   ;; directory first
-   (setq dired-listing-switches "-aBhl  --group-directories-first")
-   ;; Get the size of file or dir(du), 'z' for short.
-   (defun dired-get-size ()
-     (interactive)
-     (let ((files (dired-get-marked-files)))
-       (with-temp-buffer
-         (apply 'call-process "/usr/bin/du" nil t nil "-sch" files)
-         (message "Size of all marked files: %s"
-                  (progn (re-search-backward "\\(^[ 0-9.,]+[A-Za-z]+\\).*\\(量\\|total\\)$")
-                         (match-string 1))))))
+   (setq dired-dwim-target t)
+   (if (env-linux)
+       (setq dired-listing-switches "-alh --group-directories-first")
+     (require 'ls-lisp)
+     (setq ls-lisp-dirs-first t)
+     (setq ls-lisp-UCA-like-collation nil))
    ;; Keep only one dired buffer
    (advice-add 'dired-find-file :around
                (lambda (f &rest args)
@@ -252,10 +246,11 @@
 
 (x view :bind
    (:map view-mode-map
-         ( "h"   .  backward-char )
-         ( "l"   .  forward-char  )
-         ( "j"   .  next-line     )
-         ( "k"   .  previous-line )))
+         ( "h"     .  backward-char )
+         ( "l"     .  forward-char  )
+         ( "j"     .  next-line     )
+         ( "k"     .  previous-line )
+         ( "<DEL>" .  nil)))
 
 
 ;;; Magit
@@ -263,13 +258,18 @@
 (x magit/w :bind ("C-c m" . magit-status))
 
 
-;;; SQLPlus
+;;; SQL
 
 (x sql
+   :init
+   (defalias 'mysql 'sql-mysql)
    :config
-   (setq sql-server "localhost" sql-user "root")
-   (env-windows (setq sql-mysql-options '("-C" "-t" "-f" "-n")))
-   (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) \\[[_a-zA-Z]*\\]> "))
+   (setq sql-user "root")
+   (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
+   (env-windows
+    (setq sql-mysql-options '("-C" "-t" "-f" "-n"))
+    (add-hook-lambda 'sql-interactive-mode-hook
+      (set-buffer-process-coding-system 'gbk 'gbk))))
 
 (x sqlplus/x
    :mode "\\.sqp\\'"
@@ -278,9 +278,9 @@
    (add-hook-lambda 'sqlplus-mode-hook
      (env-windows
       (dolist (f '(sqlplus-table-head-face sqlplus-table-even-rows-face sqlplus-table-odd-rows-face))
-        (set-face-attribute f nil :inherit 'org-table)))
-     (let ((encoding 'gbk))
-       (set-process-coding-system (get-process (sqlplus-get-process-name sqlplus-connect-string)) encoding encoding))))
+        (set-face-attribute f nil :inherit 'org-table))
+      (let ((encoding 'gbk))
+        (set-process-coding-system (get-process (sqlplus-get-process-name sqlplus-connect-string)) encoding encoding)))))
 
 
 ;;; Flycheck/Flyspell
