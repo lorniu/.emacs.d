@@ -265,7 +265,13 @@
 
 ;;; SQLPlus
 
-(x sqlplus
+(x sql
+   :config
+   (setq sql-server "localhost" sql-user "root")
+   (env-windows (setq sql-mysql-options '("-C" "-t" "-f" "-n")))
+   (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) \\[[_a-zA-Z]*\\]> "))
+
+(x sqlplus/x
    :mode "\\.sqp\\'"
    :config
    (setq sqlplus-pagesize 2000)
