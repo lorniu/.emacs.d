@@ -41,6 +41,7 @@
  (global-set-key [C-wheel-down] 'text-scale-decrease)
 
  (when (not (env-classroom))
+   (load-theme 'atom-dark t)
    (add-hook 'focus-in-hook 'im/win-font))
 
  (when (env-classroom)

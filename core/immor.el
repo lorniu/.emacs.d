@@ -20,11 +20,6 @@
 
 ;;; Hooks
 
-(defun im/task-after-open-file ()
-  (if (and (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs" buffer-file-name)
-           (not (string-match-p "autoloads.el$" buffer-file-name)))
-      (view-mode 1)))
-
 (defun im/task-when-idle ()
   (let ((then (current-time)))
     (message "∵ [%s] Idle loading..." (time then 2))
@@ -38,10 +33,21 @@
   (unless (seq-contains '(org-mode) major-mode)
     (delete-trailing-whitespace)))
 
+(defun im/before-open-file ()
+  ;; large file
+  (when (> (buffer-size) (* 2 1024 1024))
+    (setq buffer-read-only t)
+    (buffer-disable-undo)
+    (fundamental-mode))
+  ;; system file
+  (if (and (not (string-match-p "autoloads.el$" buffer-file-name))
+           (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs" buffer-file-name))
+      (view-mode 1)))
+
 (add-hook 'before-save-hook 'im/before-save)
 (add-hook 'after-save-hook 'im/el-autocompile)
 (add-hook 'auto-save-hook 'im/task-when-idle)
-(add-hook 'find-file-hook 'im/task-after-open-file)
+(add-hook 'find-file-hook 'im/before-open-file)
 
 
 ;;; Basic
@@ -171,6 +177,7 @@
    :init
    (setq projectile-cache-file          (concat _CACHE_ "__projectile.cache")
          projectile-known-projects-file (concat _CACHE_ "__projectile-bookmark.eld")
+         counsel-find-file-ignore-regexp "Volume\\|RECYCLE.BIN"
          projectile-mode-line '(:eval (if (string= "-" (projectile-project-name)) "" (format " [%s]" (projectile-project-name)))))
 
    :config
@@ -265,22 +272,18 @@
    (defalias 'mysql 'sql-mysql)
    :config
    (setq sql-user "root")
-   (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
+   (setq sql-connection-alist
+         '(("fwq"
+            (sql-product 'mysql)
+            (sql-user "krft")
+            (sql-database "ygmymall")
+            (sql-server "120.24.78.141"))))
+   (sql-set-product-feature 'mysql
+                            :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
    (env-windows
     (setq sql-mysql-options '("-C" "-t" "-f" "-n"))
     (add-hook-lambda 'sql-interactive-mode-hook
       (set-buffer-process-coding-system 'gbk 'gbk))))
-
-(x sqlplus/x
-   :mode "\\.sqp\\'"
-   :config
-   (setq sqlplus-pagesize 2000)
-   (add-hook-lambda 'sqlplus-mode-hook
-     (env-windows
-      (dolist (f '(sqlplus-table-head-face sqlplus-table-even-rows-face sqlplus-table-odd-rows-face))
-        (set-face-attribute f nil :inherit 'org-table))
-      (let ((encoding 'gbk))
-        (set-process-coding-system (get-process (sqlplus-get-process-name sqlplus-connect-string)) encoding encoding)))))
 
 
 ;;; Flycheck/Flyspell
