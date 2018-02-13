@@ -273,11 +273,12 @@
    :config
    (setq sql-user "root")
    (setq sql-connection-alist
-         '(("fwq"
+         '((fwq
             (sql-product 'mysql)
-            (sql-user "krft")
+            (sql-server "120.24.78.141")
+            (sql-port 3306)
             (sql-database "ygmymall")
-            (sql-server "120.24.78.141"))))
+            (sql-user "krft"))))
    (sql-set-product-feature 'mysql
                             :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
    (env-windows
