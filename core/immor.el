@@ -49,13 +49,15 @@
 (add-hook 'auto-save-hook 'im/task-when-idle)
 (add-hook 'find-file-hook 'im/before-open-file)
 
+
 
-;;; Basic
+;;; Basic-Modes
 
 (x recentf/e :init (recentf-mode))
 (x paren/e :init (show-paren-mode))
 (x beacon/ve :init (beacon-mode))
 (x autorevert/e :init (setq auto-revert-mode-text "") (global-auto-revert-mode))
+(x page-break-lines/e :init (setq page-break-lines-lighter "") (global-page-break-lines-mode))
 
 
 ;;; Ediff
@@ -169,6 +171,7 @@
           ( "C-x f"    . counsel-projectile-find-file )
           ( "C-x C-f"  . counsel-find-file    )
           ( "C-x i"    . counsel-imenu        )
+          ( "C-x p"    . ivy-pages            )
           ( "C-h b"    . counsel-descbinds    )
           ( "C-h v"    . counsel-describe-variable )
           ( "C-h f"    . counsel-describe-function )
@@ -210,17 +213,7 @@
               (lambda (arg) (ruby-end-of-block)) nil)))
 
 
-;;; Tramp/Eshell
-
-(x tramp/w :init
-   (setq tramp-default-user "root"
-         tramp-default-method "sshx")
-
-   (defun im/ssh ()
-     "Shortcut for my remote site."
-     (interactive)
-     (im/with-mode-silent ivy-mode
-       (find-file (completing-read "remote: " '("/sshx:root@45.63.55.2:~/"))))))
+;;; Shell/Tramp
 
 (x eshell/w
    :config
@@ -239,6 +232,16 @@
 
    (add-hook-lambda 'eshell-mode-hook
      (define-key eshell-command-map [(control ?l)] 'eshell/ccc)))
+
+(x tramp/w :init
+   (setq tramp-default-user "root"
+         tramp-default-method "sshx")
+
+   (defun im/ssh ()
+     "Shortcut for my remote site."
+     (interactive)
+     (im/with-mode-silent ivy-mode
+       (find-file (completing-read "remote: " '("/sshx:root@45.63.55.2:~/"))))))
 
 
 ;;; Exec-Path
@@ -262,7 +265,8 @@
 
 ;;; Magit
 
-(x magit/w :bind ("C-c m" . magit-status))
+(when (executable-find "git")
+  (x magit/w :bind ("C-c m" . magit-status)))
 
 
 ;;; SQL
@@ -283,24 +287,11 @@
                             :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
    (env-windows
     (setq sql-mysql-options '("-C" "-t" "-f" "-n"))
-    (add-hook-lambda 'sql-interactive-mode-hook
-      (set-buffer-process-coding-system 'gbk 'gbk))))
+    (add-hook 'sql-interactive-mode-hook 'im/cp936-encoding)))
 
+
 
-;;; Flycheck/Flyspell
-
-(x flycheck/w)
-
-(x flyspell/x
-   :preface (setq ispell-program-name "ispell") ;; apt install ispell
-   :if (executable-find ispell-program-name)
-   :hook ((text-mode . flyspell-mode)
-          (prog-mode . flyspell-prog-mode)
-          (rcirc-mode . flyspell-mode))
-   :config (ispell-change-dictionary "american" t))
-
-
-;;; Programer
+;;; Program-Languages
 
 (x prog-mode
    :bind (:map prog-mode-map ("C-c C-u" . backward-up-list))
@@ -327,6 +318,19 @@
        (if current
            (truncate-string-to-width current 20 nil nil "…")
          which-func-unknown))))
+
+
+;;; Flycheck/Flyspell
+
+(x flycheck/w)
+
+(x flyspell/x
+   :preface (setq ispell-program-name "ispell") ;; apt install ispell
+   :if (executable-find ispell-program-name)
+   :hook ((text-mode . flyspell-mode)
+          (prog-mode . flyspell-prog-mode)
+          (rcirc-mode . flyspell-mode))
+   :config (ispell-change-dictionary "american" t))
 
 
 ;;; CC-Mode
@@ -409,7 +413,11 @@
    :diminish (yas-minor-mode . " Y")
    :bind (:map yas-keymap ("C-m" . 'yas-next-field-or-maybe-expand))
    :init (setq yas-verbosity 2 yas-alias-to-yas/prefix-p nil)
-   :config (yas-global-mode 1))
+   :config
+   (add-hook 'yas-minor-mode-hook
+             (lambda ()
+               (yas-activate-extra-mode 'fundamental-mode)))
+   (yas-global-mode 1))
 
 
 ;;; Web-Mode/JS-Mode/CSS-Mode
@@ -504,7 +512,7 @@
      (let* ((ql-home (file-name-as-directory "~/.quicklisp"))
             (ql-url "http://beta.quicklisp.org/quicklisp.lisp")
             (ql-dist (concat ql-home "quicklisp.lisp"))
-            (slime-init "~/.showcase/lang-lisp/misc/slime-init.lisp"))
+            (slime-init "~/.cases/lang-lisp/misc/slime-init.lisp"))
        (if (file-exists-p ql-dist)  ;; load slime-init.lisp
            (when (file-exists-p slime-init)
              (with-temp-buffer
@@ -559,7 +567,14 @@
 ;;  - pip install jedi importmagic
 ;;  - pip install flake8 autopep8
 
-(x python :config (elpy-enable))
+(x python
+   :interpreter ("python" . python-mode)
+   :config
+   (when (executable-find "python")
+     (elpy-enable)
+     (env-windows
+      (setq python-shell-completion-native-enable nil)
+      (add-hook 'inferior-python-mode-hook 'im/cp936-encoding))))
 
 
 ;;; Ruby-Mode
@@ -594,10 +609,11 @@
 
 ;;; PHP
 
-(x php-mode :config
+(x php-mode
+   :config
+   (require 'company-php)
    (add-hook 'php-mode-hook
              '(lambda ()
-                (require 'company-php)
                 (company-mode t)
                 (ac-php-core-eldoc-setup) ;; enable eldoc
                 (make-local-variable 'company-backends)
