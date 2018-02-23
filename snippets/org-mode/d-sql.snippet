@@ -1,6 +1,7 @@
 # -*- mode: snippet -*-
-# name: org-babel-MySQL
-# key: ps
+# name: drawer / sqli
+# key: d
+# condition: (= (current-column) 1)
 # --
 :PROPERTIES:
 :engine:   mysql
@@ -8,6 +9,5 @@
 :database: ${1:mysql}
 :dbuser:   root
 :dbpassword: root
-:exports:  both
+:exports:  code
 :END:
-$0

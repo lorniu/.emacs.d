@@ -9,8 +9,9 @@
 
  (defun im/win-font (&optional font-size)
    (interactive (list (string-to-number (read-from-minibuffer "font size: " "1"))))
-   (let* ((size (or font-size 14))
-          (en "Consolas") (zh "微软雅黑 light") (tz "楷体"))
+
+   (let* ((size (or font-size 14)) (en "Consolas") (zh "微软雅黑 light") (tz "楷体"))
+
      (set-frame-font (font-spec :name (im/find-ft en) :size size) t)
      (set-fontset-font "fontset-default" 'unicode (font-spec :name (im/find-ft zh)))
      (set-face-attribute 'mode-line nil :height 110)
@@ -32,9 +33,7 @@
          (cursor-color . "red")
          (alpha . 92)))
 
- (setq file-name-coding-system 'gbk
-       default-process-coding-system '(cp936-dos . utf-8-unix)
-       mouse-wheel-scroll-amount '(1 ((control) . 5)))
+ (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
 
  (menu-bar-mode -1)
  (global-set-key [C-wheel-up]   'text-scale-increase)
@@ -62,6 +61,8 @@
  (global-set-key [mouse-4] (lambdai (scroll-down 1)))
  (global-set-key [mouse-5] (lambdai (scroll-up 1))))
 
+
+
 ;;; Encoding
 
 (set-locale-environment   "utf-8")
@@ -70,11 +71,24 @@
 (prefer-coding-system     'utf-16)
 (prefer-coding-system     'utf-8-unix)
 
+(env-windows
+ (defun im/cp936-encoding ()
+   (set-buffer-file-coding-system 'gbk)
+   (set-buffer-process-coding-system 'gbk 'gbk))
+
+ (set-language-environment "chinese-gbk")
+ (prefer-coding-system 'utf-8)
+
+ (setq file-name-coding-system 'gbk)
+ (set-terminal-coding-system 'gbk)
+ (modify-coding-system-alist 'process "*" 'gbk)
+
+ (add-hook 'shell-mode-hook 'im/cp936-encoding))
+
 ;;; Miscellaneous
 
 (setq sentence-end-double-space nil)
 (setq sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*")
-
 (mapc (lambda (c) (modify-syntax-entry c "." (standard-syntax-table)))
       '( ?， ?。 ?！ ?； ?？ ?： ?/ ))
 

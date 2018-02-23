@@ -11,7 +11,7 @@
 ;;; Code:
 
 (setq debug-on-error nil)
-(setq gc-cons-threshold 100000000)
+(setq gc-cons-threshold 200000000)
 
 (require 'bm)
 (require 'imutil)
@@ -31,13 +31,15 @@
 
 ;;; Modules
 
-(require 'cust)
-(require 'imokeys)
-(require 'immor)
-(require 'imnet)
-(require 'imface)
-(require 'imsilly)
-(env-windows (im/start-server))
+(let ((file-name-handler-alist nil))
+  (require 'cust)
+  (require 'imokeys)
+  (require 'immor)
+  (require 'imnet)
+  (require 'imface)
+  (require 'imsilly)
+  (env-windows (im/start-server)))
+
 
 (provide 'imfine)
 

@@ -7,7 +7,7 @@
  (  [f1]          . info                 )
  (  [f6]          . toggle-truncate-lines)
  (  [f7]          . (lambda () (interactive) (im/open-file-view "~/.emacs.d/core/immor.el")))
- (  [C-f7]        . (lambda () (interactive) (find-file "~/.cases/notes/misc.task.org")))
+ (  [C-f7]        . (lambda () (interactive) (find-file "~/.cases/notes/misc.hunter.org")))
  (  [f8]          . calendar             )
  (  [f10]         . shrink-window        )
  (  [f11]         . enlarge-window       )
@@ -23,6 +23,8 @@
  (  "ESC <up>"    . (lambda () (interactive) (im/copy-lines 1)))
  (  "ESC <right>" . im/kill-lines        )
  (  "C-x p"       . other-frame          ))
+
+
 
 ;;;; Org-Mode
 
@@ -40,8 +42,57 @@
 
   (org-babel-do-load-languages
    'org-babel-load-languages
-   (mapcar (lambda (x) (cons x t))
-           '( emacs-lisp dot sql lisp haskell python ruby java sh )))
+   (mapcar
+    (lambda (x) (cons x t))
+    '( emacs-lisp
+       sh
+       lisp
+       haskell
+       python
+       ruby
+       java
+       restclient
+       sql
+       ditaa
+       dot
+       plantuml )))
+
+  (setq
+   org-startup-indented                  t
+   org-hide-leading-stars                t
+   org-hide-block-startup                t
+   org-startup-with-inline-images        t
+   org-cycle-separator-lines             0
+   org-pretty-entities                   t
+   org-src-fontify-natively              t
+   org-src-tab-acts-natively             nil
+
+   org-log-into-drawer                   t
+   org-clock-into-drawer                 t
+   org-clock-out-remove-zero-time-clocks t
+
+   org-use-sub-superscripts              '{}
+   org-export-with-sub-superscripts      '{}
+   org-export-copy-to-kill-ring          nil
+   org-publish-list-skipped-files        nil
+
+   org-html-html5-fancy                  t
+   org-html-doctype                      "html5"
+   org-html-container-element            "section"
+   org-html-validation-link              "Go ahead, never stop."
+   org-html-htmlize-output-type          'css
+   org-html-head-include-scripts         nil
+   org-html-head-include-default-style   nil
+   org-html-head                         (im/html-viewport)
+
+   org-emphasis-regexp-components '("：，。！、  \t('\"{" "- ：，。！、 \t.,:!?;'\")}\\" " \t\r\n,\"'"  "."  1)
+   org-time-clocksum-format '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t)
+   org-tag-alist            '(("Learns" . ?c) ("Work" . ?w) ("Life" . ?l) ("Dodo" . ?d))
+   org-todo-keywords        '((sequence "TODO(t!)" "TING(i!)" "|" "DONE(d!)" "CANCEL(c!)"))
+   org-refile-targets       `((org-agenda-files . (:level . 1)))
+
+   org-babel-default-header-args (cons '(:noweb . "no") (assq-delete-all :noweb org-babel-default-header-args))
+   org-confirm-babel-evaluate            nil)
 
   (let* ((base/res "assets/")
          (pull/img (concat base/res "image/"))
@@ -56,44 +107,7 @@
           org-default-notes-file  (concat org-directory "misc.journal.org")
           org-agenda-files        (list org-default-task-file
                                         org-default-notes-file
-                                        (concat org-directory "misc.hunter.org"))
-
-          org-log-done            'time
-          org-tags-column         (* -1 (frame-width))
-          org-refile-targets      `((org-agenda-files . (:level . 1)))
-          org-tag-alist           '(("Learns" . ?c) ("Work" . ?w) ("Life" . ?l) ("Dodo" . ?d))
-          org-todo-keywords       '((sequence "TODO(t)" "TING(i!)" "|" "DONE(d)" "CANCEL(c)"))
-
-          org-log-into-drawer     t
-          org-clock-into-drawer   t
-          org-clock-out-remove-zero-time-clocks t
-          org-time-clocksum-format '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
-
-    (setq org-startup-indented                t
-          org-hide-leading-stars              t
-          org-hide-block-startup              t
-          org-startup-with-inline-images      t
-          org-cycle-separator-lines           0
-          org-src-fontify-natively            t
-          org-emphasis-regexp-components      '("：，。！、  \t('\"{"          ;pre
-                                                "- ：，。！、 \t.,:!?;'\")}\\" ;post
-                                                " \t\r\n,\"'"  "."  1)
-
-          org-html-html5-fancy                t
-          org-html-doctype                    "html5"
-          org-html-container-element          "section"
-          org-html-validation-link            "Go ahead, never stop."
-          org-html-htmlize-output-type        'css
-          org-html-head-include-scripts       nil
-          org-html-head-include-default-style nil
-          org-html-head                       (im/html-viewport)
-
-          org-use-sub-superscripts            '{}
-          org-export-copy-to-kill-ring        nil
-          org-publish-list-skipped-files      nil
-
-          org-src-tab-acts-natively           t
-          org-confirm-babel-evaluate          nil)
+                                        (concat org-directory "misc.hunter.org")))
 
     (setq org-capture-templates
           `(("t" "新任务" entry (file+headline ,org-default-task-file "Ungrouped") "* TODO %i%?" :jump-to-captured t)
@@ -223,6 +237,18 @@
                 (org-display-inline-images))
             (message "Not available"))))))
 
+
+
+;; Drawing
+
+(x ob-ditaa
+   :if (executable-find "java")
+   :init (setq org-ditaa-jar-path "~/.emacs.d/ext/ditaa.jar"))
+
+(x ob-plantuml
+   :if (or (executable-find "java")
+           (executable-find "graphviz"))
+   :init (setq org-plantuml-jar-path "~/.emacs.d/plantuml.jar"))
 
 (provide 'imokeys)
 

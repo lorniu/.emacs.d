@@ -4,14 +4,13 @@
 ;;; Code:
 
 (defun im/initialize-emacs-for-win ()
-    (interactive)
   "Initialization ContextMenu for Windows, etc:
 1. execute this function, and import the generated `.reg` file to OS
 2. put the symlink of `runemacs.exe` with arg `--daemon` to `shell:start`
-3. put the symlink of `emacsclientw.exe` with arg `-n -c -a ""` to Desktop
+3. put the symlink of `emacsclientw.exe` with arg `-n -c -a ''` to Desktop
 4. if CYGWIN exist, put it to 'PATH' env"
-
-  (unless (eq system-type 'windows-nt) (error "NO-WINNT, this is useless!"))
+  (interactive)
+  (unless (eq system-type 'windows-nt) (error "NOT-WINNT, this is useless!"))
 
   (cl-flet ((win-path (n path) (replace-regexp-in-string "/" (if (> n 1) "\\\\" "\\") (file-truename path) t t)))
     (let* ((emacs-home (win-path 2 (car (split-string exec-directory "libexec"))))
@@ -22,8 +21,7 @@
            (buffer-file-coding-system 'gbk))
 
       ;; SETENV: emacs-server-file
-      (start-process "a" "f" "setx" "EMACS_SERVER_FILE"
-         (win-path 1 (concat server-auth-dir "server")))
+      (start-process "a" "f" "setx" "EMACS_SERVER_FILE" (win-path 1 (concat server-auth-dir "server")))
 
       ;; Generate ContextMenu.reg
       (with-temp-file reg-file
@@ -36,7 +34,7 @@
         (w32-shell-execute "open" emacs-home)))))
 
 (defmacro im/walk-with-directory-buffers (dir filter &rest form)
-  "Walk the directory, operate each with current buffer."
+  "Walk the DIR under FILTER, operate each with current buffer. FORM is the deal."
   (declare (indent defun))
   (let ((file (gensym)))
     `(save-window-excursion

@@ -3,8 +3,6 @@
 
 ;;; Code:
 
-;;; Macros
-
 (defmacro aif (test then &optional else)
   (declare (indent defun))
   `(let ((it ,test)) (if it ,then ,else)))
@@ -20,6 +18,8 @@
   (declare (indent defun))
   `(add-hook ,hook (lambda () ,@body)))
 
+
+
 ;;; Helpers
 
 (defmacro pm (expr)
@@ -30,6 +30,8 @@
 
 (defmacro mmm (&rest expr)
   `(message ,@expr))
+
+
 
 ;;; Utility
 
@@ -309,6 +311,8 @@
      ,@(mapcar (lambda (m) `(,m -1)) modes)
      ,@something
      ,@(mapcar (lambda (m) `(,m +1)) modes)))
+
+
 
 ;;; Miscellaneous
 

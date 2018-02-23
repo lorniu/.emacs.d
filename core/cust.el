@@ -21,8 +21,10 @@
  '(use-package diminish bind-key
 
     atom-dark-theme rainbow-delimiters rcirc-styles anzu beacon
-    ag session iedit org-download graphviz-dot-mode magit
-    exec-path-from-shell multiple-cursors neotree
+    ag wgrep-ag session iedit graphviz-dot-mode magit neotree
+    exec-path-from-shell multiple-cursors page-break-lines ivy-pages
+
+    org-download ob-restclient
 
     slime php-mode intero robe elpy c-eldoc erlang lua-mode go-mode
     kotlin-mode scala-mode clojure-mode groovy-mode
@@ -33,6 +35,8 @@
     company-ghc company-go company-php
     ))
 
+
+
 ;;; Load-Path/Theme-Path
 
 (dolist (dir (directory-files "~/.emacs.d/ext" t))
@@ -41,6 +45,8 @@
       (add-to-list 'load-path dir)))
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/ext/themes")
+
+
 
 ;;; Basic Variables
 
@@ -97,6 +103,8 @@
 (mapc (lambda (x) (put x 'disabled nil))
       '(narrow-to-region narrow-to-page downcase-region upcase-region set-goal-column erase-buffer))
 
+
+
 ;;; Use-Package
 
 (defvar im/need-idle-loads nil)
@@ -114,6 +122,8 @@
        ,(if (seq-contains flag ?w) `(add-to-list 'im/need-idle-loads ',name))
        (use-package ,name ,@x-options ,@args))))
 
+
+
 ;;; Custom-Set
 
 (custom-set-variables
@@ -121,15 +131,15 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   (quote
-    (atom-dark-theme company-php company-go company-ghc tide web-beautify xcscope yasnippet counsel-projectile impatient-mode sass-mode yaml-mode htmlize emmet-mode js2-mode web-mode groovy-mode clojure-mode scala-mode kotlin-mode go-mode lua-mode erlang c-eldoc elpy robe intero php-mode slime neotree multiple-cursors exec-path-from-shell magit graphviz-dot-mode org-download iedit session ag beacon anzu rcirc-styles rainbow-delimiters bind-key diminish use-package))))
+ )
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+(defun package--save-selected-packages (&rest opt) nil)
+
 
 (provide 'cust)
 
