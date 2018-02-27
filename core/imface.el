@@ -22,7 +22,7 @@
                                                tz (pcase font-size (14 14) (30 35) (_ (* size 1.2)))))))
 
  (setq default-frame-alist
-       '((title . "Xombie")
+       '((title . "νερό")
          (top . 30) (left . 640)
          (width . 85) (height . 40)
          (line-spacing . 0.11)
@@ -52,12 +52,14 @@
 ;;; Linux
 
 (env-linux-g
- (tool-bar-mode 0) (menu-bar-mode 0)
+ (tool-bar-mode 0)
+ (menu-bar-mode 0)
  (set-face-attribute 'default nil :height 110))
 
 (env-linux-vps
  (load-theme 'origin t)
- (menu-bar-mode 0) (xterm-mouse-mode)
+ (menu-bar-mode 0)
+ (xterm-mouse-mode)
  (global-set-key [mouse-4] (lambdai (scroll-down 1)))
  (global-set-key [mouse-5] (lambdai (scroll-up 1))))
 

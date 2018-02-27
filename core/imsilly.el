@@ -56,6 +56,7 @@
         (save-buffer))
       (kill-buffer))))
 
+
 (provide 'imsilly)
 
 ;;; imsilly.el ends here
