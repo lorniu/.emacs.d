@@ -26,7 +26,7 @@
 
 
 
-;;;; Org-Mode
+;;; Org-Mode - Definition
 
 (defun im/org-init ()
   (interactive)
@@ -36,27 +36,7 @@
     (im/org-define-configurations "~/.cases/notes/")))
 
 (defun im/org-define-configurations (notes-home &optional notes-title css-inline)
-  "Initialize the Definitions."
-  (interactive (list (read-directory-name "选择笔记目录: ")
-                     (read-from-minibuffer "输入笔记标题: ")))
-
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   (mapcar
-    (lambda (x) (cons x t))
-    '( emacs-lisp
-       sh
-       lisp
-       haskell
-       python
-       ruby
-       java
-       restclient
-       sql
-       ditaa
-       dot
-       plantuml )))
-
+  (interactive (list (read-directory-name "选择笔记目录: ") (read-from-minibuffer "输入笔记标题: ")))
   (setq
    org-startup-indented                  t
    org-hide-leading-stars                t
@@ -94,6 +74,22 @@
    org-babel-default-header-args (cons '(:noweb . "no") (assq-delete-all :noweb org-babel-default-header-args))
    org-confirm-babel-evaluate            nil)
 
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   (mapcar (lambda (x) (cons x t))
+           '( emacs-lisp
+              sh
+              lisp
+              haskell
+              python
+              ruby
+              java
+              restclient
+              sql
+              ditaa
+              dot
+              plantuml )))
+
   (let* ((base/res "assets/")
          (pull/img (concat base/res "image/"))
          (html/css (concat base/res "base.css"))
@@ -113,6 +109,9 @@
           `(("t" "新任务" entry (file+headline ,org-default-task-file "Ungrouped") "* TODO %i%?" :jump-to-captured t)
             ("d" "Diary"  plain (file+datetree ,org-default-notes-file) "%U\n\n%i%?" :empty-lines 1)
             ("n" "草稿箱" entry (file ,(concat (file-name-directory  org-default-notes-file) "misc.scratch.org")) "* %U\n\n%i%?" :prepend t :empty-lines 1)))
+
+    (setq org-download-image-dir pull/img
+          org-download-backend   (if (executable-find "wget") "wget \"%s\" -O \"%s\"" t))
 
     (setq org-publish-timestamp-directory (concat _CACHE_ ".org-timestamps/")
           org-publish-project-alist
@@ -147,10 +146,11 @@
              :publishing-function  org-publish-attachment
              :recursive            t)))
 
-    (setq org-download-image-dir pull/img
-          org-download-backend   (if (executable-find "wget") "wget \"%s\" -O \"%s\"" t))
-
     (message "%s@%s/%s" notes-home notes-title css-inline)))
+
+
+
+;;; Org-Mode - Mode
 
 (x org/w
    :bind
@@ -188,25 +188,20 @@
      (interactive)
      (im/org-publish-note 'force))
 
-   :config
-   ;; Load
-   (im/org-init)
+   :config  (im/org-init)
 
-   ;; Hook
+   ;; Hooks
    (add-hook-lambda 'org-mode-hook
      (diminish 'org-indent-mode)
      (set (make-local-variable 'system-time-locale) "C")
      (font-lock-add-keywords nil '(("\\\\\\\\$" 0 'hi-org-break)
                                    ("\\<\\(FIXME\\|NOTE\\|AIA\\):" 1 'font-lock-warning-face prepend))))
+   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
 
    ;; Faces
    (defface hi-org-break
      `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break" :group 'org-faces)
    (env-windows (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
-
-   ;; Fix babel
-   (setcdr (assoc "dot" org-src-lang-modes) 'graphviz-dot)
-   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
 
    ;; Remap keys
    (define-key org-mode-map (kbd "×") (kbd "*"))
@@ -239,16 +234,20 @@
 
 
 
-;; Drawing
+;;; Org-Mode - Drawing
+(x ob-dot
+   :if (executable-find "dot")
+   :config (setcdr (assoc "dot" org-src-lang-modes) 'graphviz-dot))
 
 (x ob-ditaa
    :if (executable-find "java")
-   :init (setq org-ditaa-jar-path "~/.emacs.d/ext/ditaa.jar"))
+   :config (setq org-ditaa-jar-path "~/.emacs.d/ext/ditaa.jar"))
 
 (x ob-plantuml
-   :if (or (executable-find "java")
-           (executable-find "graphviz"))
-   :init (setq org-plantuml-jar-path "~/.emacs.d/plantuml.jar"))
+   :if (and (executable-find "java")
+            (executable-find "dot"))
+   ;; https://versaweb.dl.sourceforge.net/project/plantuml/1.2018.1/plantuml.1.2018.1.jar
+   :config (setq org-plantuml-jar-path "~/.emacs.d/plantuml.jar"))
 
 (provide 'imokeys)
 

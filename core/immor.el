@@ -238,11 +238,14 @@
          tramp-default-method "sshx")
 
    (defun im/ssh ()
-     "Shortcut for my remote site."
+     "Shortcut for remote site."
      (interactive)
-     (im/with-mode-silent ivy-mode
-       (find-file (completing-read "remote: " '("/sshx:root@45.63.55.2:~/"))))))
-
+     (let* ((hosts
+             '(("ygmall" . "/sshx:Administrator@120.24.78.141:/c/soft/phpstudy/WWW/ygmall")
+               ("vps.45" . "/sshx:root@45.63.55.2:~/")))
+            (item (completing-read "Connect to: " (mapcar 'car hosts)))
+            (host (or (cdr (assoc-string item hosts)) item)))
+       (find-file host))))
 
 ;;; Exec-Path
 
