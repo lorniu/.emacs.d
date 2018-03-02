@@ -279,8 +279,15 @@
    (defalias 'mysql 'sql-mysql)
    :config
    (setq sql-user "root")
+   (setq sql-product 'mysql)
    (setq sql-connection-alist
-         '((fwq
+         '((45.63.55.2
+            (sql-product 'mysql)
+            (sql-server "45.63.55.2")
+            (sql-port 3306)
+            (sql-database "ego")
+            (sql-user "root"))
+           (120.24.78.141
             (sql-product 'mysql)
             (sql-server "120.24.78.141")
             (sql-port 3306)
