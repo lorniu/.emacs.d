@@ -237,7 +237,7 @@
    (setq tramp-default-user "root"
          tramp-default-method "sshx")
 
-   (defun im/ssh ()
+   (defun ssh ()
      "Shortcut for remote site."
      (interactive)
      (let* ((hosts
@@ -618,15 +618,24 @@
 
 ;;; PHP
 
-(x php-mode
-   :config
-   (require 'company-php)
-   (add-hook 'php-mode-hook
-             '(lambda ()
-                (company-mode t)
-                (ac-php-core-eldoc-setup) ;; enable eldoc
-                (make-local-variable 'company-backends)
-                (add-to-list 'company-backends 'company-ac-php-backend))))
+(x php-mode :config
+   (defun my-php-lookup ()
+     (interactive)
+     (let ((symbol (symbol-at-point)))
+       (if (not symbol)
+           (message "No symbol at point.")
+         (browse-url (concat "http://php.net/manual-lookup.php?pattern=" (symbol-name symbol))))))
+
+   (defun my-php-stuff()
+     (when (executable-find "php")
+       (require 'company-php)
+       (company-mode t)
+       (ac-php-core-eldoc-setup) ;; enable eldoc
+       (make-local-variable 'company-backends)
+       (add-to-list 'company-backends 'company-ac-php-backend))
+     (local-set-key (kbd "<f1>") 'my-php-lookup))
+
+   (add-hook 'php-mode-hook 'my-php-stuff))
 
 
 (provide 'immor)
