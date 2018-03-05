@@ -49,6 +49,7 @@
 (add-hook 'auto-save-hook 'im/task-when-idle)
 (add-hook 'find-file-hook 'im/before-open-file)
 
+
 
 
 ;;; Basic-Modes
@@ -298,6 +299,7 @@
    (env-windows
     (setq sql-mysql-options '("-C" "-t" "-f" "-n"))
     (add-hook 'sql-interactive-mode-hook 'im/cp936-encoding)))
+
 
 
 
