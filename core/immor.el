@@ -416,8 +416,7 @@
 (x company/vw
    :init (defun add-company-backend (backend)
            (add-to-list 'company-backends backend))
-   :hook ((prog-mode   . company-mode)
-          (progn-mode  . company-statistics-mode))
+   :hook ((prog-mode   . company-mode))
    :init (setq company-idle-delay 0.2))
 
 (x yasnippet/e
@@ -630,8 +629,6 @@
 
    (defun my-php-stuff()
      (when (executable-find "php")
-       (require 'company-php)
-       (company-mode t)
        (ac-php-core-eldoc-setup) ;; enable eldoc
        (make-local-variable 'company-backends)
        (add-to-list 'company-backends 'company-ac-php-backend))
