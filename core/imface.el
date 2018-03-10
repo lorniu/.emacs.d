@@ -3,6 +3,8 @@
 
 ;;; Code:
 
+
+
 ;;; Windows
 
 (env-windows
@@ -25,7 +27,7 @@
        '((title . "νερό")
          (top . 30) (left . 640)
          (width . 85) (height . 40)
-         (line-spacing . 0.11)
+         ;; (line-spacing . 0.11)
          (tool-bar-lines . 0)
          (scroll-bar . nil)
          (vertical-scroll-bars . nil)
@@ -48,6 +50,8 @@
    (setf (alist-get 'width default-frame-alist)  '70)
    (setf (alist-get 'left default-frame-alist)   '850)
    (add-hook 'focus-in-hook (lambda () (im/win-font 30)))))
+
+
 
 ;;; Linux
 
@@ -87,6 +91,8 @@
  (modify-coding-system-alist 'process "*" 'gbk)
 
  (add-hook 'shell-mode-hook 'im/cp936-encoding))
+
+
 
 ;;; Miscellaneous
 

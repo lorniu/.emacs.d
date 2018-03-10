@@ -20,34 +20,41 @@
 
 ;;; Hooks
 
-(defun im/task-when-idle ()
-  (let ((then (current-time)))
-    (message "∵ [%s] Idle loading..." (time then 2))
-    (mapc 'require im/need-idle-loads)
-    (princ im/need-idle-loads)
-    (message "∴ [%s] Idle loaded, %.2fs elapsed."
-             (time nil 2) (time-subtract-seconds (current-time) then)))
-  (remove-hook 'auto-save-hook 'im/task-when-idle))
+(progn
+  (defun -im/before-open ()
+    ;; large file
+    (when (> (buffer-size) (* 2 1024 1024))
+      (setq buffer-read-only t)
+      (buffer-disable-undo)
+      (fundamental-mode))
+    ;; system file
+    (if (and (not (string-match-p "autoloads.el$" buffer-file-name))
+             (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs" buffer-file-name))
+        (view-mode 1)))
 
-(defun im/before-save ()
-  (unless (seq-contains '(org-mode) major-mode)
-    (delete-trailing-whitespace)))
+  (defun -im/before-save ()
+    (unless (seq-contains '(org-mode) major-mode)
+      (delete-trailing-whitespace)))
 
-(defun im/before-open-file ()
-  ;; large file
-  (when (> (buffer-size) (* 2 1024 1024))
-    (setq buffer-read-only t)
-    (buffer-disable-undo)
-    (fundamental-mode))
-  ;; system file
-  (if (and (not (string-match-p "autoloads.el$" buffer-file-name))
-           (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs" buffer-file-name))
-      (view-mode 1)))
+  (defun -im/el-compile (&optional dir)
+    (save-window-excursion
+      (when (and (eq major-mode 'emacs-lisp-mode)
+                 (file-exists-p (concat (or dir "~/.emacs.d/core/") (buffer-name))))
+        (byte-compile-file (buffer-file-name)))))
 
-(add-hook 'before-save-hook 'im/before-save)
-(add-hook 'after-save-hook 'im/el-autocompile)
-(add-hook 'auto-save-hook 'im/task-when-idle)
-(add-hook 'find-file-hook 'im/before-open-file)
+  (defun -im/idle-tasks ()
+    (let ((then (current-time)))
+      (message "∵ [%s] Idle loading..." (time then 2))
+      (mapc 'require im/need-idle-loads)
+      (princ im/need-idle-loads)
+      (message "∴ [%s] Idle loaded, %.2fs elapsed."
+               (time nil 2) (time-subtract-seconds (current-time) then)))
+    (remove-hook 'auto-save-hook '-im/idle-tasks))
+
+  (add-hook 'find-file-hook    '-im/before-open)
+  (add-hook 'before-save-hook  '-im/before-save)
+  (add-hook 'after-save-hook   '-im/el-compile)
+  (add-hook 'auto-save-hook    '-im/idle-tasks))
 
 
 
@@ -161,7 +168,9 @@
 
    :config
    (setq ivy-use-virtual-buffers  t)
-   (ivy-mode 1))
+   (ivy-mode 1)
+
+   (x ivy-pages/e :ensure t))
 
 (x counsel-projectile/w
    :bind (( "M-x"      . counsel-M-x          )
@@ -248,6 +257,7 @@
             (host (or (cdr (assoc-string item hosts)) item)))
        (find-file host))))
 
+
 ;;; Exec-Path
 
 (x exec-path-from-shell/x
@@ -303,7 +313,7 @@
 
 
 
-;;; Program-Languages
+;;; Programer - Common
 
 (x prog-mode
    :bind (:map prog-mode-map ("C-c C-u" . backward-up-list))
@@ -311,6 +321,22 @@
            (abbrev-mode 1)
            (rainbow-delimiters-mode 1)
            (which-function-mode 1)))
+
+
+;;; LSP-Mode
+(x lsp-mode
+   :config
+
+   (x lsp-ui/e
+      :ensure t :config
+      (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
+   (x company-lsp
+      :after (company)
+      :ensure t :config
+      (setq company-lsp-async t)
+      (setq company-lsp-enable-snippet t)
+      (push 'company-lsp company-backends)))
 
 
 ;;; Which-Func
@@ -345,7 +371,55 @@
    :config (ispell-change-dictionary "american" t))
 
 
-;;; CC-Mode
+;;; Abbrev/Hippie-Expand/Company-Mode/Yasnippet
+
+(setq hippie-expand-try-functions-list
+      '(try-expand-dabbrev
+        try-expand-dabbrev-visible
+        try-expand-dabbrev-all-buffers try-expand-dabbrev-from-kill
+        try-complete-file-name-partially try-complete-file-name
+        try-expand-all-abbrevs try-expand-list try-expand-line
+        try-complete-lisp-symbol-partially try-complete-lisp-symbol))
+
+(x abbrev/v :config
+   (if (file-exists-p abbrev-file-name)
+       (quietly-read-abbrev-file)))
+
+(x company/vw
+   :init (defun add-company-backend (backend)
+           (add-to-list 'company-backends backend))
+   :hook ((prog-mode   . company-mode))
+   :init (setq company-idle-delay 0.2))
+
+(x yasnippet/e
+   :diminish (yas-minor-mode . " Y")
+   :bind (:map yas-keymap ("C-m" . 'yas-next-field-or-maybe-expand))
+   :init (setq yas-verbosity 2 yas-alias-to-yas/prefix-p nil)
+   :config
+   (add-hook 'yas-minor-mode-hook
+             (lambda ()
+               (yas-activate-extra-mode 'fundamental-mode)))
+   (yas-global-mode 1))
+
+
+;;; Compile Buffer
+
+(x compile
+   :bind (([f9] . compile)
+          :map compilation-mode-map
+          ("e" . (lambda () (interactive) (bury-buffer)
+                   (awhen (get-buffer-window "*eshell*")
+                     (let ((wstat (window-dedicated-p it)))
+                       (set-window-dedicated-p it nil)
+                       (aw-switch-to-window it)
+                       (set-window-dedicated-p it wstat))))))
+   :init (add-hook 'compilation-mode-hook
+                   (lambda () (aif (get-buffer "*compilation*") (switch-to-buffer it)))))
+
+
+
+
+;;; Programer - Languages
 
 (x cc-mode/w
    :config
@@ -384,52 +458,6 @@
    (add-hook 'c++-mode-hook 'ccc-common-hook))
 
 
-;;; Compile Buffer
-
-(x compile
-   :bind (([f9] . compile)
-          :map compilation-mode-map
-          ("e" . (lambda () (interactive) (bury-buffer)
-                   (awhen (get-buffer-window "*eshell*")
-                     (let ((wstat (window-dedicated-p it)))
-                       (set-window-dedicated-p it nil)
-                       (aw-switch-to-window it)
-                       (set-window-dedicated-p it wstat))))))
-   :init (add-hook 'compilation-mode-hook
-                   (lambda () (aif (get-buffer "*compilation*") (switch-to-buffer it)))))
-
-
-;;; Abbrev/Hippie-Expand/Company-Mode/Yasnippet
-
-(setq hippie-expand-try-functions-list
-      '(try-expand-dabbrev
-        try-expand-dabbrev-visible
-        try-expand-dabbrev-all-buffers try-expand-dabbrev-from-kill
-        try-complete-file-name-partially try-complete-file-name
-        try-expand-all-abbrevs try-expand-list try-expand-line
-        try-complete-lisp-symbol-partially try-complete-lisp-symbol))
-
-(x abbrev/v :config
-   (if (file-exists-p abbrev-file-name)
-       (quietly-read-abbrev-file)))
-
-(x company/vw
-   :init (defun add-company-backend (backend)
-           (add-to-list 'company-backends backend))
-   :hook ((prog-mode   . company-mode))
-   :init (setq company-idle-delay 0.2))
-
-(x yasnippet/e
-   :diminish (yas-minor-mode . " Y")
-   :bind (:map yas-keymap ("C-m" . 'yas-next-field-or-maybe-expand))
-   :init (setq yas-verbosity 2 yas-alias-to-yas/prefix-p nil)
-   :config
-   (add-hook 'yas-minor-mode-hook
-             (lambda ()
-               (yas-activate-extra-mode 'fundamental-mode)))
-   (yas-global-mode 1))
-
-
 ;;; Web-Mode/JS-Mode/CSS-Mode
 ;; 20180111, Use Tide-Mode to Autocomplete instead of TERN.
 
@@ -465,6 +493,21 @@
                  (if (member (get-text-property (car args) 'tag-name) '("head"))
                      0 (apply name args)))))
 
+(x emmet-mode/v
+   :hook web-mode
+   :init (setq emmet-move-cursor-between-quotes t))
+
+(x impatient-mode
+   :commands imp-visit-buffer
+   :init
+   (defalias 'liveload 'impatient-mode)
+   (defalias 'liveview 'imp-visit-buffer)
+   (advice-add 'impatient-mode :before
+               (lambda (&rest args)
+                 (unless (process-status "httpd")
+                   (setq httpd-port 5555)
+                   (httpd-start)))))
+
 (x js2-mode
    :mode "\\.js\\'"
    :config
@@ -477,18 +520,7 @@
      (flycheck-mode +1)
      (js2-imenu-extras-mode +1))
 
-   (x web-beautify :if (executable-find "js-beautify")))
-
-(x impatient-mode
-   :commands imp-visit-buffer
-   :init
-   (defalias 'liveload 'impatient-mode)
-   (defalias 'liveview 'imp-visit-buffer)
-   (advice-add 'impatient-mode :before
-               (lambda (&rest args)
-                 (unless (process-status "httpd")
-                   (setq httpd-port 5555)
-                   (httpd-start)))))
+   (x web-beautify :ensure t :if (executable-find "js-beautify")))
 
 (when (executable-find "node")
   (x tide/w
@@ -503,10 +535,6 @@
        (eldoc-mode +1)
        (tide-hl-identifier-mode +1)
        (set (make-local-variable 'company-tooltip-align-annotations) t))))
-
-(x emmet-mode/v
-   :hook web-mode
-   :init (setq emmet-move-cursor-between-quotes t))
 
 
 ;;; SLIME (The Superior Lisp Interaction Mode for Emacs)
@@ -564,7 +592,8 @@
    (setq haskell-tags-on-save t
          haskell-process-show-debug-tips nil
          haskell-process-suggest-remove-import-lines t)
-   (add-company-backend '(company-ghc :with company-dabbrev-code)))
+   (x company-ghc :ensure t :init
+      (add-company-backend '(company-ghc :with company-dabbrev-code))))
 
 
 ;;; Erlang
@@ -628,11 +657,15 @@
          (browse-url (concat "http://php.net/manual-lookup.php?pattern=" (symbol-name symbol))))))
 
    (defun my-php-stuff()
+     (flycheck-mode 1)
+     (electric-pair-local-mode 1)
+     (local-set-key (kbd "<f1>") 'my-php-lookup)
+
      (when (executable-find "php")
-       (ac-php-core-eldoc-setup) ;; enable eldoc
-       (make-local-variable 'company-backends)
-       (add-to-list 'company-backends 'company-ac-php-backend))
-     (local-set-key (kbd "<f1>") 'my-php-lookup))
+       (x company-php :ensure t :config
+          (ac-php-core-eldoc-setup) ;; enable eldoc
+          (make-local-variable 'company-backends)
+          (add-to-list 'company-backends 'company-ac-php-backend))))
 
    (add-hook 'php-mode-hook 'my-php-stuff))
 

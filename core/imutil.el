@@ -49,13 +49,6 @@
         (split-string (buffer-string) "\n" t)
       (buffer-string))))
 
-(defun im/el-autocompile (&optional dir)
-  "Compile Emacs files in DIR to .elc."
-  (save-window-excursion
-    (when (and (eq major-mode 'emacs-lisp-mode)
-               (file-exists-p (concat (or dir "~/.emacs.d/core/") (buffer-name))))
-      (byte-compile-file (buffer-file-name)))))
-
 (defun im/view-url-cursor ()
   "Open a new buffer containing the contents of URL."
   (interactive)
