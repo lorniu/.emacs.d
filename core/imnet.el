@@ -139,7 +139,9 @@
        (rcirc nil)))
 
    :config
-   (require 'rcirc-styles)
+
+   (x rcirc-styles/e :ensure t)
+
    (setq rcirc-default-user-name "loofee"
          rcirc-default-nick      "loofee"
          rcirc-server-alist      '(("irc.freenode.net" :channels ("#lisp" "#linuxba")))

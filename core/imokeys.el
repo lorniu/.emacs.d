@@ -26,17 +26,11 @@
 
 
 
-;;; Org-Mode - Definition
+;;; Org-Mode - Configurations
 
-(defun im/org-init ()
-  (interactive)
-  (require 'ox-publish)
-  (if (env-classroom)
-      (im/org-define-configurations "e:/home/share/notes/" "Index")
-    (im/org-define-configurations "~/.cases/notes/")))
+;;; Basic Configurations
 
-(defun im/org-define-configurations (notes-home &optional notes-title css-inline)
-  (interactive (list (read-directory-name "选择笔记目录: ") (read-from-minibuffer "输入笔记标题: ")))
+(defun im/org-basic-config()
   (setq
    org-startup-indented                  t
    org-hide-leading-stars                t
@@ -56,6 +50,8 @@
    org-export-copy-to-kill-ring          nil
    org-publish-list-skipped-files        nil
 
+   org-emphasis-regexp-components '("：，。！、  \t('\"{" "- ：，。！、 \t.,:!?;'\")}\\" " \t\r\n,\"'"  "."  1)
+
    org-html-html5-fancy                  t
    org-html-doctype                      "html5"
    org-html-container-element            "section"
@@ -63,94 +59,113 @@
    org-html-htmlize-output-type          'css
    org-html-head-include-scripts         nil
    org-html-head-include-default-style   nil
-   org-html-head                         (im/html-viewport)
+   org-html-head                         (im/html-viewport)))
 
-   org-emphasis-regexp-components '("：，。！、  \t('\"{" "- ：，。！、 \t.,:!?;'\")}\\" " \t\r\n,\"'"  "."  1)
+;;; GTD Configurations
+
+(defun im/org-gtd-config ()
+  (setq
    org-time-clocksum-format '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t)
    org-tag-alist            '(("Learns" . ?c) ("Work" . ?w) ("Life" . ?l) ("Dodo" . ?d))
    org-todo-keywords        '((sequence "TODO(t!)" "TING(i!)" "|" "DONE(d!)" "CANCEL(c!)"))
    org-refile-targets       `((org-agenda-files . (:level . 1)))
 
-   org-babel-default-header-args (cons '(:noweb . "no") (assq-delete-all :noweb org-babel-default-header-args))
-   org-confirm-babel-evaluate            nil)
+   org-default-task-file    (concat org-directory "misc.task.org")
+   org-default-notes-file   (concat org-directory "misc.journal.org")
+   org-agenda-files         (list org-default-task-file org-default-notes-file
+                                  (concat org-directory "misc.hunter.org")))
 
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   (mapcar (lambda (x) (cons x t))
-           '( emacs-lisp
-              sh
-              lisp
-              haskell
-              python
-              ruby
-              java
-              restclient
-              sql
-              ditaa
-              dot
-              plantuml )))
+  (setq org-capture-templates
+        `(("t" "新任务" entry (file+headline ,org-default-task-file "Ungrouped") "* TODO %i%?" :jump-to-captured t)
+          ("d" "Diary"  plain (file+datetree ,org-default-notes-file) "%U\n\n%i%?" :empty-lines 1)
+          ("n" "草稿箱" entry (file ,(concat (file-name-directory  org-default-notes-file) "misc.scratch.org")) "* %U\n\n%i%?" :prepend t :empty-lines 1))))
 
-  (let* ((base/res "assets/")
-         (pull/img (concat base/res "image/"))
-         (html/css (concat base/res "base.css"))
-         (html/js  (concat base/res "base.js"))
+;;; Babel Configurations
+
+(defun im/org-babel-config ()
+
+  (setq org-confirm-babel-evaluate nil
+        org-babel-default-header-args (cons '(:noweb . "no") (assq-delete-all :noweb org-babel-default-header-args)))
+
+  (cl-flet ((-lbs (langs) (org-babel-do-load-languages 'org-babel-load-languages (mapcar (lambda (x) (cons x t)) langs))))
+    (-lbs '( emacs-lisp
+             sh
+             lisp
+             haskell
+             python
+             ruby
+             java
+             restclient
+             sql
+             ditaa
+             dot
+             plantuml ))))
+
+;;; Publishment Configurations
+
+(defun im/org-publishment-config ()
+  (setq org-publish-timestamp-directory(concat _CACHE_ ".org-timestamps/")
+        org-publish-project-alist
+        `(("notes"
+           :components           ("resources" "org-files"))
+
+          ("org-files"
+           :base-directory       ,org-directory
+           :publishing-directory ,(concat org-directory base/out)
+           :headline-levels      3
+           :with-toc             3
+           :html-preamble        nil
+           :auto-sitemap         t
+           :sitemap-filename     "index.org"
+           :sitemap-title        ,notes-title
+           :html-link-up         "index.html"
+           :html-link-home       "index.html"
+           :publishing-function  org-html-publish-to-html
+           :recursive            t
+           :html-head           ,(concat org-html-head
+                                         (if css-inline
+                                             (format "<style>\n%s\n</style>\n<script>\n%s\n</script>\n"
+                                                     (im/read-file-content (concat notes-home html/css))
+                                                     (im/read-file-content (concat notes-home html/js)))
+                                           (format "<link rel=\"stylesheet\" href=\"%s\">\n<script src=\"%s\"></script>\n"
+                                                   html/css html/js))))
+
+          ("resources"
+           :base-directory       ,(concat org-directory "assets/")
+           :publishing-directory ,(concat org-directory base/out/res)
+           :base-extension       "css\\|js\\|png\\|jpe?g\\|gif\\|svg"
+           :publishing-function  org-publish-attachment
+           :recursive            t)))
+
+  (defun im/org-publish-note (&optional force)
+    (interactive)
+    (require 'ox-publish)
+    (if force (ignore-errors (delete-directory org-publish-timestamp-directory t)))
+    (save-excursion (org-publish "notes"))
+    (message "Publish Finished!"))
+
+  (defun im/org-publish-note-force ()
+    (interactive)
+    (im/org-publish-note 'force)))
+
+;;; Initialization
+
+(defun im/org-initial (notes-home &optional notes-title css-inline)
+  (interactive (list (read-directory-name "选择笔记目录: ") (read-from-minibuffer "输入笔记标题: ")))
+  (let* ((html/css (concat "assets/base.css"))
+         (html/js  (concat "assets/base.js"))
          (base/out "html/")
-         (base/out/res (concat base/out base/res))
-         (notes-title (if (seq-empty-p notes-title) "imfineandu" notes-title)))
-
-    (setq org-directory           notes-home
-          org-default-task-file   (concat org-directory "misc.task.org")
-          org-default-notes-file  (concat org-directory "misc.journal.org")
-          org-agenda-files        (list org-default-task-file
-                                        org-default-notes-file
-                                        (concat org-directory "misc.hunter.org")))
-
-    (setq org-capture-templates
-          `(("t" "新任务" entry (file+headline ,org-default-task-file "Ungrouped") "* TODO %i%?" :jump-to-captured t)
-            ("d" "Diary"  plain (file+datetree ,org-default-notes-file) "%U\n\n%i%?" :empty-lines 1)
-            ("n" "草稿箱" entry (file ,(concat (file-name-directory  org-default-notes-file) "misc.scratch.org")) "* %U\n\n%i%?" :prepend t :empty-lines 1)))
-
-    (setq org-download-image-dir pull/img
-          org-download-backend   (if (executable-find "wget") "wget \"%s\" -O \"%s\"" t))
-
-    (setq org-publish-timestamp-directory (concat _CACHE_ ".org-timestamps/")
-          org-publish-project-alist
-          `(("notes"
-             :components           ("resources" "org-files"))
-
-            ("org-files"
-             :base-directory       ,org-directory
-             :publishing-directory ,(concat org-directory base/out)
-             :headline-levels      3
-             :with-toc             3
-             :html-preamble        nil
-             :auto-sitemap         t
-             :sitemap-filename     "index.org"
-             :sitemap-title        ,notes-title
-             :html-link-up         "index.html"
-             :html-link-home       "index.html"
-             :publishing-function  org-html-publish-to-html
-             :recursive            t
-             :html-head           ,(concat org-html-head
-                                           (if css-inline
-                                               (format "<style>\n%s\n</style>\n<script>\n%s\n</script>\n"
-                                                       (im/read-file-content (concat notes-home html/css))
-                                                       (im/read-file-content (concat notes-home html/js)))
-                                             (format "<link rel=\"stylesheet\" href=\"%s\">\n<script src=\"%s\"></script>\n"
-                                                     html/css html/js))))
-
-            ("resources"
-             :base-directory       ,(concat org-directory base/res)
-             :publishing-directory ,(concat org-directory base/out/res)
-             :base-extension       "css\\|js\\|png\\|jpe?g\\|gif\\|svg"
-             :publishing-function  org-publish-attachment
-             :recursive            t)))
-
+         (base/out/res (concat base/out "assets/")))
+    (setq org-directory notes-home)
+    (im/org-basic-config)
+    (im/org-gtd-config)
+    (im/org-babel-config)
+    (im/org-publishment-config)
     (message "%s@%s/%s" notes-home notes-title css-inline)))
 
 
 
-;;; Org-Mode - Mode
+;;; Org-Mode - Major-Mode
 
 (x org/w
    :bind
@@ -159,10 +174,35 @@
     ( "C-c c"   . org-capture )
     ( "C-c n"   . im/org-publish-note )
     ( "C-c C-n" . im/org-publish-note-force )
-    :map org-mode-map
-    ( "C-x a a" . im/org-wrap-src))
+    :map org-mode-map ( "C-x a a" . im/org-wrap-src))
 
-   :init
+   :config
+
+   ;; Configurations
+   (cond
+    ((env-classroom) (im/org-initial "e:/share/notes/" "Index"))
+    (t (im/org-initial "~/.cases/notes/" "imfineandu")))
+
+   ;; Hooks
+   (add-hook-lambda 'org-mode-hook
+     (diminish 'org-indent-mode)
+     (set (make-local-variable 'system-time-locale) "C")
+     (font-lock-add-keywords nil '(("\\\\\\\\$" 0 'hi-org-break)
+                                   ("\\<\\(FIXME\\|NOTE\\|AIA\\):" 1 'font-lock-warning-face prepend))))
+
+   ;; Inline Image
+   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
+
+   ;; Faces
+   (defface hi-org-break
+     `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break" :group 'org-faces)
+   (env-windows (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
+
+   ;; Remap keys
+   (define-key org-mode-map (kbd "×") (kbd "*"))
+   (define-key org-mode-map (kbd "－") (kbd "-"))
+
+   ;; other functions
    (defun im/org-wrap-src ()
      (interactive)
      (let ((beg "#+BEGIN_SRC") (end "#+END_SRC") (lang (read-from-minibuffer "Please input your type: ")))
@@ -175,68 +215,47 @@
                (insert (concat beg " " lang))
                (ignore-errors (org-edit-special) (org-edit-src-exit) (deactivate-mark))))
          (insert (format "%s %s\n\n%s\n" beg lang end))
-         (forward-line -2))))
-
-   (defun im/org-publish-note (&optional force)
-     (interactive)
-     (require 'ox-publish)
-     (if force (ignore-errors (delete-directory org-publish-timestamp-directory t)))
-     (save-excursion (org-publish "notes"))
-     (message "Publish Finished!"))
-
-   (defun im/org-publish-note-force ()
-     (interactive)
-     (im/org-publish-note 'force))
-
-   :config  (im/org-init)
-
-   ;; Hooks
-   (add-hook-lambda 'org-mode-hook
-     (diminish 'org-indent-mode)
-     (set (make-local-variable 'system-time-locale) "C")
-     (font-lock-add-keywords nil '(("\\\\\\\\$" 0 'hi-org-break)
-                                   ("\\<\\(FIXME\\|NOTE\\|AIA\\):" 1 'font-lock-warning-face prepend))))
-   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
-
-   ;; Faces
-   (defface hi-org-break
-     `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break" :group 'org-faces)
-   (env-windows (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
-
-   ;; Remap keys
-   (define-key org-mode-map (kbd "×") (kbd "*"))
-   (define-key org-mode-map (kbd "－") (kbd "-"))
-
-   (x org-download/e
-      :config
-      (advice-add 'org-download--dir-2 :around
-                  (lambda (_ &rest __) ;; Where to save?
-                    (or (file-name-base (buffer-file-name)) "")))
-
-      (defun org-download-rename-file-at-point ()
-        "Rename the downloaded file at point."
-        (interactive)
-        (let* ((pattern "^file:\\(.+\\)$")
-               (atpoint (ffap-url-at-point))
-               (origin (if (and atpoint (string-match pattern atpoint))
-                           (match-string 1 atpoint)))
-               (from (expand-file-name (or origin ""))))
-          (if (and origin (file-exists-p from) (eq major-mode 'org-mode))
-              (let ((to (format "%s/%s.%s"
-                                (org-download--dir)
-                                (read-string "Rename file to: " (file-name-base from))
-                                (file-name-extension from))))
-                (rename-file from to 1)
-                (org-download-replace-all (file-name-nondirectory from)
-                                          (file-name-nondirectory to))
-                (org-display-inline-images))
-            (message "Not available"))))))
+         (forward-line -2)))))
 
 
 
-;;; Org-Mode - Drawing
+;;; Org-Mode - Download
+
+(x org-download
+   :after '(org)
+   :ensure t :config
+   (setq org-download-image-dir (concat org-my-base-res "image")
+         org-download-backend (if (executable-find "wget") "wget \"%s\" -O \"%s\"" t))
+
+   (advice-add 'org-download--dir-2 :around
+               (lambda (_ &rest __) ;; Where to save?
+                 (or (file-name-base (buffer-file-name)) "")))
+
+   (defun org-download-rename-file-at-point ()
+     "Rename the downloaded file at point."
+     (interactive)
+     (let* ((pattern "^file:\\(.+\\)$")
+            (atpoint (ffap-url-at-point))
+            (origin (if (and atpoint (string-match pattern atpoint))
+                        (match-string 1 atpoint)))
+            (from (expand-file-name (or origin ""))))
+       (if (and origin (file-exists-p from) (eq major-mode 'org-mode))
+           (let ((to (format "%s/%s.%s"
+                             (org-download--dir)
+                             (read-string "Rename file to: " (file-name-base from))
+                             (file-name-extension from))))
+             (rename-file from to 1)
+             (org-download-replace-all (file-name-nondirectory from)
+                                       (file-name-nondirectory to))
+             (org-display-inline-images))
+         (message "Not available")))))
+
+
+
+;;; Org-Mode - Drawing And So On.
+
 (x ob-dot
-   :if (executable-find "dot")
+   :if (executable-find "dot") ;; choco install graphviz
    :config (setcdr (assoc "dot" org-src-lang-modes) 'graphviz-dot))
 
 (x ob-ditaa
@@ -244,10 +263,15 @@
    :config (setq org-ditaa-jar-path "~/.emacs.d/ext/ditaa.jar"))
 
 (x ob-plantuml
-   :if (and (executable-find "java")
-            (executable-find "dot"))
-   ;; https://versaweb.dl.sourceforge.net/project/plantuml/1.2018.1/plantuml.1.2018.1.jar
-   :config (setq org-plantuml-jar-path "~/.emacs.d/plantuml.jar"))
+   :if (and (executable-find "java") (executable-find "dot"))
+   :config
+   (setq org-plantuml-jar-path "~/.emacs.d/plantuml.jar")
+   (when (and (null (file-exists-p org-plantuml-jar-path))
+              (yes-or-no-p "Download plantuml.jar Now?"))
+     (url-copy-file "https://versaweb.dl.sourceforge.net/project/plantuml/1.2018.1/plantuml.1.2018.1.jar" org-plantuml-jar-path)))
+
+(x ob-restclient :ensure t)
+
 
 (provide 'imokeys)
 

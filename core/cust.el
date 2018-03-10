@@ -3,6 +3,8 @@
 
 ;;; Code:
 
+
+
 ;;; Initialization
 
 (defun im/refresh-package (packages-required &optional block)
@@ -20,20 +22,16 @@
 (im/refresh-package
  '(use-package diminish bind-key
 
-    atom-dark-theme rainbow-delimiters rcirc-styles anzu beacon
+    atom-dark-theme rainbow-delimiters anzu beacon
     ag wgrep-ag session iedit graphviz-dot-mode magit neotree
-    exec-path-from-shell multiple-cursors page-break-lines ivy-pages
+    exec-path-from-shell multiple-cursors page-break-lines
 
-    org-download ob-restclient
-
-    slime php-mode intero robe elpy c-eldoc erlang lua-mode go-mode
+    lsp-mode slime php-mode intero robe elpy c-eldoc erlang lua-mode go-mode
     kotlin-mode scala-mode clojure-mode groovy-mode
 
-    web-mode js2-mode emmet-mode htmlize yaml-mode sass-mode impatient-mode
+    web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize
 
-    counsel-projectile yasnippet xcscope web-beautify tide
-    company-ghc company-go company-php
-    ))
+    counsel-projectile yasnippet xcscope))
 
 
 
