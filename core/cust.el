@@ -20,18 +20,41 @@
   (mapc 'package-install (seq-remove 'package-installed-p packages-required)))
 
 (im/refresh-package
- '(use-package diminish bind-key
+ '(use-package
+    ;; basic
+    bind-key diminish
 
-    atom-dark-theme rainbow-delimiters anzu beacon
-    ag wgrep-ag session iedit graphviz-dot-mode magit neotree
-    exec-path-from-shell multiple-cursors page-break-lines
+    ;; looking
+    atom-dark-theme rainbow-delimiters beacon page-break-lines ivy-pages
 
-    lsp-mode slime php-mode intero robe elpy c-eldoc erlang lua-mode go-mode
-    kotlin-mode scala-mode clojure-mode groovy-mode
+    ;; edit
+    iedit multiple-cursors
 
-    web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize
+    ;; search
+    ag wgrep-ag anzu
 
-    counsel-projectile yasnippet xcscope))
+    ;; utils
+    exec-path-from-shell session graphviz-dot-mode magit neotree
+
+    ;; org-mode
+    org-download ob-restclient
+
+    ;; lsp
+    lsp-mode lsp-ui company-lsp
+
+    ;; langs
+    slime php-mode intero robe elpy c-eldoc erlang lua-mode go-mode kotlin-mode scala-mode clojure-mode groovy-mode
+
+    ;; front
+    web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify
+
+    ;; projects
+    counsel-projectile yasnippet company
+
+    ;; companies
+    company-ghc company-php
+
+    ))
 
 
 
