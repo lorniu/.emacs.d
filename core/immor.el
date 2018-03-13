@@ -321,22 +321,6 @@
            (which-function-mode 1)))
 
 
-;;; LSP-Mode
-(x lsp-mode
-   :config
-
-   (x lsp-ui/e
-      :config
-      (add-hook 'lsp-mode-hook 'lsp-ui-mode))
-
-   (x company-lsp
-      :after (company)
-      :config
-      (setq company-lsp-async t)
-      (setq company-lsp-enable-snippet t)
-      (push 'company-lsp company-backends)))
-
-
 ;;; Which-Func
 
 (x which-func/x
@@ -419,35 +403,6 @@
 
 ;;; Programer - Languages
 
-(x cc-mode/w
-   :config
-   (setq-default c-basic-offset     4
-                 gdb-many-windows   t
-                 gdb-show-main      t )
-
-   (x semantic/w :config
-      (global-semanticdb-minor-mode 1)
-      (global-semantic-idle-scheduler-mode 1)
-      (global-semantic-stickyfunc-mode 1))
-
-   ;; for C++, use Rtags or Irony-Mode
-   ;; CEDET + ECB is another choice
-   (defun ccc-common-hook ()
-     (semantic-mode)
-     (cscope-minor-mode)
-     (c-turn-on-eldoc-mode)
-
-     (unless (file-exists-p "Makefile")
-       (set (make-local-variable 'compile-command)
-            (format "cc %s -g %s -o %s"
-                    (buffer-name)
-                    (or (getenv "CFLAGS") "-std=c99 -Wall")
-                    (file-name-sans-extension (buffer-name))))))
-
-   (add-hook 'c-mode-hook 'ccc-common-hook)
-   (add-hook 'c++-mode-hook 'ccc-common-hook))
-
-
 ;;; Web-Mode/JS-Mode/CSS-Mode
 ;; 20180111, Use Tide-Mode to Autocomplete instead of TERN.
 
@@ -525,6 +480,37 @@
        (eldoc-mode +1)
        (tide-hl-identifier-mode +1)
        (set (make-local-variable 'company-tooltip-align-annotations) t))))
+
+
+;;; CC-Mode
+
+(x cc-mode/w
+   :config
+   (setq-default c-basic-offset     4
+                 gdb-many-windows   t
+                 gdb-show-main      t )
+
+   (x semantic/w :config
+      (global-semanticdb-minor-mode 1)
+      (global-semantic-idle-scheduler-mode 1)
+      (global-semantic-stickyfunc-mode 1))
+
+   ;; for C++, use Rtags or Irony-Mode
+   ;; CEDET + ECB is another choice
+   (defun ccc-common-hook ()
+     (semantic-mode)
+     (cscope-minor-mode)
+     (c-turn-on-eldoc-mode)
+
+     (unless (file-exists-p "Makefile")
+       (set (make-local-variable 'compile-command)
+            (format "cc %s -g %s -o %s"
+                    (buffer-name)
+                    (or (getenv "CFLAGS") "-std=c99 -Wall")
+                    (file-name-sans-extension (buffer-name))))))
+
+   (add-hook 'c-mode-hook 'ccc-common-hook)
+   (add-hook 'c++-mode-hook 'ccc-common-hook))
 
 
 ;;; SLIME (The Superior Lisp Interaction Mode for Emacs)
@@ -658,6 +644,25 @@
           (add-to-list 'company-backends 'company-ac-php-backend))))
 
    (add-hook 'php-mode-hook 'my-php-stuff))
+
+
+;;; LSP-Mode
+(x lsp-mode)
+
+(x lsp-ui
+   :init
+   (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
+(when (executable-find "cquery")
+  (x cquery
+     :commands lsp-cquery-enable
+     :init (add-hook 'c-mode-common-hook '(lambda () (ignore-errors (lsp-cquery-enable))))))
+
+(x company-lsp
+   :config
+   (setq company-lsp-async t)
+   (setq company-lsp-enable-snippet t)
+   (push 'company-lsp company-backends))
 
 
 (provide 'immor)

@@ -39,14 +39,14 @@
     ;; org-mode
     org-download ob-restclient
 
-    ;; lsp
-    lsp-mode lsp-ui company-lsp
+    ;; fronts
+    web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify
 
-    ;; langs
+    ;; backends
     slime php-mode intero robe elpy c-eldoc erlang lua-mode go-mode kotlin-mode scala-mode clojure-mode groovy-mode
 
-    ;; front
-    web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify
+    ;; lsp
+    lsp-mode lsp-ui company-lsp cquery
 
     ;; projects
     counsel-projectile yasnippet company
