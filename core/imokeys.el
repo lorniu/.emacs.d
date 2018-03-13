@@ -223,7 +223,7 @@
 
 (x org-download
    :after '(org)
-   :ensure t :config
+   :config
    (setq org-download-image-dir (concat org-my-base-res "image")
          org-download-backend (if (executable-find "wget") "wget \"%s\" -O \"%s\"" t))
 
@@ -269,8 +269,6 @@
    (when (and (null (file-exists-p org-plantuml-jar-path))
               (yes-or-no-p "Download plantuml.jar Now?"))
      (url-copy-file "https://versaweb.dl.sourceforge.net/project/plantuml/1.2018.1/plantuml.1.2018.1.jar" org-plantuml-jar-path)))
-
-(x ob-restclient :ensure t)
 
 
 (provide 'imokeys)

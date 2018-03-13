@@ -168,9 +168,7 @@
 
    :config
    (setq ivy-use-virtual-buffers  t)
-   (ivy-mode 1)
-
-   (x ivy-pages/e :ensure t))
+   (ivy-mode 1))
 
 (x counsel-projectile/w
    :bind (( "M-x"      . counsel-M-x          )
@@ -328,12 +326,12 @@
    :config
 
    (x lsp-ui/e
-      :ensure t :config
+      :config
       (add-hook 'lsp-mode-hook 'lsp-ui-mode))
 
    (x company-lsp
       :after (company)
-      :ensure t :config
+      :config
       (setq company-lsp-async t)
       (setq company-lsp-enable-snippet t)
       (push 'company-lsp company-backends)))
@@ -427,14 +425,6 @@
                  gdb-many-windows   t
                  gdb-show-main      t )
 
-   (x xcscope
-      :hook (cscope-list-entry-hook)
-      :config
-      (setq cscope-name-line-width            -15
-            cscope-close-window-after-select  nil
-            cscope-edit-single-match          nil)
-      (add-to-list 'cscope-indexer-ignored-directories "__*"))
-
    (x semantic/w :config
       (global-semanticdb-minor-mode 1)
       (global-semantic-idle-scheduler-mode 1)
@@ -520,7 +510,7 @@
      (flycheck-mode +1)
      (js2-imenu-extras-mode +1))
 
-   (x web-beautify :ensure t :if (executable-find "js-beautify")))
+   (x web-beautify :if (executable-find "js-beautify")))
 
 (when (executable-find "node")
   (x tide/w
@@ -592,7 +582,7 @@
    (setq haskell-tags-on-save t
          haskell-process-show-debug-tips nil
          haskell-process-suggest-remove-import-lines t)
-   (x company-ghc :ensure t :init
+   (x company-ghc :init
       (add-company-backend '(company-ghc :with company-dabbrev-code))))
 
 
@@ -662,7 +652,7 @@
      (local-set-key (kbd "<f1>") 'my-php-lookup)
 
      (when (executable-find "php")
-       (x company-php :ensure t :config
+       (x company-php :config
           (ac-php-core-eldoc-setup) ;; enable eldoc
           (make-local-variable 'company-backends)
           (add-to-list 'company-backends 'company-ac-php-backend))))
