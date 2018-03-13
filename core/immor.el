@@ -292,18 +292,18 @@
    (setq sql-user "root")
    (setq sql-product 'mysql)
    (setq sql-connection-alist
-         '((45.63.55.2
-            (sql-product 'mysql)
-            (sql-server "45.63.55.2")
-            (sql-port 3306)
-            (sql-database "ego")
-            (sql-user "root"))
-           (120.24.78.141
+         '((120.24.78.141
             (sql-product 'mysql)
             (sql-server "120.24.78.141")
             (sql-port 3306)
             (sql-database "ygmymall")
-            (sql-user "krft"))))
+            (sql-user "krft"))
+           (45.63.55.2
+            (sql-product 'mysql)
+            (sql-server "45.63.55.2")
+            (sql-port 3306)
+            (sql-database "ego")
+            (sql-user "root"))))
    (sql-set-product-feature 'mysql
                             :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
    (env-windows
