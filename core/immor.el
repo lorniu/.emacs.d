@@ -221,7 +221,7 @@
               (lambda (arg) (ruby-end-of-block)) nil)))
 
 
-;;; Shell/Tramp
+;;; Shell
 
 (x eshell/w
    :config
@@ -241,11 +241,20 @@
    (add-hook-lambda 'eshell-mode-hook
      (define-key eshell-command-map [(control ?l)] 'eshell/ccc)))
 
+
+;;; Tramp
+
 (x tramp/w :init
    (setq tramp-default-user "root"
          tramp-default-method "sshx")
 
-   (defun ssh ()
+   ;; optimize
+   (setq remote-file-name-inhibit-cache nil)
+   (setq vc-ignore-dir-regexp (format "%s\\|%s" vc-ignore-dir-regexp tramp-file-name-regexp))
+   (setq tramp-verbose 1)
+
+   ;; shortcuts
+   (defun ssh-edit ()
      "Shortcut for remote site."
      (interactive)
      (let* ((hosts
