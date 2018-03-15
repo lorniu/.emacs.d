@@ -664,10 +664,10 @@
 
 (when (executable-find "cquery")
   (x cquery
-     :commands lsp-cquery-enable
-     :init (add-hook 'c-mode-common-hook '(lambda () (ignore-errors (lsp-cquery-enable))))))
+     :commands lsp-cquery-enable))
 
 (x company-lsp
+   :after (lsp-mode company-mode)
    :config
    (setq company-lsp-async t)
    (setq company-lsp-enable-snippet t)
