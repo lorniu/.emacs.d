@@ -25,7 +25,7 @@
     bind-key diminish
 
     ;; looking
-    atom-dark-theme rainbow-delimiters beacon page-break-lines ivy-pages
+    atom-dark-theme rainbow-delimiters beacon page-break-lines ivy-pages rcirc-styles
 
     ;; edit
     iedit multiple-cursors

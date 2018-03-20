@@ -140,7 +140,7 @@
 
    :config
 
-   (x rcirc-styles/e :ensure t)
+   (require 'rcirc-styles)
 
    (setq rcirc-default-user-name "loofee"
          rcirc-default-nick      "loofee"
