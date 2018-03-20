@@ -22,7 +22,6 @@
                                         unicode:-*-%s-normal-r-normal-*-%d-*-*-*-c-*-iso8859-1"
                                                en (pcase font-size (14 13) (30 33) (_ size))
                                                tz (pcase font-size (14 14) (30 35) (_ (* size 1.2)))))))
-
  (setq default-frame-alist
        '((title . "νερό")
          (top . 30) (left . 640)
@@ -35,44 +34,40 @@
          (cursor-color . "red")
          (alpha . 92)))
 
- (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
-
  (menu-bar-mode -1)
+ (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
+ (global-set-key [C-wheel-up]   'text-scale-increase)
+ (global-set-key [C-wheel-down] 'text-scale-decrease))
 
- (when (not (env-classroom))
-   (load-theme 'atom-dark t)
-   (add-hook 'focus-in-hook 'im/win-font))
+(env-classroom
+ (setf (alist-get 'height default-frame-alist) '35)
+ (setf (alist-get 'width default-frame-alist)  '70)
+ (setf (alist-get 'left default-frame-alist)   '850)
+ (add-hook 'focus-in-hook (lambda () (im/win-font 30))))
 
- (when (env-classroom)
-   (setf (alist-get 'height default-frame-alist) '35)
-   (setf (alist-get 'width default-frame-alist)  '70)
-   (setf (alist-get 'left default-frame-alist)   '850)
-   (add-hook 'focus-in-hook (lambda () (im/win-font 30)))))
+(env-out-classroom
+ (load-theme 'atom-dark t)
+ (add-hook 'focus-in-hook 'im/win-font))
 
 
 
 ;;; Linux
 
 (env-linux
- (menu-bar-mode 0)
+ (menu-bar-mode 0))
 
- (env-linux-g
-  (tool-bar-mode 0)
-  (set-face-attribute 'default nil :height 110))
+(env-linux-ng
+ (load-theme 'origin t)
+ (xterm-mouse-mode)
+ (global-set-key [mouse-4] (lambdai (scroll-down 1)))
+ (global-set-key [mouse-5] (lambdai (scroll-up 1))))
 
- (env-linux-vps
-  (load-theme 'origin t)
-  (xterm-mouse-mode)
-  (global-set-key [mouse-4] (lambdai (scroll-down 1)))
-  (global-set-key [mouse-5] (lambdai (scroll-up 1)))))
-
-
-
-;;; Mixin
-
-(when (or (env-linux-g) (env-windows))
-  (global-set-key [C-wheel-up]   'text-scale-increase)
-  (global-set-key [C-wheel-down] 'text-scale-decrease))
+(env-linux-g
+ (tool-bar-mode 0)
+ (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
+ (set-face-attribute 'default nil :height 250)
+ (global-set-key [C-mouse-4] 'text-scale-increase)
+ (global-set-key [C-mouse-5] 'text-scale-decrease))
 
 
 
