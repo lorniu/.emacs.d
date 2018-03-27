@@ -7,12 +7,16 @@
 ;;  (setq url-gateway-method 'socks)
 ;;  (setq socks-server '("Default server" "127.0.0.1" 1080 5)))
 
+
+
 ;;; EWW
+
 (x eww
    :when (env-linux-vps)
    :init (setq browse-url-browser-function 'eww-browse-url))
 
-;;;; Gnus
+
+;;; Gnus
 
 (x gnus
    :init
@@ -120,7 +124,10 @@
    (add-hook 'gnus-select-group-hook 'gnus-group-set-timestamp)
    (add-hook 'gnus-group-mode-hook 'gnus-topic-mode))
 
+
+
 ;;; Rcirc
+
 (x rcirc
    :bind (:map rcirc-mode-map ("C-c SPC" . rcirc-next-active-buffer))
    :init
@@ -199,6 +206,7 @@
 
    (defun rcirc-handler-301 (process cmd sender args) "/away message handler.")
    (defun rcirc-handler-372 (process cmd sender args) "/welcome handler."))
+
 
 (provide 'imnet)
 

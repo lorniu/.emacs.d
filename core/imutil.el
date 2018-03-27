@@ -19,7 +19,6 @@
   `(add-hook ,hook (lambda () ,@body)))
 
 
-
 ;;; Helpers
 
 (defmacro pm (expr)
@@ -32,7 +31,6 @@
   `(message ,@expr))
 
 
-
 ;;; Utility
 
 (defun time (&optional time nano)
@@ -40,6 +38,19 @@
   (format-time-string
    (if nano (concat "%F %T.%" (number-to-string nano) "N") "%F %T")
    time))
+
+(defun padding-left-to-string (item &optional needle)
+  "Padding every line of ITEM with NEEDLE. If ITEM is a list, then join it with padding."
+  (mapconcat (lambda (s) (concat (or needle "  ") s))
+             (if (listp item) item (split-string item "\n")) "\n"))
+
+(defun string-repeat (init times)
+  "Make a new string repeat TIMES for INIT."
+  (apply 'concat (make-list times init)))
+
+(defun string-join-newline (&rest strings)
+  "Join list STRINGS with newline, return one String."
+  (mapconcat 'identity strings "\n"))
 
 (defun im/read-file-content (file &optional listp)
   "Read the FILE, return content as String, or List if listp not nil."
@@ -288,10 +299,6 @@
   (ignore-errors (delete-file (concat server-auth-dir "server")))
   (server-start))
 
-(defun im/html-viewport ()
-  "Return the Viewport Meta for Html Page."
-  (format "<meta  name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n"))
-
 (defmacro im/open-file-view (file &rest args)
   "Open a file with View-Mode."
   `(progn (find-file ,file ,@args) (view-mode +1)))
@@ -305,8 +312,13 @@
      ,@something
      ,@(mapcar (lambda (m) `(,m +1)) modes)))
 
-
+(defmacro im/profile (&rest body)
+  "Profiler BODY form."
+  `(progn (profiler-start 'cpu)
+          (ignore-errors ,@body (profiler-report))
+          (profiler-stop)))
 
+
 ;;; Miscellaneous
 
 (defun im/toggle-fullscreen ()
@@ -331,6 +343,7 @@
        '(:foreground "red")
      '(:foreground "black")))
   (current-buffer))
+
 
 (provide 'imutil)
 

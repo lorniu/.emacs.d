@@ -1,0 +1,46 @@
+#+TITLE: love
+#+HTML_HEAD_EXTRA: <link rel="stylesheet" href="http://45.63.55.2/notes/.asset/v.css">
+#+OPTIONS: toc:nil
+#+STARTUP: showall
+
+
+* install first
+
+load the impress plugin.
+
+其实挺简单的吧.
+
+#+BEGIN_SRC elisp
+  (setq org-impress-js-slide-angles '(10 10 10 10))
+  (setq org-impress-js-default-trans '(1000 0 30))
+  (setq org-impress-js-slide-position '(0 20 0 0))
+  (setq org-impress-js-default-rot '(20 0 0))
+  (setq org-impress-js-default-slide-class "step slide")
+  (setq org-impress-js-stylesheet "./css/impress-demo.css")
+  (load "~/.emacs.d/ext/impress/impress.el")
+#+END_SRC
+
+#+RESULTS:
+: t
+
+
+* tutor
+how to use impress with org mode.
+
+* change old el
+#+DATA-Y: 1000
+#+DATA-Z: 1000
+
+| from                               | to                       |
+|------------------------------------+--------------------------|
+| org-export-get-headline-id void    | org-export-get-reference |
+| numbers void                       | replace with "ha"        |
+| org-export-solidify-link-text void | no need this function    |
+
+* syntax
+- data-x
+- data-y
+- data-z
+- data-rela-x
+- data-rela-y
+- data-rela-z

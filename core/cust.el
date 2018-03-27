@@ -4,7 +4,6 @@
 ;;; Code:
 
 
-
 ;;; Initialization
 
 (defun im/refresh-package (packages-required &optional block)
@@ -14,7 +13,8 @@
         `(("melpa" . ,(if block "http://elpa.emacs-china.org/melpa/"
                         "http://melpa.org/packages/"))
           ("org"   . "http://elpa.emacs-china.org/org/")
-          ("gnu"   . "http://elpa.emacs-china.org/gnu/")))
+          ("gnu"   . "http://elpa.emacs-china.org/gnu/")
+          ))
   (package-initialize)
   (unless package-archive-contents (package-refresh-contents))
   (mapc 'package-install (seq-remove 'package-installed-p packages-required)))
@@ -37,7 +37,7 @@
     exec-path-from-shell session graphviz-dot-mode magit neotree
 
     ;; org-mode
-    org-download ob-restclient
+    org-download ob-restclient ox-reveal
 
     ;; fronts
     web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify
@@ -57,7 +57,6 @@
     ))
 
 
-
 ;;; Load-Path/Theme-Path
 
 (dolist (dir (directory-files "~/.emacs.d/ext" t))
@@ -68,14 +67,13 @@
 (add-to-list 'custom-theme-load-path "~/.emacs.d/ext/themes")
 
 
-
 ;;; Basic Variables
 
 (setq default-directory        "~/"
       user-full-name           "imfine"
       user-mail-address        "lorniu@gmail.com"
       custom-file              "~/.emacs.d/core/cust.el"
-      eshell-aliases-file      "~/.emacs.d/ext/eshell-alias"
+      eshell-aliases-file      "~/.emacs.d/ass/eshell-alias"
       _CACHE_                  "~/.emacs.d/.cache/"
       bbdb-file                (concat _CACHE_ "_bbdb")
       diary-file               (concat _CACHE_ "_diary")
@@ -83,7 +81,7 @@
       abbrev-file-name         (concat _CACHE_ "_abbrevs")
       recentf-save-file        (concat _CACHE_ "_recentf")
       eshell-directory-name    (concat _CACHE_ "eshell")
-      temporary-file-directory (concat _CACHE_ "/temp/")
+      org-publish-timestamp-directory (concat _CACHE_ ".timestamps/")
 
       auto-save-interval 0
       auto-save-list-file-prefix nil
@@ -107,6 +105,9 @@
       column-number-mode       1
       fringes-outside-margins  t
 
+      enable-local-variables   :all
+      enable-local-eval        t
+
       kill-ring-max            200
       select-enable-clipboard  t
       help-window-select       t
@@ -125,7 +126,6 @@
       '(narrow-to-region narrow-to-page downcase-region upcase-region set-goal-column erase-buffer))
 
 
-
 ;;; Use-Package
 
 (defvar im/need-idle-loads nil)
@@ -144,7 +144,6 @@
        (use-package ,name ,@x-options ,@args))))
 
 
-
 ;;; Custom-Set
 
 (custom-set-variables

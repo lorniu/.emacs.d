@@ -29,7 +29,7 @@
       (fundamental-mode))
     ;; system file
     (if (and (not (string-match-p "autoloads.el$" buffer-file-name))
-             (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs" buffer-file-name))
+             (let ((case-fold-search nil)) (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/" buffer-file-name)))
         (view-mode 1)))
 
   (defun -im/before-save ()
@@ -58,7 +58,6 @@
 
 
 
-
 ;;; Basic-Modes
 
 (x recentf/e :init (recentf-mode))
@@ -172,7 +171,7 @@
 
 (x counsel-projectile/w
    :bind (( "M-x"      . counsel-M-x          )
-          ( "C-x b"  . ivy-switch-buffer    )
+          ( "C-x b"    . ivy-switch-buffer    )
           ( "C-x C-b"  . ibuffer              )
           ( "C-x d"    . counsel-projectile-find-dir )
           ( "C-x C-d"  . dired                )
@@ -189,6 +188,7 @@
    (setq projectile-cache-file          (concat _CACHE_ "__projectile.cache")
          projectile-known-projects-file (concat _CACHE_ "__projectile-bookmark.eld")
          counsel-find-file-ignore-regexp "Volume\\|RECYCLE.BIN"
+         projectile-completion-system   'ivy
          projectile-mode-line '(:eval (if (string= "-" (projectile-project-name)) "" (format " [%s]" (projectile-project-name)))))
 
    :config
@@ -319,7 +319,6 @@
 
 
 
-
 ;;; Programer - Common
 
 (x prog-mode
@@ -409,7 +408,6 @@
 
 
 
-
 ;;; Programer - Languages
 
 ;;; Web-Mode/JS-Mode/CSS-Mode
