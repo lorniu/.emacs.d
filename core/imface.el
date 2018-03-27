@@ -4,7 +4,6 @@
 ;;; Code:
 
 
-
 ;;; Windows
 
 (env-windows
@@ -50,7 +49,6 @@
  (add-hook 'focus-in-hook 'im/win-font))
 
 
-
 ;;; Linux
 
 (env-linux
@@ -70,7 +68,6 @@
  (global-set-key [C-mouse-5] 'text-scale-decrease))
 
 
-
 ;;; Encoding
 
 (set-locale-environment   "utf-8")
@@ -94,7 +91,6 @@
  (add-hook 'shell-mode-hook 'im/cp936-encoding))
 
 
-
 ;;; Miscellaneous
 
 (setq sentence-end-double-space nil)

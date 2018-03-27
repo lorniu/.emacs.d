@@ -3,7 +3,7 @@
 
 ;;; Code:
 
-(defun im/initialize-emacs-for-win ()
+(defun im/start-emacs-for-windows ()
   "Initialization ContextMenu for Windows, etc:
 1. execute this function, and import the generated `.reg` file to OS
 2. put the symlink of `runemacs.exe` with arg `--daemon` to `shell:start`

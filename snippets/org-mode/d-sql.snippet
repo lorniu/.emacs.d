@@ -1,13 +1,10 @@
 # -*- mode: snippet -*-
-# name: drawer / sqli
+# name: drawer / sql-mode
 # key: d
 # condition: (= (current-column) 1)
 # --
 :PROPERTIES:
-:engine:   mysql
-:dbhost:   localhost
-:database: ${1:mysql}
-:dbuser:   root
-:dbpassword: root
-:exports:  code
+:header-args+: :engine mysql
+:header-args+: :dbuser root :dbpassword root
+:header-args+: :dbhost localhost :database ${1:mysql}
 :END:
