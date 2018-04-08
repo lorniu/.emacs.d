@@ -76,6 +76,7 @@
         org-hide-leading-stars                t
         org-hide-block-startup                t
         org-startup-with-inline-images        t
+        org-image-actual-width                nil
         org-cycle-separator-lines             0
         org-pretty-entities                   t
         org-src-fontify-natively              t
@@ -243,7 +244,7 @@
    (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
 
    ;; Plugins
-   (require 'ox-reveal)
+   (require 'ox-impress)
    ;; (require 'ox-freemind)
    (require 'org-download))
 
@@ -270,12 +271,6 @@
    (when (and (null (file-exists-p org-plantuml-jar-path))
               (yes-or-no-p "Download plantuml.jar Now?"))
      (url-copy-file "https://versaweb.dl.sourceforge.net/project/plantuml/1.2018.1/plantuml.1.2018.1.jar" org-plantuml-jar-path)))
-
-(x ox-reveal ;; https://github.com/yjwen/org-reveal
-   :config
-   (setq org-reveal-plugins nil
-         org-reveal-theme   "night"
-         org-reveal-root    (concat "file:///" (file-truename "~/.emacs.d/ass/reveal.js"))))
 
 (x org-download
    :config

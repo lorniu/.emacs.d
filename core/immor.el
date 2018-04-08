@@ -20,41 +20,41 @@
 
 ;;; Hooks
 
-(progn
-  (defun -im/before-open ()
-    ;; large file
-    (when (> (buffer-size) (* 2 1024 1024))
-      (setq buffer-read-only t)
-      (buffer-disable-undo)
-      (fundamental-mode))
-    ;; system file
-    (if (and (not (string-match-p "autoloads.el$" buffer-file-name))
-             (let ((case-fold-search nil)) (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/" buffer-file-name)))
-        (view-mode 1)))
+((lambda ()
+   (add-hook 'find-file-hook    '-im/before-open)
+   (add-hook 'before-save-hook  '-im/before-save)
+   (add-hook 'after-save-hook   '-im/el-compile)
+   (add-hook 'auto-save-hook    '-im/idle-tasks)
 
-  (defun -im/before-save ()
-    (unless (seq-contains '(org-mode) major-mode)
-      (delete-trailing-whitespace)))
+   (defun -im/before-open ()
+     ;; large file
+     (when (> (buffer-size) (* 2 1024 1024))
+       (setq buffer-read-only t)
+       (buffer-disable-undo)
+       (fundamental-mode))
+     ;; system file
+     (and (not (string-match-p "autoloads.el$" buffer-file-name))
+          (let ((case-fold-search nil)) (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/" buffer-file-name))
+          (view-mode 1)))
 
-  (defun -im/el-compile (&optional dir)
-    (save-window-excursion
-      (when (and (eq major-mode 'emacs-lisp-mode)
-                 (file-exists-p (concat (or dir "~/.emacs.d/core/") (buffer-name))))
-        (byte-compile-file (buffer-file-name)))))
+   (defun -im/before-save ()
+     (unless (seq-contains '(org-mode) major-mode)
+       (delete-trailing-whitespace)))
 
-  (defun -im/idle-tasks ()
-    (let ((then (current-time)))
-      (message "∵ [%s] Idle loading..." (time then 2))
-      (mapc 'require im/need-idle-loads)
-      (princ im/need-idle-loads)
-      (message "∴ [%s] Idle loaded, %.2fs elapsed."
-               (time nil 2) (time-subtract-seconds (current-time) then)))
-    (remove-hook 'auto-save-hook '-im/idle-tasks))
+   (defun -im/el-compile (&optional dir)
+     (save-window-excursion
+       (when (and (eq major-mode 'emacs-lisp-mode)
+                  (file-exists-p (concat (or dir "~/.emacs.d/core/") (buffer-name))))
+         (byte-compile-file (buffer-file-name)))))
 
-  (add-hook 'find-file-hook    '-im/before-open)
-  (add-hook 'before-save-hook  '-im/before-save)
-  (add-hook 'after-save-hook   '-im/el-compile)
-  (add-hook 'auto-save-hook    '-im/idle-tasks))
+   (defun -im/idle-tasks ()
+     (let ((then (current-time)))
+       (message "∵ [%s] Idle loading..." (time then 2))
+       (mapc 'require im/need-idle-loads)
+       (princ im/need-idle-loads)
+       (message "∴ [%s] Idle loaded, %.2fs elapsed."
+                (time nil 2) (time-subtract-seconds (current-time) then)))
+     (remove-hook 'auto-save-hook '-im/idle-tasks))))
 
 
 
@@ -265,6 +265,12 @@
        (find-file host))))
 
 
+;;; Edebug
+(x edebug :init
+   (add-hook-lambda 'edebug-mode-hook
+     (view-mode -1)))
+
+
 ;;; Exec-Path
 
 (x exec-path-from-shell/x
@@ -414,7 +420,7 @@
 ;; 20180111, Use Tide-Mode to Autocomplete instead of TERN.
 
 (x web-mode
-   :mode "\\.\\([xp]?html?\\(.erb\\|.blade\\)?\\|[aj]sp\\|jsx\\|tpl\\|css\\)\\'"
+   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|jsx\\|tpl\\|css\\)\\'"
    :config
    (setq web-mode-markup-indent-offset    4
          web-mode-css-indent-offset       4
