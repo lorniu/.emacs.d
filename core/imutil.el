@@ -52,13 +52,17 @@
   "Join list STRINGS with newline, return one String."
   (mapconcat 'identity strings "\n"))
 
-(defun im/read-file-content (file &optional listp)
-  "Read the FILE, return content as String, or List if listp not nil."
+(defun im/read-file-content (file &optional callback)
+  "Read the FILE content as string, file can be a url."
   (with-temp-buffer
-    (insert-file-contents file)
-    (if listp
-        (split-string (buffer-string) "\n" t)
-      (buffer-string))))
+    (if (string-match-p "^\\(http\\|file://\\)" file)
+        (url-insert-file-contents file)
+      (insert-file-contents-literally file))
+    (let ((buffer-string (buffer-substring-no-properties
+                          (point-min) (point-max))))
+      (if callback
+          (funcall callback buffer-string)
+        (buffer-string)))))
 
 (defun im/view-url-cursor ()
   "Open a new buffer containing the contents of URL."
