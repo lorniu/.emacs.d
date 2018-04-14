@@ -131,7 +131,7 @@
   (setq org-confirm-babel-evaluate    nil)
   (setq org-babel-default-header-args (cons '(:noweb . "no") (assq-delete-all :noweb org-babel-default-header-args)))
 
-  (add-to-list 'org-src-lang-modes '("html" . web))
+  ;; (add-to-list 'org-src-lang-modes '("html" . web))
 
   (cl-flet ((-lbs (langs) (org-babel-do-load-languages 'org-babel-load-languages (mapcar (lambda (x) (cons x t)) langs))))
     (-lbs '( emacs-lisp
@@ -181,8 +181,7 @@
   (let ((start (current-time)))
     (with-temp-buffer
       (find-file (concat --im/org-pub-home " processing.org"))
-      (let ((find-file-hook nil)
-            (org-mode-hook nil)
+      (let ((org-startup-folded 'showeverything)
             (vc-handled-backends nil))
         (org-publish "nnn" force))
       (kill-buffer))
