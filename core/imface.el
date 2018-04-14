@@ -42,7 +42,7 @@
  (setf (alist-get 'height default-frame-alist) '35)
  (setf (alist-get 'width default-frame-alist)  '70)
  (setf (alist-get 'left default-frame-alist)   '850)
- (add-hook 'focus-in-hook (lambda () (im/win-font 30))))
+ (add-hook 'focus-in-hook (lambda () (im/win-font 24))))
 
 (env-out-classroom
  (load-theme 'atom-dark t)

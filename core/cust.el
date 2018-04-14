@@ -37,7 +37,7 @@
     exec-path-from-shell session graphviz-dot-mode magit neotree
 
     ;; org-mode
-    org-download ob-restclient
+    org-download ob-restclient ox-pandoc
 
     ;; fronts
     web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify
