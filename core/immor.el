@@ -107,16 +107,16 @@
          ibuffer-saved-filter-groups
          `(("default"
             ("apple"
-             (or (name . "\\*.+\\*")))
-            ("pear"
-             (or (name . "\\*magit")))
-            ("mongo"
-             (or (mode . org-mode)
-                 (mode . dired-mode)))
+             (or (name . "\\*.+\\*")
+                 (name . "\\*magit")))
+            ("banana"
+             (or (mode . dired-mode)))
             ("orange"
+             (or (mode . org-mode)))
+            ("melon"
              (or (mode . erc-mode)
                  (mode . rcirc-mode)))
-            ("banana"
+            ("grape"
              (or (predicate . (eq (get major-mode 'derived-mode-parent) 'prog-mode))
                  (predicate . (member major-mode '(nxml-mode sgml-mode))))))))
 
@@ -135,24 +135,24 @@
 
    :config
    (setq dired-dwim-target t)
+   ;; sort style
    (if (env-linux)
        (setq dired-listing-switches "-alh --group-directories-first")
      (require 'ls-lisp)
      (setq ls-lisp-dirs-first t)
      (setq ls-lisp-UCA-like-collation nil))
    ;; Keep only one dired buffer
-   (advice-add 'dired-find-file :around
-               (lambda (f &rest args)
-                 (let ((orig (current-buffer))
-                       (filename (dired-get-file-for-visit)))
-                   (apply f args)
-                   (if (and (file-directory-p filename)
-                            (not (eq (current-buffer) orig)))
-                       (kill-buffer orig)))))
-   (advice-add 'dired-up-directory :around
-               (lambda (f &rest args)
-                 (let ((orig (current-buffer)))
-                   (apply f args) (kill-buffer orig)))))
+   (let ((dired-find-file-advice (lambda (f &rest args)
+                                   (let ((orig (current-buffer)) (filename (dired-get-file-for-visit)))
+                                     (apply f args)
+                                     (if (and (file-directory-p filename)
+                                              (not (eq (current-buffer) orig)))
+                                         (kill-buffer orig)))))
+         (dired-up-directory-advice (lambda (f &rest args)
+                                      (let ((orig (current-buffer)))
+                                        (apply f args) (kill-buffer orig)))))
+     '(advice-add 'dired-find-file :around dired-find-file-advice)
+     '(advice-add 'dired-up-directory :around dired-up-directory-advice)))
 
 (x neotree/x :init
    (setq neo-theme 'arrow
@@ -573,16 +573,18 @@
 ;;; Haskell
 ;;  some Cabal packages needed.
 ;;  for advanced usage, please try intero, IDE-like, it's based on Stack.
-
-(x haskell-mode
-   :mode "\\.hs\\'"
-   :hook (haskell-mode . interactive-haskell-mode)
-   :config
-   (setq haskell-tags-on-save t
-         haskell-process-show-debug-tips nil
-         haskell-process-suggest-remove-import-lines t)
-   (x company-ghc :init
-      (add-company-backend '(company-ghc :with company-dabbrev-code))))
+(add-hook 'haskell-mode-hook 'intero-mode)
+;;(x haskell-mode
+;;   :config
+;;   (setq haskell-tags-on-save t
+;;         haskell-process-show-debug-tips nil
+;;         haskell-process-suggest-remove-import-lines t))
+;;
+;;'(if (executable-find "stack")
+;;    (x intero-mode :hook (haskell-mode . intero-mode))
+;;  (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+;;  (x company-ghc :init
+;;     (add-company-backend '(company-ghc :with company-dabbrev-code))))
 
 
 ;;; Erlang
@@ -660,6 +662,7 @@
 
 
 ;;; LSP-Mode
+
 (x lsp-mode)
 
 (x lsp-ui

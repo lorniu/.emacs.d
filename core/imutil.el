@@ -33,6 +33,13 @@
 
 ;;; Utility
 
+(defun im/proxy (&optional args)
+  (interactive "P")
+  (if (and args (not (= args 1)))
+      (setq url-gateway-method 'native)
+    (setq url-gateway-method 'socks)
+    (setq socks-server '("Default server" "127.0.0.1" 1080 5))))
+
 (defun time (&optional time nano)
   "Format TIME to String. if TIME is nil, return current time."
   (format-time-string
