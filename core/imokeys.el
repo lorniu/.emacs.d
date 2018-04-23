@@ -81,6 +81,7 @@
         org-pretty-entities                   t
         org-src-fontify-natively              t
         org-src-tab-acts-natively             nil
+        org-url-hexify-p                      nil
 
         org-log-into-drawer                   t
         org-clock-into-drawer                 t
@@ -143,6 +144,7 @@
              java
              restclient  ;; GET :s/hello.json
              sql
+             gnuplot
              ditaa
              dot
              plantuml ))))
@@ -269,7 +271,13 @@
    (setq org-plantuml-jar-path "~/.emacs.d/plantuml.jar")
    (when (and (null (file-exists-p org-plantuml-jar-path))
               (yes-or-no-p "Download plantuml.jar Now?"))
-     (url-copy-file "https://versaweb.dl.sourceforge.net/project/plantuml/1.2018.1/plantuml.1.2018.1.jar" org-plantuml-jar-path)))
+     ;; IF NOT WORK, RUN THIS IN SHELL:
+     ;; wget https://newcontinuum.dl.sourceforge.net/project/plantuml/plantuml.jar -O ~/.emacs.d/plantuml.jar
+     (url-copy-file "https://newcontinuum.dl.sourceforge.net/project/plantuml/plantuml.jar" org-plantuml-jar-path)))
+
+(x gnuplot ;; I can't make it work on Windows yet.
+   :if (executable-find "gnuplot")
+   :init (setq gnuplot-program "gnuplot"))
 
 (x org-download
    :config

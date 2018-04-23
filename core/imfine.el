@@ -42,6 +42,11 @@
   (require  'imsilly)
   (env-windows (im/start-server)))
 
+;;; Hook for special machine
+(let ((sp-in-fi (format "~/.emacs.d/_%s.el" system-name)))
+  (when (file-exists-p sp-in-fi)
+  (load sp-in-fi)))
+
 
 (provide 'imfine)
 

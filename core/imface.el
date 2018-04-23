@@ -62,8 +62,9 @@
 
 (env-linux-g
  (tool-bar-mode 0)
+ (scroll-bar-mode 0)
  (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
- (set-face-attribute 'default nil :height 250)
+ (set-face-attribute 'default nil :height 110)
  (global-set-key [C-mouse-4] 'text-scale-increase)
  (global-set-key [C-mouse-5] 'text-scale-decrease))
 

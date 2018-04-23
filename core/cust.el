@@ -34,7 +34,7 @@
     ag wgrep-ag anzu
 
     ;; utils
-    exec-path-from-shell session graphviz-dot-mode magit neotree
+    exec-path-from-shell session graphviz-dot-mode magit neotree gnuplot
 
     ;; org-mode
     org-download ob-restclient ox-pandoc
@@ -43,7 +43,8 @@
     web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify
 
     ;; backends
-    slime php-mode intero robe elpy c-eldoc erlang lua-mode go-mode kotlin-mode scala-mode clojure-mode groovy-mode
+    slime php-mode intero robe elpy c-eldoc erlang lua-mode
+    go-mode kotlin-mode scala-mode clojure-mode groovy-mode
 
     ;; lsp
     lsp-mode lsp-ui company-lsp cquery
@@ -81,7 +82,7 @@
       abbrev-file-name         (concat _CACHE_ "_abbrevs")
       recentf-save-file        (concat _CACHE_ "_recentf")
       eshell-directory-name    (concat _CACHE_ "eshell")
-      org-publish-timestamp-directory (concat _CACHE_ ".timestamps/")
+      org-publish-timestamp-directory (concat _CACHE_ ".oxtimestamp/")
 
       auto-save-interval 0
       auto-save-list-file-prefix nil
