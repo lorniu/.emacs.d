@@ -131,28 +131,16 @@
    (:map dired-mode-map
          ( "6"  . dired-up-directory )
          ( "r"  . wdired-change-to-wdired-mode )
-         ( "z"  . dired-get-size ))
-
+         ( "z"  . dired-du-mode ))
    :config
    (setq dired-dwim-target t)
+   (setq dired-du-size-format 'comma)
    ;; sort style
    (if (env-linux)
        (setq dired-listing-switches "-alh --group-directories-first")
      (require 'ls-lisp)
      (setq ls-lisp-dirs-first t)
-     (setq ls-lisp-UCA-like-collation nil))
-   ;; Keep only one dired buffer
-   (let ((dired-find-file-advice (lambda (f &rest args)
-                                   (let ((orig (current-buffer)) (filename (dired-get-file-for-visit)))
-                                     (apply f args)
-                                     (if (and (file-directory-p filename)
-                                              (not (eq (current-buffer) orig)))
-                                         (kill-buffer orig)))))
-         (dired-up-directory-advice (lambda (f &rest args)
-                                      (let ((orig (current-buffer)))
-                                        (apply f args) (kill-buffer orig)))))
-     '(advice-add 'dired-find-file :around dired-find-file-advice)
-     '(advice-add 'dired-up-directory :around dired-up-directory-advice)))
+     (setq ls-lisp-UCA-like-collation nil)))
 
 (x neotree/x :init
    (setq neo-theme 'arrow
@@ -269,14 +257,6 @@
 (x edebug :init
    (add-hook-lambda 'edebug-mode-hook
      (view-mode -1)))
-
-
-;;; Exec-Path
-
-(x exec-path-from-shell/x
-   :if (env-linux)
-   :init (setq exec-path-from-shell-check-startup-files nil)
-   :config (exec-path-from-shell-initialize))
 
 
 ;;; View
@@ -417,8 +397,9 @@
 ;;; Programer - Languages
 
 ;;; Web-Mode/JS-Mode/CSS-Mode
-;; 20180111, Use Tide-Mode to Autocomplete instead of TERN.
-
+;;
+;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
+;;
 (x web-mode
    :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|jsx\\|tpl\\|css\\)\\'"
    :config
@@ -504,6 +485,7 @@
                  gdb-show-main      t )
 
    (x semantic/w :config
+      (setq semanticdb-default-save-directory (concat _CACHE_ "semanticdb"))
       (global-semanticdb-minor-mode 1)
       (global-semantic-idle-scheduler-mode 1)
       (global-semantic-stickyfunc-mode 1))
@@ -571,20 +553,31 @@
 
 
 ;;; Haskell
-;;  some Cabal packages needed.
-;;  for advanced usage, please try intero, IDE-like, it's based on Stack.
-(add-hook 'haskell-mode-hook 'intero-mode)
-;;(x haskell-mode
-;;   :config
-;;   (setq haskell-tags-on-save t
-;;         haskell-process-show-debug-tips nil
-;;         haskell-process-suggest-remove-import-lines t))
 ;;
-;;'(if (executable-find "stack")
-;;    (x intero-mode :hook (haskell-mode . intero-mode))
-;;  (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
-;;  (x company-ghc :init
-;;     (add-company-backend '(company-ghc :with company-dabbrev-code))))
+;;  Basic usage, with interactive-mode
+;;
+;;  Advanced usage, with Intero, IDE-like, based on Stack:
+;;
+;;    pacman -S stack
+;;
+;;  Intero will take a long time to initialize for the first time, download a lot!
+;;
+;;  Get out, intero! Toooo much disk space used! Change to Dante 20180513, saved 3G...
+;;
+(x dante
+   :after (haskell-mode)
+   :commands 'dante-mode
+   :bind (:map hs-minor-mode-map ("C-c '" . dante-eval-block))
+   :init
+   (setq haskell-tags-on-save nil
+         haskell-process-show-debug-tips nil
+         haskell-process-suggest-remove-import-lines t)
+   (add-hook-lambda 'haskell-mode-hook
+     (interactive-haskell-mode)
+     (dante-mode)
+     (flycheck-mode))
+   (add-hook-lambda 'dante-mode-hook
+     (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint))))
 
 
 ;;; Erlang
@@ -593,10 +586,11 @@
 
 
 ;;; Python-Elpy
+;;
 ;;  Install these modules for more features
 ;;  - pip install jedi importmagic
 ;;  - pip install flake8 autopep8
-
+;;
 (x python
    :interpreter ("python" . python-mode)
    :config
@@ -608,11 +602,14 @@
 
 
 ;;; Ruby-Mode
-;; Rinari is a collection to develop ror
-;; Inf-ruby provide a REPL
-;; Robe-mode provide company backend.
-;; - gem install pry.
-
+;;
+;;  Rinari is a collection to develop RoR
+;;
+;;  Inf-ruby provide a REPL
+;;
+;;  Robe-mode provide company backend.
+;;    - gem install pry.
+;;
 (x ruby-mode
    :hook ((ruby-mode . inf-ruby-minor-mode)
           (ruby-mode . robe-mode))
