@@ -11,7 +11,6 @@
 ;;; Code:
 
 (setq debug-on-error nil)
-(setq gc-cons-threshold 200000000)
 
 (require 'bm)
 (require 'imutil)
@@ -31,9 +30,16 @@
    (env-linux-vps     . (string= (system-name) "remote"))
    (env-graphic       . (display-graphic-p))))
 
+;;; Hook for special machine
+
+(let ((sp-in-fi (format "~/.emacs.d/_%s.el" system-name)))
+  (when (file-exists-p sp-in-fi)
+  (load sp-in-fi)))
+
 ;;; Modules
 
-(let ((file-name-handler-alist nil))
+(let ((file-name-handler-alist nil)
+      (gc-cons-threshold (* 100 1024 1024)))
   (require  'cust)
   (require  'imokeys)
   (require  'immor)
@@ -41,11 +47,6 @@
   (require  'imface)
   (require  'imsilly)
   (env-windows (im/start-server)))
-
-;;; Hook for special machine
-(let ((sp-in-fi (format "~/.emacs.d/_%s.el" system-name)))
-  (when (file-exists-p sp-in-fi)
-  (load sp-in-fi)))
 
 
 (provide 'imfine)

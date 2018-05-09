@@ -136,7 +136,7 @@
 
   (cl-flet ((-lbs (langs) (org-babel-do-load-languages 'org-babel-load-languages (mapcar (lambda (x) (cons x t)) langs))))
     (-lbs '( emacs-lisp
-             sh
+             sh shell
              lisp
              haskell
              python
@@ -153,7 +153,7 @@
 ;;; Org-Mode - Publishments
 
 (defun im/org-publishments ()
-  (let ((--im/org-pub-dest (concat --im/org-pub-home ".html")))
+  (let ((--im/org-pub-dest (concat --im/org-pub-home "__html__")))
     (setq
      org-publish-project-alist
      `(("org"
@@ -172,7 +172,7 @@
         :base-directory       ,--im/org-pub-home
         :publishing-directory ,--im/org-pub-dest
         :base-extension       "css\\|js\\|png\\|jpe?g\\|gif\\|svg\\|pdf\\|zip"
-        :exclude              "^\\(\\.[^a]\\|__\\).*"
+        :exclude              "^\\(\\.\\|_\\).*"
         :publishing-function  org-publish-attachment
         :recursive            t)
 
@@ -234,7 +234,8 @@
    ;; Faces
    (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break" :group 'org-faces)
 
-   ;; (env-windows (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
+   ;; Font for Org-Table
+   (env-graphic (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
 
    ;; Remap keys
    (define-key org-mode-map (kbd "×") (kbd "*"))

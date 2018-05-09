@@ -34,7 +34,7 @@
     ag wgrep-ag anzu
 
     ;; utils
-    exec-path-from-shell session graphviz-dot-mode magit neotree gnuplot
+    dired-du session graphviz-dot-mode magit neotree gnuplot
 
     ;; org-mode
     org-download ob-restclient ox-pandoc
@@ -43,8 +43,9 @@
     web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify
 
     ;; backends
-    slime php-mode intero robe elpy c-eldoc erlang lua-mode
-    go-mode kotlin-mode scala-mode clojure-mode groovy-mode
+    slime php-mode robe elpy c-eldoc lua-mode go-mode
+    kotlin-mode scala-mode clojure-mode groovy-mode
+    erlang dante hindent
 
     ;; lsp
     lsp-mode lsp-ui company-lsp cquery
@@ -75,14 +76,14 @@
       user-mail-address        "lorniu@gmail.com"
       custom-file              "~/.emacs.d/core/cust.el"
       eshell-aliases-file      "~/.emacs.d/ass/eshell-alias"
-      _CACHE_                  "~/.emacs.d/.cache/"
+      _CACHE_                  "~/.cache/emacs/"
       bbdb-file                (concat _CACHE_ "_bbdb")
       diary-file               (concat _CACHE_ "_diary")
       bookmark-default-file    (concat _CACHE_ "_bookmark")
       abbrev-file-name         (concat _CACHE_ "_abbrevs")
       recentf-save-file        (concat _CACHE_ "_recentf")
       eshell-directory-name    (concat _CACHE_ "eshell")
-      org-publish-timestamp-directory (concat _CACHE_ ".oxtimestamp/")
+      org-publish-timestamp-directory (concat _CACHE_ "org-publish-timestamp/")
 
       auto-save-interval 0
       auto-save-list-file-prefix nil

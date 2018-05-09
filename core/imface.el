@@ -63,10 +63,16 @@
 (env-linux-g
  (tool-bar-mode 0)
  (scroll-bar-mode 0)
+ ;; key
  (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
- (set-face-attribute 'default nil :height 110)
  (global-set-key [C-mouse-4] 'text-scale-increase)
- (global-set-key [C-mouse-5] 'text-scale-decrease))
+ (global-set-key [C-mouse-5] 'text-scale-decrease)
+ ;; font
+ (setq default-frame-alist '((height . 110) (alpha . 85)))
+ (create-fontset-from-fontset-spec
+  (concat "-*-WenQuanYi Zen Hei Mono-normal-r-normal-*-16-*-*-*-c-*-fontset-table,unicode:"
+          "-*-WenQuanYi Zen Hei Mono-normal-r-normal-*-16-*-*-*-c-*-iso10646-1"))
+ (set-fontset-font "fontset-default" 'unicode "Source Han Sans CN"))
 
 
 ;;; Encoding
