@@ -396,6 +396,94 @@
 
 ;;; Programer - Languages
 
+;;; lsp-mode
+;;
+(x lsp-mode)
+
+(x lsp-ui
+   :init
+   (setq lsp-ui-sideline-show-symbol nil)
+   (setq lsp-ui-sideline-show-hover nil)
+   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+   (add-hook 'lsp-after-open-hook (lambda () (lsp-ui-flycheck-enable 1))))
+
+(x company-lsp
+   :config
+   (setq company-lsp-async t)
+   (setq company-lsp-cache-candidates nil)
+   (setq company-lsp-enable-snippet t)
+   (setq company-transformers nil)
+   (push 'company-lsp company-backends))
+
+
+;;; CC-Mode
+;;
+;; If use lsp, need cquery support
+;;
+;;    # pacman -S cquery-git
+;;
+;; CEDET + ECB is a choice, and Irony for C++ for another choice.
+;;
+(x cc-mode/w :config
+   (setq-default c-basic-offset     4
+                 gdb-many-windows   t
+                 gdb-show-main      t)
+
+   (defun im/lsp-cquery-enable-prob ()
+     (if (executable-find "cquery")
+         (progn
+           (lsp-ui-mode 1)
+           (lsp-cquery-enable)
+           (when (>= emacs-major-version 26)
+             (lsp-ui-doc-mode 1)))
+       nil))
+
+   (defun my-ccc-hook ()
+     (c-turn-on-eldoc-mode)
+     (flycheck-mode 1)
+     (unless (im/lsp-cquery-enable-prob)
+       (semantic-mode)
+       (cscope-minor-mode))
+     (set (make-local-variable 'compile-command)
+          (if (file-exists-p "Makefile") "make"
+            (format "cc %s -g %s -o %s"
+                    (buffer-name)
+                    (or (getenv "CFLAGS") "-std=c99 -Wall")
+                    (file-name-sans-extension (buffer-name))))))
+
+   (defun my-cpp-hook ()
+     (setq compile-command (if (file-exists-p "Makefile") "make" "clang++ -Wall -Wextra -std=c++14")))
+
+   (add-hook 'c-mode-hook 'my-ccc-hook)
+   (add-hook 'c++-mode-hook 'my-ccc-hook)
+   (add-hook 'c++-mode-hook 'my-cpp-hook)
+
+   (define-key c-mode-map (kbd "C-c C-c") 'compile)
+   (define-key c-mode-map (kbd "C-c C-k") 'kill-compilation)
+   (define-key c++-mode-map (kbd "C-c C-c") 'compile)
+   (define-key c++-mode-map (kbd "C-c C-k") 'kill-compilation))
+
+(x cquery
+   :after (cc-mode)
+   :commands lsp-cquery-enable
+   :config
+   (setq cquery-cache-dir ".cqindex")
+   (setq cquery-extra-args (list (format "--log-file=%scquery.log" temporary-file-directory)))
+   (setq cquery-extra-init-params '(:cacheFormat "msgpack" :completion (:detailedLabel t) :xref (:container t)
+                                                 :diagnostics (:frequencyMs 5000)))
+   (require 'company-lsp)
+   (require 'projectile)
+   (add-to-list 'projectile-globally-ignored-directories cquery-cache-dir))
+
+(x semantic
+   :after (cc-mode)
+   :config
+   (setq semanticdb-default-save-directory (concat _CACHE_ "semanticdb"))
+   (global-semanticdb-minor-mode 1)
+   (global-semantic-idle-scheduler-mode 1)
+   (global-semantic-stickyfunc-mode 1))
+
+
 ;;; Web-Mode/JS-Mode/CSS-Mode
 ;;
 ;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
@@ -474,38 +562,6 @@
        (eldoc-mode +1)
        (tide-hl-identifier-mode +1)
        (set (make-local-variable 'company-tooltip-align-annotations) t))))
-
-
-;;; CC-Mode
-
-(x cc-mode/w
-   :config
-   (setq-default c-basic-offset     4
-                 gdb-many-windows   t
-                 gdb-show-main      t )
-
-   (x semantic/w :config
-      (setq semanticdb-default-save-directory (concat _CACHE_ "semanticdb"))
-      (global-semanticdb-minor-mode 1)
-      (global-semantic-idle-scheduler-mode 1)
-      (global-semantic-stickyfunc-mode 1))
-
-   ;; for C++, use Rtags or Irony-Mode
-   ;; CEDET + ECB is another choice
-   (defun ccc-common-hook ()
-     (semantic-mode)
-     (cscope-minor-mode)
-     (c-turn-on-eldoc-mode)
-
-     (unless (file-exists-p "Makefile")
-       (set (make-local-variable 'compile-command)
-            (format "cc %s -g %s -o %s"
-                    (buffer-name)
-                    (or (getenv "CFLAGS") "-std=c99 -Wall")
-                    (file-name-sans-extension (buffer-name))))))
-
-   (add-hook 'c-mode-hook 'ccc-common-hook)
-   (add-hook 'c++-mode-hook 'ccc-common-hook))
 
 
 ;;; SLIME (The Superior Lisp Interaction Mode for Emacs)
@@ -656,26 +712,6 @@
           (add-to-list 'company-backends 'company-ac-php-backend))))
 
    (add-hook 'php-mode-hook 'my-php-stuff))
-
-
-;;; LSP-Mode
-
-(x lsp-mode)
-
-(x lsp-ui
-   :init
-   (add-hook 'lsp-mode-hook 'lsp-ui-mode))
-
-(when (executable-find "cquery")
-  (x cquery
-     :commands lsp-cquery-enable))
-
-(x company-lsp
-   :after (lsp-mode company-mode)
-   :config
-   (setq company-lsp-async t)
-   (setq company-lsp-enable-snippet t)
-   (push 'company-lsp company-backends))
 
 
 (provide 'immor)
