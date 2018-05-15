@@ -134,9 +134,9 @@
 
   ;; (add-to-list 'org-src-lang-modes '("html" . web))
 
-  (cl-flet ((-lbs (langs) (org-babel-do-load-languages 'org-babel-load-languages (mapcar (lambda (x) (cons x t)) langs))))
-    (-lbs '( emacs-lisp
-             sh shell
+  (cl-flet ((-lbs (langs) (org-babel-do-load-languages 'org-babel-load-languages (mapcar (lambda (x) (cons x t)) (remove nil langs)))))
+    (-lbs `( emacs-lisp
+             ,(if (< emacs-major-version 25) 'sh 'shell)
              lisp
              haskell
              python
