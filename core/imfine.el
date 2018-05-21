@@ -24,30 +24,33 @@
   ((env-windows       . (eq system-type 'windows-nt))
    (env-classroom     . (and (eq system-type 'windows-nt) (string= user-login-name "lol")))
    (env-out-classroom . (and (eq system-type 'windows-nt) (not (string= user-login-name "lol"))))
+   (env-g             . (display-graphic-p))
+   (env-ng            . (not (display-graphic-p)))
    (env-linux         . (eq system-type 'gnu/linux))
-   (env-linux-g       . (and (eq system-type 'gnu/linux) (display-graphic-p)))
-   (env-linux-ng      . (and (eq system-type 'gnu/linux) (not (display-graphic-p))))
-   (env-linux-vps     . (string= (system-name) "remote"))
-   (env-graphic       . (display-graphic-p))))
+   (env-linux-g       . (and (env-linux) (env-g)))
+   (env-linux-ng      . (and (env-linux) (env-ng)))
+   (env-linux-vps     . (string= (system-name) "remote"))))
 
 ;;; Hook for special machine
 
-(let ((sp-in-fi (format "~/.emacs.d/_%s.el" system-name)))
-  (when (file-exists-p sp-in-fi)
-  (load sp-in-fi)))
+(defun -im/load-customi ()
+  (let ((sp-in-fi (format "~/.emacs.d/core/_%s.el" system-name)))
+    (setq custom-file sp-in-fi)
+    (when (file-exists-p sp-in-fi)
+      (load sp-in-fi))))
 
 ;;; Modules
 
 (let ((file-name-handler-alist nil)
       (gc-cons-threshold (* 100 1024 1024)))
   (require  'cust)
+  (require  'imface)
+  (-im/load-customi)
   (require  'imokeys)
   (require  'immor)
   (require  'imnet)
-  (require  'imface)
   (require  'imsilly)
   (env-windows (im/start-server)))
-
 
 (provide 'imfine)
 
