@@ -82,6 +82,7 @@
         org-src-fontify-natively              t
         org-src-tab-acts-natively             nil
         org-url-hexify-p                      nil
+        org-list-allow-alphabetical           t
 
         org-log-into-drawer                   t
         org-clock-into-drawer                 t
@@ -153,7 +154,7 @@
 ;;; Org-Mode - Publishments
 
 (defun im/org-publishments ()
-  (let ((--im/org-pub-dest (concat --im/org-pub-home "__html__")))
+  (let ((--im/org-pub-dest "~/.cache/_notes_html"))
     (setq
      org-publish-project-alist
      `(("org"
@@ -172,7 +173,7 @@
         :base-directory       ,--im/org-pub-home
         :publishing-directory ,--im/org-pub-dest
         :base-extension       "css\\|js\\|png\\|jpe?g\\|gif\\|svg\\|pdf\\|zip"
-        :exclude              "^\\(\\.\\|_\\).*"
+        :exclude              "^\\..*"
         :publishing-function  org-publish-attachment
         :recursive            t)
 
@@ -182,7 +183,7 @@
   (interactive)
   (let ((start (current-time)))
     (with-temp-buffer
-      (find-file (concat --im/org-pub-home " processing.org"))
+      (find-file (concat --im/org-pub-home " *Processing*.org"))
       (let ((org-startup-folded 'showeverything)
             (vc-handled-backends nil))
         (org-publish "nnn" force))
@@ -190,6 +191,11 @@
     (message "Publish Finished in %.2f seconds!" (time-subtract-seconds (current-time) start))))
 
 (defun im/org-publish-note-force () (interactive) (im/org-publish-note 'force))
+
+(defun im/org-publish-clear-cache ()
+  (interactive)
+  (if (file-exists-p org-publish-timestamp-directory)
+      (delete-directory org-publish-timestamp-directory t)))
 
 
 ;;; Org-Mode - Initialization
@@ -235,7 +241,7 @@
    (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break" :group 'org-faces)
 
    ;; Font for Org-Table
-   (env-graphic (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
+   (env-g (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
 
    ;; Remap keys
    (define-key org-mode-map (kbd "×") (kbd "*"))

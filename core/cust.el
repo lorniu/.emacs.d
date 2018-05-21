@@ -37,7 +37,7 @@
     dired-du session graphviz-dot-mode magit neotree gnuplot
 
     ;; org-mode
-    org-download ob-restclient ox-pandoc
+    org-download ob-restclient ox-pandoc dired-dups
 
     ;; fronts
     web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify
@@ -74,7 +74,6 @@
 (setq default-directory        "~/"
       user-full-name           "imfine"
       user-mail-address        "lorniu@gmail.com"
-      custom-file              "~/.emacs.d/core/cust.el"
       eshell-aliases-file      "~/.emacs.d/ass/eshell-alias"
       _CACHE_                  "~/.cache/emacs/"
       bbdb-file                (concat _CACHE_ "_bbdb")
@@ -149,16 +148,8 @@
 ;;; Custom-Set
 
 (custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
  )
 (custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
  )
 (defun package--save-selected-packages (&rest opt) nil)
 
