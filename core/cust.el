@@ -34,7 +34,7 @@
     ag wgrep-ag anzu
 
     ;; utils
-    dired-du session graphviz-dot-mode magit neotree gnuplot
+    dired-du session graphviz-dot-mode magit neotree gnuplot attrap
 
     ;; org-mode
     org-download ob-restclient ox-pandoc dired-dups
@@ -54,7 +54,7 @@
     counsel-projectile yasnippet company
 
     ;; companies
-    company-ghc company-php
+    company-ghc company-php company-go
 
     ))
 

@@ -184,8 +184,9 @@
   (let ((start (current-time)))
     (with-temp-buffer
       (find-file (concat --im/org-pub-home " *Processing*.org"))
-      (let ((org-startup-folded 'showeverything)
-            (vc-handled-backends nil))
+      (let ((org-publishing t)
+            (vc-handled-backends nil)
+            (org-startup-folded 'showeverything))
         (org-publish "nnn" force))
       (kill-buffer))
     (message "Publish Finished in %.2f seconds!" (time-subtract-seconds (current-time) start))))
