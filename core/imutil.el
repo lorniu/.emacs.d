@@ -16,7 +16,13 @@
 
 (defmacro add-hook-lambda (hook &rest body)
   (declare (indent defun))
-  `(add-hook ,hook (lambda () ,@body)))
+  `(add-hook ,hook (lambda () (wn ,@body))))
+
+(defmacro wn (&rest expr)
+  "Wrap hook code for not running when org-mode publish...,
+eg. disable some minor modes,
+I do not know whether there is better idea."
+  `(when (or (not (boundp 'org-publishing)) (not org-publishing)) ,@expr))
 
 
 ;;; Helpers
