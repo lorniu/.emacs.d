@@ -271,7 +271,7 @@
 
 (x ob-ditaa
    :if (executable-find "java")
-   :config (setq org-ditaa-jar-path "~/.emacs.d/ass/ditaa.jar"))
+   :config (setq org-ditaa-jar-path "~/.emacs.d/resource/ditaa.jar"))
 
 (x ob-plantuml
    :if (and (executable-find "java") (executable-find "dot"))

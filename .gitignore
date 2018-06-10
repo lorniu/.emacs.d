@@ -2,9 +2,9 @@
 !.gitignore
 !README.md
 !init.el
-!/ass
+!/resource
 !/core
-!/ext
+!/extra
 !/misc
 !/snippets
 __pycache__/
