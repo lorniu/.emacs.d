@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: Systemd Unit
+# key: tpl
+# --
+$0# /usr/lib/systemd/system/vvv.service
+[Unit]
+Description=vvv
+After=network-online.target
+
+[Service]
+User=vip
+ExecStart=/home/vip/.notes/x.utils/sync-notes-html.sh
+
+[Install]
+WantedBy=multi-user.target

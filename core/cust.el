@@ -28,7 +28,7 @@
     atom-dark-theme rainbow-delimiters beacon page-break-lines ivy-pages rcirc-styles
 
     ;; edit
-    iedit multiple-cursors
+    iedit multiple-cursors ivy smex
 
     ;; search
     ag wgrep-ag anzu
@@ -45,7 +45,7 @@
     ;; backends
     slime php-mode robe elpy c-eldoc lua-mode go-mode
     kotlin-mode scala-mode clojure-mode groovy-mode
-    erlang dante hindent
+    erlang dante hindent powershell
 
     ;; lsp
     lsp-mode lsp-ui company-lsp cquery
@@ -61,7 +61,7 @@
 
 ;;; Load-Path/Theme-Path
 
-(dolist (dir (directory-files "~/.emacs.d/ext" t))
+(dolist (dir (directory-files "~/.emacs.d/extra" t))
   (if (and (not (eq (file-name-extension dir) ""))
            (file-directory-p dir))
       (add-to-list 'load-path dir)))
@@ -118,6 +118,7 @@
 (setq-default tab-width        4
               truncate-lines   t
               indent-tabs-mode nil
+              bidi-display-reordering nil
               show-trailing-whitespace nil)
 
 (setenv "TZ" "PRC")
@@ -143,6 +144,28 @@
     `(progn
        ,(if (seq-contains flag ?w) `(add-to-list 'im/need-idle-loads ',name))
        (use-package ,name ,@x-options ,@args))))
+
+
+;;; Editable
+
+(defun su ()
+  (interactive)
+  (let ((pt (point))
+        (buf-name (expand-file-name (or buffer-file-name default-directory))))
+    (setq buf-name (or (file-remote-p buf-name 'localname) (concat "/sudo::" buf-name)))
+    (cl-flet ((server-buffer-done (buffer (&optional for-killing)) nil))
+      (find-file buf-name))
+    (goto-char pt)))
+
+(defface find-file-root-header-face '((t (:foreground "white" :background "red3"))) "Edit as ROOT")
+
+(defun find-file-root-header-warning ()
+  "*Display a warning in header line of the current buffer."
+  (when (string-equal (file-remote-p (or buffer-file-name default-directory) 'user) "root")
+    (setq header-line-format (propertize " Edit as ROOT! " 'face 'find-file-root-header-face))))
+
+(add-hook 'find-file-hook 'find-file-root-header-warning)
+(add-hook 'dired-mode-hook 'find-file-root-header-warning)
 
 
 ;;; Custom-Set

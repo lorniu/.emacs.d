@@ -34,7 +34,7 @@
 ;;; Hook for special machine
 
 (defun -im/load-customi ()
-  (let ((sp-in-fi (format "~/.emacs.d/core/_%s.el" system-name)))
+  (let ((sp-in-fi (format "~/.emacs.d/init_%s.el" system-name)))
     (setq custom-file sp-in-fi)
     (when (file-exists-p sp-in-fi)
       (load sp-in-fi))))

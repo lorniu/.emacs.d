@@ -19,9 +19,8 @@
   `(add-hook ,hook (lambda () (wn ,@body))))
 
 (defmacro wn (&rest expr)
-  "Wrap hook code for not running when org-mode publish...,
-eg. disable some minor modes,
-I do not know whether there is better idea."
+  "Wrap hook code for not running when org-mode publish...eg. disable some minor modes,
+I don't know whether there is a better idea."
   `(when (or (not (boundp 'org-publishing)) (not org-publishing)) ,@expr))
 
 

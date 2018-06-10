@@ -13,6 +13,13 @@
         ("\\.\\(ba\\)?sh\\'"          . sh-mode)))
 
 
+;;; Display-Buffer-Alist
+
+(setq display-buffer-alist
+      `(("\\*shell\\*" display-buffer-same-window)
+        ("\\*eshell\\*" display-buffer-same-window)))
+
+
 ;;; Loads
 
 (autoload 'grep-apply-setting "grep")
@@ -44,6 +51,7 @@
    (defun -im/el-compile (&optional dir)
      (save-window-excursion
        (when (and (eq major-mode 'emacs-lisp-mode)
+                  (string-match-p "^[a-z]" (buffer-name))
                   (file-exists-p (concat (or dir "~/.emacs.d/core/") (buffer-name))))
          (byte-compile-file (buffer-file-name)))))
 
@@ -60,7 +68,7 @@
 
 ;;; Basic-Modes
 
-(x recentf/e :init (recentf-mode))
+(x recentf/e :init (recentf-mode 1) (run-at-time nil (* 5 60) 'recentf-save-list))
 (x paren/e :init (show-paren-mode))
 (x beacon/ve :init (beacon-mode))
 (x autorevert/e :init (setq auto-revert-mode-text "") (global-auto-revert-mode))
@@ -154,7 +162,8 @@
          ("C-m" . ivy-alt-done))
 
    :config
-   (setq ivy-use-virtual-buffers  t)
+   (setq ivy-use-virtual-buffers t)
+   (setq smex-save-file (concat _CACHE_ "smex-items")) ;; frequent
    (ivy-mode 1))
 
 (x counsel-projectile/w
@@ -212,6 +221,10 @@
 ;;; Shell
 
 (x eshell/w
+   :init
+   (setq comint-scroll-show-maximum-output nil
+         eshell-scroll-show-maximum-output nil
+         eshell-aliases-file "~/.emacs.d/resource/eshell.alias")
    :config
    (setq eshell-input-filter
          (lambda (input) ; Filter dup hist
@@ -220,11 +233,24 @@
                 (dotimes (i (ring-length eshell-history-ring) t)
                   (when (equal input (ring-ref eshell-history-ring i))
                     (ring-remove eshell-history-ring i))))))
-
    (defun eshell/ccc ()
      (interactive)
      (eshell/clear-scrollback)
      (eshell-send-input))
+
+   (defun eshell/h ()
+     (interactive)
+     (require 'em-hist)
+     (let* ((start-pos (save-excursion (eshell-bol) (point)))
+            (end-pos (point))
+            (input (buffer-substring-no-properties start-pos end-pos))
+            (command (ivy-read "Command: "
+                               (delete-dups
+                                (when (> (ring-size eshell-history-ring) 0)
+                                  (ring-elements eshell-history-ring)))
+                               :initial-input input)))
+       (setf (buffer-substring start-pos end-pos) command)
+       (end-of-line)))
 
    (add-hook-lambda 'eshell-mode-hook
      (define-key eshell-command-map [(control ?l)] 'eshell/ccc)))
