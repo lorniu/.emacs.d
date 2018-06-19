@@ -16,12 +16,7 @@
 
 (defmacro add-hook-lambda (hook &rest body)
   (declare (indent defun))
-  `(add-hook ,hook (lambda () (wn ,@body))))
-
-(defmacro wn (&rest expr)
-  "Wrap hook code for not running when org-mode publish...eg. disable some minor modes,
-I don't know whether there is a better idea."
-  `(when (or (not (boundp 'org-publishing)) (not org-publishing)) ,@expr))
+  `(add-hook ,hook (lambda () ,@body)))
 
 
 ;;; Helpers
@@ -300,11 +295,11 @@ I don't know whether there is a better idea."
   "Find the proper font in NAMES."
   (catch 'ret
     (dolist (name names)
-      (let ((full-name (-im/find-font-in-sys name)))
+      (let ((full-name (my/find-font-in-sys name)))
         (if full-name
             (throw 'ret full-name))))))
 
-(defun -im/find-font-in-sys (name &optional filter)
+(defun my/find-font-in-sys (name &optional filter)
   (let* ((fs (sort (x-list-fonts name) 'string-greaterp)))
     (seq-find (lambda (f) (string-match-p (format ".*%s.*" (or filter "8859-1")) f)) fs)))
 
@@ -360,6 +355,16 @@ I don't know whether there is a better idea."
      '(:foreground "black")))
   (current-buffer))
 
+(defun im/clear-comment ()
+  "Delete all comments in the buffer."
+  (interactive)
+  (let (pmin pmax lines kill-ring)
+    (if (use-region-p)
+        (setq pmin (region-beginning) pmax (region-end))
+      (setq pmin (point-min) pmax (point-max)))
+    (save-excursion
+      (setq lines (count-lines pmin pmax))
+      (when lines (goto-char pmin) (comment-kill lines)))))
 
 (provide 'imutil)
 

@@ -31,10 +31,10 @@
     iedit multiple-cursors ivy smex
 
     ;; search
-    ag wgrep-ag anzu
+    ag wgrep-ag anzu auto-highlight-symbol
 
     ;; utils
-    dired-du session graphviz-dot-mode magit neotree gnuplot attrap
+    dired-du session graphviz-dot-mode magit neotree gnuplot attrap engine-mode
 
     ;; org-mode
     org-download ob-restclient ox-pandoc dired-dups
@@ -45,7 +45,7 @@
     ;; backends
     slime php-mode robe elpy c-eldoc lua-mode go-mode
     kotlin-mode scala-mode clojure-mode groovy-mode
-    erlang dante hindent powershell
+    erlang dante hindent powershell csharp-mode
 
     ;; lsp
     lsp-mode lsp-ui company-lsp cquery
@@ -66,7 +66,7 @@
            (file-directory-p dir))
       (add-to-list 'load-path dir)))
 
-(add-to-list 'custom-theme-load-path "~/.emacs.d/ext/themes")
+(add-to-list 'custom-theme-load-path "~/.emacs.d/extra/themes")
 
 
 ;;; Basic Variables

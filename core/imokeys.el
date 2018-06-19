@@ -4,25 +4,31 @@
 ;;; Code:
 
 (bind-keys
- (  [f1]          . info                 )
- (  [f6]          . toggle-truncate-lines)
- (  [f7]          . (lambda () (interactive) (im/open-file-view "~/.emacs.d/core/immor.el")))
- (  [C-f7]        . (lambda () (interactive) (find-file "~/.notes/000/")))
- (  [f8]          . calendar             )
- (  [f10]         . shrink-window        )
- (  [f11]         . enlarge-window       )
- (  [f12]         . im/toggle-fullscreen )
- (  "<insertchar>". undo                 )
- (  "<select>"    . im/toggle-dedicated  )
- (  "%"           . his-match-paren      )
- (  "C-c C-j"     . ffap                 )
- (  "M-q"         . im/tiny-code         )
- (  "M-w"         . im/copy-current-line )
- (  "C-h t"       . im/trans-word        )
- (  "ESC <down>"  . im/copy-lines        )
- (  "ESC <up>"    . (lambda () (interactive) (im/copy-lines 1)))
- (  "ESC <right>" . im/kill-lines        )
- (  "C-x p"       . other-frame          ))
+ ( [f1]          . info                 )
+ ( [f6]          . toggle-truncate-lines)
+ ( [f7]          . (lambda () (interactive) (im/open-file-view "~/.emacs.d/core/immor.el")))
+ ( [C-f7]        . (lambda () (interactive) (find-file "~/.notes/000/")))
+ ( [f8]          . calendar             )
+ ( [f10]         . shrink-window        )
+ ( [f11]         . enlarge-window       )
+ ( [f12]         . im/toggle-fullscreen )
+ ( "<insertchar>". undo                 )
+ ( "<select>"    . im/toggle-dedicated  )
+ ( "%"           . his-match-paren      )
+ ( "C-c C-j"     . ffap                 )
+ ( "M-q"         . im/tiny-code         )
+ ( "M-w"         . im/copy-current-line )
+ ( "C-h t"       . im/trans-word        )
+ ( "ESC <down>"  . im/copy-lines        )
+ ( "ESC <up>"    . (lambda () (interactive) (im/copy-lines 1)))
+ ( "ESC <right>" . im/kill-lines        )
+ ( "C-x p"       . other-frame          ))
+
+(bind-keys
+ ( "<C-up>"      . shrink-window )
+ ( "<C-down>"    . enlarge-window )
+ ( "<C-left>"    . shrink-window-horizontally )
+ ( "<C-right>"   . enlarge-window-horizontally ))
 
 
 ;;; Org-Mode
@@ -32,10 +38,10 @@
 
 (defun -/ (path) (concat org-directory path))
 
-(defun -im/html-mk-css (&rest styles)
+(defun my/html-mk-css (&rest styles)
   (format "<style>\n%s\n</style>" (padding-left-to-string styles)))
 
-(defun -im/html-mk-js (script)
+(defun my/html-mk-js (script)
   (concat "<script>\n%s\n</script>" (padding-left-to-string script)))
 
 (defun im/org-wrap-src ()
@@ -52,7 +58,7 @@
       (insert (format "%s %s\n\n%s\n" beg lang end))
       (forward-line -2))))
 
-(defun -im/face-color (type)
+(defun my/face-color (type)
   (if (eq type 'bg)
       (let ((bg (face-background 'default)))
         (if (and (env-linux-ng) (string= "unspecified-bg" bg)) "#333" bg))
@@ -102,12 +108,12 @@
         org-html-validation-link              "Go ahead, never stop."
         org-html-htmlize-output-type          'inline-css
         org-html-head-include-scripts         nil
-        org-html-head    (string-join-newline (-im/html-mk-css
+        org-html-head    (string-join-newline (my/html-mk-css
                                                "body { padding:10px; font-size:13px; }"
                                                "a { text-decoration:none; }"
                                                ".org-src-container { position:relative }"
-                                               (format "pre.src { position:static; overflow:auto; background: %s; color: %s; } "  (-im/face-color 'bg) (-im/face-color 'fg))
-                                               (format "pre.src:before { color: %s; } " (-im/face-color 'bg))
+                                               (format "pre.src { position:static; overflow:auto; background: %s; color: %s; } "  (my/face-color 'bg) (my/face-color 'fg))
+                                               (format "pre.src:before { color: %s; } " (my/face-color 'bg))
                                                "blockquote { border-left: 3px solid #999; padding-left: 10px; margin-left: 10px; }"
                                                )))
 
@@ -183,9 +189,10 @@
   (interactive)
   (let ((start (current-time)))
     (with-temp-buffer
-      (find-file (concat --im/org-pub-home " *Processing*.org"))
-      (let ((org-publishing t)
-            (vc-handled-backends nil)
+      (find-file (concat --im/org-pub-home " *publishing*.org"))
+      (let ((vc-handled-backends nil)
+            (file-name-handler-alist nil)
+            (gc-cons-threshold (* 10 1024 1024))
             (org-startup-folded 'showeverything))
         (org-publish "nnn" force))
       (kill-buffer))
@@ -206,8 +213,7 @@
   (setq --im/org-pub-home  home)
   (unless (called-interactively-p t) (setq org-directory home))
   (im/org-configurations)
-  (im/org-publishments)
-  (message "Publishment Home: %s" --im/org-pub-home))
+  (im/org-publishments))
 
 (cond
  ((env-classroom) (im/initial-org "e:/share/notes/"))
@@ -287,10 +293,28 @@
    :if (executable-find "gnuplot")
    :init (setq gnuplot-program "gnuplot"))
 
-(x org-download
+(x org-download ;;; pacman -S xclip
    :config
-   (setq org-download-backend (if (executable-find "wget") "wget \"%s\" -O \"%s\"" t))
-   (advice-add 'org-download--dir-2 :around (lambda (_ &rest __) "img")))
+   (setq org-download-backend (if (executable-find "wget") "wget \"%s\" -O \"%s\"" t)
+         org-download-screenshot-file (concat temporary-file-directory "clip.png"))
+
+   (fset 'org-download-clipboard 'org-download-screenshot)
+
+   (defun my/org-download-choose-dir (f &rest args)
+     (let ((dest-dir (read-directory-name "Save in directory: ")))
+       (when (not (file-exists-p dest-dir))
+         (make-directory dest-dir t))
+       dest-dir))
+   (advice-add 'org-download--dir :around 'my/org-download-choose-dir)
+
+   (defun my/org-download-set-scrot-method (&rest args)
+     (setq org-download-screenshot-method
+           (cond
+            ((executable-find "xclip") "xclip -selection clipboard -t image/png -o > %s")
+            ((env-windows) "powershell -Command (Get-Clipboard -Format Image).save('%s')")
+            (t (error "no proper tool, eg, xclip/powershell")))))
+   (advice-add 'org-download-clipboard :before 'my/org-download-set-scrot-method)
+   (advice-add 'org-download-screenshot :before 'my/org-download-set-scrot-method))
 
 
 (provide 'imokeys)
