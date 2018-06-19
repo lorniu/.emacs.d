@@ -1,6 +1,9 @@
 ;;; immor.el --- Modules Configuration
 ;;; Commentary:
 
+;; Download Mirror:
+;; http://mirrors.ustc.edu.cn/gnu/emacs/windows/
+
 ;;; Code:
 
 
@@ -28,12 +31,13 @@
 ;;; Hooks
 
 ((lambda ()
-   (add-hook 'find-file-hook    '-im/before-open)
-   (add-hook 'before-save-hook  '-im/before-save)
-   (add-hook 'after-save-hook   '-im/el-compile)
-   (add-hook 'auto-save-hook    '-im/idle-tasks)
+   (add-hook 'find-file-hook    'my/before-open)
+   (add-hook 'before-save-hook  'my/before-save)
+   (add-hook 'after-save-hook   'my/el-compile)
+   (add-hook 'auto-save-hook    'my/idle-once)
+   (add-hook 'auto-save-hook    'my/idle-tasks)
 
-   (defun -im/before-open ()
+   (defun my/before-open ()
      ;; large file
      (when (> (buffer-size) (* 2 1024 1024))
        (setq buffer-read-only t)
@@ -44,25 +48,28 @@
           (let ((case-fold-search nil)) (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/" buffer-file-name))
           (view-mode 1)))
 
-   (defun -im/before-save ()
+   (defun my/before-save ()
      (unless (seq-contains '(org-mode) major-mode)
        (delete-trailing-whitespace)))
 
-   (defun -im/el-compile (&optional dir)
+   (defun my/el-compile (&optional dir)
      (save-window-excursion
        (when (and (eq major-mode 'emacs-lisp-mode)
                   (string-match-p "^[a-z]" (buffer-name))
                   (file-exists-p (concat (or dir "~/.emacs.d/core/") (buffer-name))))
          (byte-compile-file (buffer-file-name)))))
 
-   (defun -im/idle-tasks ()
-     (let ((then (current-time)))
+   (defun my/idle-once ()
+      (let ((then (current-time)))
        (message "∵ [%s] Idle loading..." (time then 2))
        (mapc 'require im/need-idle-loads)
        (princ im/need-idle-loads)
        (message "∴ [%s] Idle loaded, %.2fs elapsed."
                 (time nil 2) (time-subtract-seconds (current-time) then)))
-     (remove-hook 'auto-save-hook '-im/idle-tasks))))
+     (remove-hook 'auto-save-hook 'my/idle-tasks))
+
+   (defun my/idle-tasks ()
+     (recentf-save-list))))
 
 
 
@@ -71,7 +78,11 @@
 (x paren/e :init (show-paren-mode))
 (x beacon/ve :init (beacon-mode))
 (x autorevert/e :init (setq auto-revert-mode-text "") (global-auto-revert-mode))
-(x page-break-lines/e :init (setq page-break-lines-lighter "") (global-page-break-lines-mode))
+(x page-break-lines/e
+   :init
+   (setq page-break-lines-lighter "")
+   (nconc page-break-lines-modes '(web-mode css-mode))
+   (global-page-break-lines-mode))
 
 
 ;;; Ediff
@@ -83,9 +94,22 @@
 
 
 ;;; Multiple-Cursor
+
 (x multiple-cursors
    :bind (([S-f6]          . mc/mark-all-dwim)
           ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
+
+
+;;; Auto-Highlight-Symbol
+
+(x auto-highlight-symbol
+   :bind (:map auto-highlight-symbol-mode-map
+               ("M-p" . ahs-backward)
+               ("M-n" . ahs-forward))
+   :init
+   (setq ahs-idle-interval 0.3
+         ahs-case-fold-search nil
+         ahs-exclude '(( ruby-mode . "\\_<\\(end\\)\\_>"))))
 
 
 ;;; Isearch/Anzu/Occur
@@ -133,10 +157,7 @@
 
 ;;; Recentf/Dired/Neotree/Ivy/Projectile
 
-(x recentf/e
-   :init
-   (run-at-time (* 5 60) nil 'recentf-save-list)
-   (recentf-mode 1))
+(x recentf)
 
 (x wdired/e
    :bind
@@ -167,8 +188,9 @@
 
    :config
    (setq ivy-use-virtual-buffers t)
-   (setq smex-save-file (concat _CACHE_ "smex-items")) ;; frequent
-   (ivy-mode 1))
+   (setq smex-save-file (concat _CACHE_ "smex-items")) ;; frequent used cmds
+   (ivy-mode 1)
+   (recentf-mode 1))
 
 (x counsel-projectile/w
    :bind (( "M-x"      . counsel-M-x          )
@@ -228,19 +250,15 @@
    :init
    (setq comint-scroll-show-maximum-output nil
          eshell-scroll-show-maximum-output nil
-         eshell-aliases-file "~/.emacs.d/resource/eshell.alias")
+         eshell-history-size    500
+         eshell-hist-ignoredups t
+         eshell-destroy-buffer-when-process-dies t
+         eshell-aliases-file "~/.emacs.d/resource/eshell.alias"
+         eshell-visual-subcommands
+         '(("git" "log" "diff" "show")
+           ("sudo" "vi" "visudo")))
+
    :config
-   (setq eshell-input-filter
-         (lambda (input) ; Filter dup hist
-           (and (not (string-match-p "\\`\\s-*\\'" input))
-                (> (length input) 2)
-                (dotimes (i (ring-length eshell-history-ring) t)
-                  (when (equal input (ring-ref eshell-history-ring i))
-                    (ring-remove eshell-history-ring i))))))
-   (defun eshell/ccc ()
-     (interactive)
-     (eshell/clear-scrollback)
-     (eshell-send-input))
 
    (defun eshell/h ()
      (interactive)
@@ -256,8 +274,19 @@
        (setf (buffer-substring start-pos end-pos) command)
        (end-of-line)))
 
+   (defun eshell/ssh (&rest args)
+     "Secure shell"
+     (let ((cmd (eshell-flatten-and-stringify (cons "ssh" args)))
+           (display-type (framep (selected-frame))))
+       (cond
+        ((and (eq display-type 't) (getenv "STY"))
+         (send-string-to-terminal (format "\033]83;screen %s\007" cmd)))
+        (t (apply 'eshell-exec-visual (cons "ssh" args))))))
+
+   ;;; Hooks
    (add-hook-lambda 'eshell-mode-hook
-     (define-key eshell-command-map [(control ?l)] 'eshell/ccc)))
+     (define-key eshell-mode-map (kbd "C-r") 'eshell/h))
+   (add-hook 'eshell-preoutput-filter-functions 'ansi-color-filter-apply))
 
 
 ;;; Tramp
@@ -284,6 +313,7 @@
 
 
 ;;; Edebug
+
 (x edebug :init
    (add-hook-lambda 'edebug-mode-hook
      (view-mode -1)))
@@ -303,7 +333,9 @@
 ;;; Magit
 
 (when (executable-find "git")
-  (x magit/w :bind ("C-c m" . magit-status)))
+  (x magit/w
+     :bind ("C-c m" . magit-status)
+     :init (magit-auto-revert-mode -1)))
 
 
 ;;; SQL
@@ -315,13 +347,7 @@
    (setq sql-user "root")
    (setq sql-product 'mysql)
    (setq sql-connection-alist
-         '((120.24.78.141
-            (sql-product 'mysql)
-            (sql-server "120.24.78.141")
-            (sql-port 3306)
-            (sql-database "ygmymall")
-            (sql-user "krft"))
-           (45.63.55.2
+         '((45.63.55.2
             (sql-product 'mysql)
             (sql-server "45.63.55.2")
             (sql-port 3306)
@@ -334,6 +360,42 @@
     (add-hook 'sql-interactive-mode-hook 'im/cp936-encoding)))
 
 
+;;; Engine Mode
+
+(x engine-mode
+   :init
+   (setq engine/keybinding-prefix "C-h h")
+   (engine-mode 1)
+
+   :config
+   (defengine arch-wiki
+     "http://wiki.archlinux.org/index.php?title=Special%%3ASearch&search=%s&go=Go"
+     :keybinding "l"
+     :browser 'eww-browse-url)
+
+   (defengine google
+     "https://google.com/search?q=%s"
+     :keybinding "h")
+
+   (defengine github
+     "https://github.com/search?ref=simplesearch&q=%s"
+     :keybinding "g")
+
+   (defengine stackoverflow
+     "http://stackoverflow.com/search?q=%s"
+     :keybinding "s")
+
+   (defengine wikipedia
+     "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+     :keybinding "w")
+
+   (defengine wolfram-alpha
+     "http://www.wolframalpha.com/input/?i=%s")
+
+   (defengine youtube
+     "http://www.youtube.com/results?aq=f&oq=&search_query=%s"))
+
+
 
 ;;; Programer - Common
 
@@ -341,6 +403,7 @@
    :bind (:map prog-mode-map ("C-c C-u" . backward-up-list))
    :init (add-hook-lambda 'prog-mode-hook
            (abbrev-mode 1)
+           (auto-highlight-symbol-mode 1)
            (rainbow-delimiters-mode 1)
            (which-function-mode 1)))
 
@@ -660,7 +723,7 @@
 
    (add-hook-lambda 'haskell-mode-hook
      (interactive-haskell-mode)
-     (flycheck-mode)
+     (flycheck-mode -1)
      (if (executable-find "cabal") (dante-mode))))
 
 (x dante

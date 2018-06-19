@@ -1,9 +1,9 @@
-alias htop proced
-alias fff for i in ${eshell-flatten-list $*} {find-file $i ;break;}
-alias ff find-file $1
-alias m make
-alias l ls -al $1
-alias la ls -a $1
-alias ll ls -lF $1
+alias ccc clear-scrollback
 alias pss ps a -o pid,ppid,stat,args,wchan
-alias c clear
+alias ll ls -lF $1
+alias la ls -a $1
+alias l ls -al $1
+alias m make
+alias ff find-file $1
+alias fff for i in ${eshell-flatten-list $*} {find-file $i ;break;}
+alias htop proced
