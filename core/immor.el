@@ -68,7 +68,6 @@
 
 ;;; Basic-Modes
 
-(x recentf/e :init (recentf-mode 1) (run-at-time nil (* 5 60) 'recentf-save-list))
 (x paren/e :init (show-paren-mode))
 (x beacon/ve :init (beacon-mode))
 (x autorevert/e :init (setq auto-revert-mode-text "") (global-auto-revert-mode))
@@ -132,7 +131,12 @@
      (ibuffer-switch-to-saved-filter-groups "default")))
 
 
-;;; Dired/Neotree/Ivy/Projectile
+;;; Recentf/Dired/Neotree/Ivy/Projectile
+
+(x recentf/e
+   :init
+   (run-at-time (* 5 60) nil 'recentf-save-list)
+   (recentf-mode 1))
 
 (x wdired/e
    :bind
