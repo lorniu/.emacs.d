@@ -109,6 +109,7 @@
       enable-local-variables   :all
       enable-local-eval        t
 
+      ad-redefinition-action   'accept
       kill-ring-max            200
       select-enable-clipboard  t
       help-window-select       t
