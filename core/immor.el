@@ -7,7 +7,7 @@
 ;;; Code:
 
 
-;;; Auto-mode-alist
+;;; Auto-Mode
 
 (mapc (lambda (s) (add-to-list 'auto-mode-alist s))
       '(("\\.\\(xml\\|xsl\\)\\'"      . sgml-mode)
@@ -16,26 +16,18 @@
         ("\\.\\(ba\\)?sh\\'"          . sh-mode)))
 
 
-;;; Display-Buffer-Alist
+;;; Display-Buffer
 
 (setq display-buffer-alist
-      `(("\\*shell\\*" display-buffer-same-window)
-        ("\\*eshell\\*" display-buffer-same-window)))
-
-
-;;; Loads
-
-(autoload 'grep-apply-setting "grep")
+      `(("\\*Youdao Dictionary\\*\\|\\*Help\\*\\|\\*Messages\\*"
+         (display-buffer-reuse-window display-buffer-at-bottom)
+         (window-height . 0.3))
+        ("\\*e?shell\\*" display-buffer-same-window)))
 
 
 ;;; Hooks
 
 ((lambda ()
-   (add-hook 'find-file-hook    'my/before-open)
-   (add-hook 'before-save-hook  'my/before-save)
-   (add-hook 'after-save-hook   'my/el-compile)
-   (add-hook 'auto-save-hook    'my/idle-once)
-   (add-hook 'auto-save-hook    'my/idle-tasks)
 
    (defun my/before-open ()
      ;; large file
@@ -60,7 +52,7 @@
          (byte-compile-file (buffer-file-name)))))
 
    (defun my/idle-once ()
-      (let ((then (current-time)))
+     (let ((then (current-time)))
        (message "∵ [%s] Idle loading..." (time then 2))
        (mapc 'require im/need-idle-loads)
        (princ im/need-idle-loads)
@@ -68,21 +60,38 @@
                 (time nil 2) (time-subtract-seconds (current-time) then)))
      (remove-hook 'auto-save-hook 'my/idle-tasks))
 
-   (defun my/idle-tasks ()
-     (recentf-save-list))))
+   (defun my/when-close ()
+     (recentf-save-list))
+
+   (add-hook 'find-file-hook    'my/before-open)
+   (add-hook 'before-save-hook  'my/before-save)
+   (add-hook 'after-save-hook   'my/el-compile)
+   (add-hook 'auto-save-hook    'my/idle-once)
+   (add-hook 'kill-emacs-hook   'my/when-close)))
 
 
 
 ;;; Basic-Modes
 
-(x paren/e :init (show-paren-mode))
-(x beacon/ve :init (beacon-mode))
-(x autorevert/e :init (setq auto-revert-mode-text "") (global-auto-revert-mode))
-(x page-break-lines/e
-   :init
-   (setq page-break-lines-lighter "")
-   (nconc page-break-lines-modes '(web-mode css-mode))
-   (global-page-break-lines-mode))
+(x winner :init (winner-mode 1))
+(x recentf :init (recentf-mode 1))
+(x paren :init (show-paren-mode 1))
+(x beacon/v :init (beacon-mode 1))
+
+(x desktop :init
+   (setq desktop-path `(,_CACHE_ ".")))
+
+(x autorevert :init
+   (setq auto-revert-mode-text "")
+   (global-auto-revert-mode))
+
+(x key-chord :init
+   (setq key-chord-one-key-delay 0.3)
+   (setq key-chord-two-keys-delay 0.2)
+   (key-chord-mode 1))
+
+(x syntax-subword :init ;; vi-like word move
+   (setq syntax-subword-skip-spaces t))
 
 
 ;;; Ediff
@@ -93,23 +102,27 @@
    (setq ediff-diff-options "-w"))
 
 
-;;; Multiple-Cursor
-
-(x multiple-cursors
-   :bind (([S-f6]          . mc/mark-all-dwim)
-          ("C-S-<mouse-1>" . mc/add-cursor-on-click)))
-
-
 ;;; Auto-Highlight-Symbol
 
 (x auto-highlight-symbol
    :bind (:map auto-highlight-symbol-mode-map
                ("M-p" . ahs-backward)
-               ("M-n" . ahs-forward))
-   :init
+               ("M-n" . ahs-forward)
+               ("M-r" . ahs-change-range))
+   :config
    (setq ahs-idle-interval 0.3
          ahs-case-fold-search nil
+         ahs-default-range 'ahs-range-beginning-of-defun
          ahs-exclude '(( ruby-mode . "\\_<\\(end\\)\\_>"))))
+
+
+;;; Page Line Break
+
+(x page-break-lines/e
+   :init
+   (setq page-break-lines-lighter "")
+   (nconc page-break-lines-modes '(web-mode css-mode))
+   (global-page-break-lines-mode))
 
 
 ;;; Isearch/Anzu/Occur
@@ -155,16 +168,15 @@
      (ibuffer-switch-to-saved-filter-groups "default")))
 
 
-;;; Recentf/Dired/Neotree/Ivy/Projectile
-
-(x recentf)
+;;; Dired/Neotree/Ivy/Swiper/Projectile
 
 (x wdired/e
    :bind
    (:map dired-mode-map
          ( "6"  . dired-up-directory )
          ( "r"  . wdired-change-to-wdired-mode )
-         ( "z"  . dired-du-mode ))
+         ( "z"  . dired-du-mode )
+         ( "."  . imdra-dired/body))
    :config
    (setq dired-dwim-target t)
    (setq dired-du-size-format 'comma)
@@ -189,24 +201,11 @@
    :config
    (setq ivy-use-virtual-buffers t)
    (setq smex-save-file (concat _CACHE_ "smex-items")) ;; frequent used cmds
-   (ivy-mode 1)
-   (recentf-mode 1))
+   (ivy-mode 1))
+
+(x swiper/w)
 
 (x counsel-projectile/w
-   :bind (( "M-x"      . counsel-M-x          )
-          ( "C-x b"    . ivy-switch-buffer    )
-          ( "C-x C-b"  . ibuffer              )
-          ( "C-x d"    . counsel-projectile-find-dir )
-          ( "C-x C-d"  . dired                )
-          ( "C-x f"    . counsel-projectile-find-file )
-          ( "C-x C-f"  . counsel-find-file    )
-          ( "C-x i"    . counsel-imenu        )
-          ( "C-x p"    . ivy-pages            )
-          ( "C-h b"    . counsel-descbinds    )
-          ( "C-h v"    . counsel-describe-variable )
-          ( "C-h f"    . counsel-describe-function )
-          ( "C-h S"    . counsel-info-lookup-symbol))
-
    :init
    (setq projectile-cache-file          (concat _CACHE_ "__projectile.cache")
          projectile-known-projects-file (concat _CACHE_ "__projectile-bookmark.eld")
@@ -230,19 +229,42 @@
    :bind* (:map hs-minor-mode-map
                 ([(M-down-mouse-1)] . nil)
                 ([(M-mouse-1)] . hs-mouse-toggle-hiding)
-                ("C-c C-f" . hs-toggle-hiding)
                 ("C-c f"   . hs-toggle-hiding)
-                ("C-c F"   . (lambda () (interactive)
-                               (defvar im/hs-state nil)
-                               (make-local-variable 'im/hs-state)
-                               (setq im/hs-state (not im/hs-state))
-                               (if im/hs-state (hs-hide-all) (hs-show-all)))))
-   :config (add-to-list
-            'hs-special-modes-alist
-            '(ruby-mode
-              "\\(def\\|do\\|{\\)" "\\(end\\|end\\|}\\)" "#"
-              (lambda (arg) (ruby-end-of-block)) nil)))
+                ("C-c F"   . my/hs-toggle-all)
+                ("C-c C-f" . imdra-hs/body))
+   :config
 
+   (defun my/hs-toggle-all ()
+     (interactive)
+     (defvar im/hs-state nil)
+     (make-local-variable 'im/hs-state)
+     (setq im/hs-state (not im/hs-state))
+     (if im/hs-state (hs-hide-all) (hs-show-all)))
+
+   (add-to-list
+    'hs-special-modes-alist
+    '(ruby-mode
+      "\\(def\\|do\\|{\\)" "\\(end\\|end\\|}\\)" "#"
+      (lambda (arg) (ruby-end-of-block)) nil)))
+
+
+;;; Hydra/Ace-Window
+
+(x hydra :init
+   (defvar hydra-stack nil)
+
+   (defun hydra-push (expr)
+     (push `(lambda () ,expr) hydra-stack))
+
+   (defun hydra-pop ()
+     (interactive)
+     (let ((x (pop hydra-stack)))
+       (when x (funcall x)))))
+
+(x ace-window
+   :bind ("C-x w" . ace-window)
+   :config
+   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
 
 ;;; Shell
 
@@ -360,34 +382,35 @@
     (add-hook 'sql-interactive-mode-hook 'im/cp936-encoding)))
 
 
-;;; Engine Mode
+;;; Translate
+
+(x youdao-dictionary/w :init
+   (setq url-automatic-caching t
+         ;; youdao-dictionary-use-chinese-word-segmentation t
+         youdao-dictionary-search-history-file (concat _CACHE_ ".youdao")))
+
+
+;;; Engine Search
 
 (x engine-mode
-   :init
-   (setq engine/keybinding-prefix "C-h h")
-   (engine-mode 1)
-
+   :init (engine-mode 1)
    :config
-   (defengine arch-wiki
-     "http://wiki.archlinux.org/index.php?title=Special%%3ASearch&search=%s&go=Go"
-     :keybinding "l"
-     :browser 'eww-browse-url)
 
    (defengine google
-     "https://google.com/search?q=%s"
-     :keybinding "h")
+     "https://google.com/search?q=%s")
 
    (defengine github
-     "https://github.com/search?ref=simplesearch&q=%s"
-     :keybinding "g")
+     "https://github.com/search?ref=simplesearch&q=%s")
 
    (defengine stackoverflow
-     "http://stackoverflow.com/search?q=%s"
-     :keybinding "s")
+     "http://stackoverflow.com/search?q=%s")
 
    (defengine wikipedia
-     "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
-     :keybinding "w")
+     "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s")
+
+   (defengine arch-wiki
+     "http://wiki.archlinux.org/index.php?title=Special%%3ASearch&search=%s&go=Go"
+     :browser 'eww-browse-url)
 
    (defengine wolfram-alpha
      "http://www.wolframalpha.com/input/?i=%s")
@@ -402,6 +425,7 @@
 (x prog-mode
    :bind (:map prog-mode-map ("C-c C-u" . backward-up-list))
    :init (add-hook-lambda 'prog-mode-hook
+           (setq show-trailing-whitespace t)
            (abbrev-mode 1)
            (auto-highlight-symbol-mode 1)
            (rainbow-delimiters-mode 1)
@@ -659,12 +683,28 @@
 
 ;;; SLIME (The Superior Lisp Interaction Mode for Emacs)
 
-(x slime
-   :config
+(x slime :config
    (setq inferior-lisp-program (seq-find #'executable-find '("sbcl" "ccl" "clisp")))
    (add-to-list 'slime-contribs 'slime-fancy)
 
+   ;; function
+
+   (defun try-expand-slime (old)
+     "Hippie Expand OLD word for slime."
+     (when (not old)
+       (he-init-string (slime-symbol-start-pos) (slime-symbol-end-pos))
+       (setq he-expand-list
+             (or (equal he-search-string "")
+                 (sort (slime-simple-completions he-search-string) #'string-lessp))))
+     (if (null he-expand-list)
+         (progn (if old (he-reset-string)) ())
+       (he-substitute-string (car he-expand-list))
+       (setq he-tried-table (cons (car he-expand-list) (cdr he-tried-table)))
+       (setq he-expand-list (cdr he-expand-list))
+       (message "Slime Expand") t))
+
    ;; hooks
+
    (add-hook-lambda 'slime-connected-hook
      ;; [quicklisp] load or initial
      (let* ((ql-home (file-name-as-directory "~/.quicklisp"))
@@ -713,8 +753,7 @@
 ;;
 ;;  Get out, intero! Toooo much disk space used! Change to Dante 20180513, saved 3G space...
 ;;
-(x haskell-mode
-   :init
+(x haskell-mode :init
    (setq haskell-tags-on-save nil
          haskell-process-log t
          haskell-process-show-debug-tips nil
@@ -880,3 +919,8 @@
 (provide 'immor)
 
 ;;; immor.el ends here
+
+;;; Tooltips
+
+;; remove `multiple-cursors', it is boring. use `iedit' instead. 2018-07-01
+;; remove `iedit', as I found `auto-highlight-symbol' is so powerful, and it's code is amazing! I will hack it to full use. 2018-07-03

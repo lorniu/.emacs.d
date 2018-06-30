@@ -22,19 +22,17 @@
 (im/refresh-package
  '(use-package
     ;; basic
-    bind-key diminish
+    bind-key diminish key-chord
 
     ;; looking
-    atom-dark-theme rainbow-delimiters beacon page-break-lines ivy-pages rcirc-styles
+    atom-dark-theme rainbow-delimiters beacon page-break-lines rcirc-styles
 
-    ;; edit
-    iedit multiple-cursors ivy smex
+    ;; edit and utils
+    expand-region dired-du session attrap syntax-subword
+    graphviz-dot-mode magit neotree gnuplot engine-mode youdao-dictionary
 
-    ;; search
-    ag wgrep-ag anzu auto-highlight-symbol
-
-    ;; utils
-    dired-du session graphviz-dot-mode magit neotree gnuplot attrap engine-mode
+    ;; search and nav
+    ag wgrep-ag anzu smex ivy hydra ace-window ivy-pages
 
     ;; org-mode
     org-download ob-restclient ox-pandoc dired-dups
@@ -111,6 +109,7 @@
 
       ad-redefinition-action   'accept
       kill-ring-max            200
+      mark-ring-max            10
       select-enable-clipboard  t
       help-window-select       t
       man-notify-method        'pushy
@@ -119,8 +118,7 @@
 (setq-default tab-width        4
               truncate-lines   t
               indent-tabs-mode nil
-              bidi-display-reordering nil
-              show-trailing-whitespace nil)
+              bidi-display-reordering nil)
 
 (setenv "TZ" "PRC")
 (fset 'yes-or-no-p 'y-or-n-p)
