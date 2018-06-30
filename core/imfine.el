@@ -12,7 +12,8 @@
 
 (setq debug-on-error nil)
 
-(let ((file-name-handler-alist nil)
+(let ((messaging-on nil)
+      (file-name-handler-alist nil)
       (gc-cons-threshold (* 64 1024 1024)))
 
   (require 'bm)
@@ -36,20 +37,21 @@
 
 ;;; Hook for special machine
 
-  (defun my/load-customi ()
+  (defun my/load-custom ()
     (let ((sp-in-fi (format "~/.emacs.d/init_%s.el" system-name)))
       (setq custom-file sp-in-fi)
       (when (file-exists-p sp-in-fi)
         (load sp-in-fi t t))))
 
 ;;; Modules
-  (require  'cust)
-  (require  'imface)
-  (my/load-customi)
-  (require  'imokeys)
-  (require  'immor)
-  (require  'imnet)
-  (require  'imsilly)
+  (require 'cust)
+  (require 'imface)
+  (my/load-custom)
+  (require 'imkeys)
+  (require 'imoox)
+  (require 'immor)
+  (require 'imnet)
+  (require 'imsilly)
   (env-windows (im/start-server)))
 
 (provide 'imfine)

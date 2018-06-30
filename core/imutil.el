@@ -19,7 +19,7 @@
   `(add-hook ,hook (lambda () ,@body)))
 
 
-;;; Helpers
+;;; Helper
 
 (defmacro pm (expr)
   `(pp (macroexpand-1 ',expr)))
@@ -30,15 +30,62 @@
 (defmacro mmm (&rest expr)
   `(message ,@expr))
 
-
-;;; Utility
-
 (defun im/proxy (&optional args)
   (interactive "P")
   (if (and args (not (= args 1)))
       (setq url-gateway-method 'native)
     (setq url-gateway-method 'socks)
     (setq socks-server '("Default server" "127.0.0.1" 1080 5))))
+
+(defmacro im/profile (&rest body)
+  "Profiler BODY form."
+  `(progn (profiler-start 'cpu)
+          (ignore-errors ,@body (profiler-report))
+          (profiler-stop)))
+
+
+;;; Override
+
+(defun im/yank-more ()
+  "Copy-Current-Line-Or-Region."
+  (interactive)
+  (if (use-region-p)
+      (progn
+        (call-interactively 'kill-ring-save)
+        (message "Region Yanked."))
+    (copy-region-as-kill (line-beginning-position) (line-end-position))
+    (message "No Region, Whole Line Yanked.")))
+
+(defun im/backward-kill-word ()
+  "Exactly like backward-kill-word, except doesn't kill across line breaks and without modifying killring."
+  (interactive)
+  (let ((init-pos (point))
+        (line-begin (line-beginning-position)))
+    (backward-word)
+    (let ((word-begin (point)))
+      (goto-char init-pos)
+      (if (= (point) line-begin)
+          (backward-delete-char 1)
+        (if (< word-begin line-begin)
+            (delete-region line-begin init-pos)
+          (delete-region word-begin init-pos))))))
+
+(defun im/isearch-regexp ()
+  "Isearch+, default with region word, enable regexp."
+  (interactive)
+  (if (use-region-p)
+      (progn
+        (let ((string (buffer-substring-no-properties (region-beginning) (region-end))))
+          (deactivate-mark)
+          (isearch-resume string nil nil t string nil)))
+    (call-interactively 'isearch-forward-regexp)))
+
+(defvar messaging-on t "Control whether to print message to minibuffer")
+(defun my/message-switch (f &rest args) (when messaging-on (apply f args)))
+(advice-add 'message :around 'my/message-switch)
+
+
+;;; Miscellaneous
 
 (defun time (&optional time nano)
   "Format TIME to String. if TIME is nil, return current time."
@@ -114,14 +161,30 @@
            (forward-sexp 1)))
         (t (indent-according-to-mode))))
 
-(defun wy-go-to-char (n char)
-  "Jump to the Nth CHAR inline, as `f' in vim."
-  (interactive "p\ncGo to char:")
-  (search-forward (string char) nil nil n)
-  (while (char-equal (read-char)
-                     char)
-    (search-forward (string char) nil nil n))
-  (setq unread-command-events (list last-input-event)))
+(defun im/go-to-char (&optional backwardp)
+  "Jump to the next CHAR, like `f' in vim, when backwardp is t, then search backward."
+  (interactive)
+  (push-mark (point))
+  (setq unread-command-events nil)
+  (let (char n)
+    (setq char (read-char "Go to char: ") n 1)
+    (while (or (and (>= char 20) (< char 127))
+               (and (> char 134217776) (< char 134217786)))
+      (condition-case nil
+          (cond ((= char 20)
+                 (message "Turn back: ")
+                 (setq backwardp (not backwardp) n 1))
+                ((> char 134217776)
+                 (setq n (- char 134217776)))
+                (t (if backwardp
+                       (search-backward (string char) nil nil n)
+                     (search-forward (string char) nil nil n))
+                   (setq n 1)))
+        (error (message "No more...")))
+      (setq char (read-char)))
+    (if (= char 13)
+        (message "Reached.")
+      (setq unread-command-events (list last-input-event)))))
 
 (defun his-match-paren (n)
   "Like `%' in vim. N is self-insert times."
@@ -182,81 +245,6 @@
   (let ((eme-scratch-buffer (get-buffer-create "*scratch*")))
     (switch-to-buffer eme-scratch-buffer)
     (funcall initial-major-mode)))
-
-(defun im/trans-word (word)
-  "Translate WORD with YouDao online."
-  (interactive (list
-                (let ((w (if (use-region-p)
-                             (buffer-substring-no-properties (region-beginning) (region-end))
-                           (current-word))))
-                  (if current-prefix-arg
-                      (read-string "Word to translate: " w)
-                    w))))
-  (defvar im/trans-limit 5)
-  (message "Translating \"%s\"..." word)
-  (if (or (not word) (< (length word) 2)
-          (string-match-p "[a-z] +[a-z]+" word))
-      (error "Invalid input, long or short?"))
-  (let ((link "http://m.youdao.com/dict?le=eng&q=")
-        (url-request-extra-headers
-         '(("Content-Type" . "text/html;charset=utf-8"))))
-    (url-retrieve
-     (concat link (url-encode-url word))
-     (lambda (status word)
-       (if (plist-get status :error)
-           (error (plist-get status :error)))
-       (let* ((num -1)
-              (regstr "<[^>]*>\\(.+?\\)</.+>")
-              (pnetic (progn
-                        (unless (re-search-forward
-                                 "#\\(ce\\)\\|\\(ec\\)\"" nil t)
-                          (error "No Such Word Found [%s]" word))
-                        (re-search-forward
-                         "=\"phonetic\">\\(.+\\)</span>" nil t 2)
-                        (string-as-multibyte
-                         (or (match-string 1) ""))))
-              (pnetic (propertize pnetic 'face 'font-lock-string-face))
-              (beg (re-search-forward "<ul>" nil t))
-              (end (re-search-forward "</ul>" nil t))
-              (str (propertize word 'face '(:foreground "red")))
-              (res (list (concat str " " pnetic))))
-         (goto-char beg)
-         (while (and (< (setq num (1+ num)) im/trans-limit)
-                     (re-search-forward regstr end t))
-           (setq str (string-as-multibyte
-                      (or (replace-regexp-in-string
-                           "<.+?>" ""
-                           (match-string-no-properties 1)) "")))
-           (string-match "^\\([a-z.]*\\)\\(.*\\)" str)
-           (setq str (concat " "
-                             (propertize (match-string 1 str) 'face '(:foreground "blue"))
-                             (match-string 2 str)))
-           (add-to-list 'res str t))
-         (message (mapconcat #'identity res "\n"))
-         (kill-buffer)))
-     (list word) t t)))
-
-(defun try-expand-slime (old)
-  "Hippie Expand OLD word for slime."
-  (when (not old)
-    (he-init-string (slime-symbol-start-pos) (slime-symbol-end-pos))
-    (setq he-expand-list
-          (or (equal he-search-string "")
-              (sort (slime-simple-completions he-search-string) #'string-lessp))))
-  (if (null he-expand-list)
-      (progn (if old (he-reset-string)) ())
-    (he-substitute-string (car he-expand-list))
-    (setq he-tried-table (cons (car he-expand-list) (cdr he-tried-table)))
-    (setq he-expand-list (cdr he-expand-list))
-    (message "Slime Expand") t))
-
-(defun im/copy-current-line ()
-  "Copy-current-line-or-region."
-  (interactive)
-  (if (use-region-p)
-      (call-interactively 'kill-ring-save)
-    (copy-region-as-kill (line-beginning-position) (line-end-position))
-    (message "Copied")))
 
 (defun im/copy-lines (&optional direction)
   "Copy lines down/up, like in Eclipse."
@@ -323,24 +311,16 @@
      ,@something
      ,@(mapcar (lambda (m) `(,m +1)) modes)))
 
-(defmacro im/profile (&rest body)
-  "Profiler BODY form."
-  `(progn (profiler-start 'cpu)
-          (ignore-errors ,@body (profiler-report))
-          (profiler-stop)))
-
-
-;;; Miscellaneous
-
-(defun im/toggle-fullscreen ()
-  "Toggle fullscreen, use [F12] to save the window configuration before delete windows."
+(defun im/clear-comment ()
+  "Delete all comments in the buffer."
   (interactive)
-  (if (> (count-windows) 1)
-      (progn (window-configuration-to-register 99)
-             (delete-other-windows))
-    (if (get-register 99)
-        (jump-to-register 99)
-      (message "never save window configurations"))))
+  (let (pmin pmax lines kill-ring)
+    (if (use-region-p)
+        (setq pmin (region-beginning) pmax (region-end))
+      (setq pmin (point-min) pmax (point-max)))
+    (save-excursion
+      (setq lines (count-lines pmin pmax))
+      (when lines (goto-char pmin) (comment-kill lines)))))
 
 (defun im/toggle-dedicated ()
   "Whether the current active window is dedicated."
@@ -354,17 +334,6 @@
        '(:foreground "red")
      '(:foreground "black")))
   (current-buffer))
-
-(defun im/clear-comment ()
-  "Delete all comments in the buffer."
-  (interactive)
-  (let (pmin pmax lines kill-ring)
-    (if (use-region-p)
-        (setq pmin (region-beginning) pmax (region-end))
-      (setq pmin (point-min) pmax (point-max)))
-    (save-excursion
-      (setq lines (count-lines pmin pmax))
-      (when lines (goto-char pmin) (comment-kill lines)))))
 
 (provide 'imutil)
 
