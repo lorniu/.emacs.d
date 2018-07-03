@@ -8,7 +8,51 @@
 (defvar --im/org-pub-home "~/.notes/")
 
 
-;;; Configuration
+;;; Initialize
+
+(x org/w :commands (org-publish)
+   :bind (:map org-mode-map ( "C-x a a" . im/org-wrap-src ))
+   :config
+
+   ;; Set notes
+   (cond
+    ((env-classroom) (im/initial-org "e:/share/notes/"))
+    (t (im/initial-org "~/.notes/")))
+
+   ;; Refresh color for html export
+   (advice-add 'load-theme :after (lambda (&rest _) (im/org-config-base)))
+   (advice-add 'disable-theme :after (lambda (&rest _) (im/org-config-base)))
+
+   ;; Remove extra blank line for example block!
+   (advice-add 'org-element-fixed-width-parser
+               :filter-return
+               (lambda (ret) (list 'fixed-width (plist-put (cadr ret) :value (string-trim (plist-get (cadr ret) :value))))))
+
+   ;; Hooks
+   (add-hook-lambda 'org-mode-hook
+     (diminish 'org-indent-mode)
+     (set (make-local-variable 'system-time-locale) "C")
+     (font-lock-add-keywords nil '(("\\\\\\\\$" 0 'hi-org-break)
+                                   ("\\<\\(FIXME\\|NOTE\\|AIA\\):" 1 'font-lock-warning-face prepend))))
+
+   ;; Faces
+   (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break" :group 'org-faces)
+
+   ;; Font for Org-Table
+   (env-g (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
+
+   ;; Keys
+   (define-key org-mode-map (kbd "×") (kbd "*"))
+   (define-key org-mode-map (kbd "－") (kbd "-"))
+   (unbind-key "C-," org-mode-map)
+
+   ;; Babel
+   (im/org-config-babel)
+   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
+
+   ;; Plugins
+   (require 'ox-impress)
+   (require 'org-download))
 
 (defun im/org-config-base ()
 
@@ -124,7 +168,7 @@
        ("nnn" :components ("org" "res"))))))
 
 
-;;; Initialization
+;;; Commands
 
 (defun im/initial-org (&optional home)
   (interactive (list (read-directory-name "选择笔记目录: ")))
@@ -132,54 +176,6 @@
   (unless (called-interactively-p t) (setq org-directory home))
   (im/org-config-base)
   (im/org-config-publish))
-
-(x org/w :commands (org-publish)
-   :bind (:map org-mode-map ( "C-x a a" . im/org-wrap-src ))
-   :init
-
-   (cond
-    ((env-classroom) (im/initial-org "e:/share/notes/"))
-    (t (im/initial-org "~/.notes/")))
-
-   ;; Refresh color for html export
-   (advice-add 'load-theme :after (lambda (&rest _) (im/org-config-base)))
-   (advice-add 'disable-theme :after (lambda (&rest _) (im/org-config-base)))
-
-   ;; Remove extra blank line for example block!
-   (advice-add 'org-element-fixed-width-parser
-               :filter-return
-               (lambda (ret) (list 'fixed-width (plist-put (cadr ret) :value (string-trim (plist-get (cadr ret) :value))))))
-
-   :config
-
-   ;; Hooks
-   (add-hook-lambda 'org-mode-hook
-     (diminish 'org-indent-mode)
-     (set (make-local-variable 'system-time-locale) "C")
-     (font-lock-add-keywords nil '(("\\\\\\\\$" 0 'hi-org-break)
-                                   ("\\<\\(FIXME\\|NOTE\\|AIA\\):" 1 'font-lock-warning-face prepend))))
-
-   ;; Faces
-   (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break" :group 'org-faces)
-
-   ;; Font for Org-Table
-   (env-g (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
-
-   ;; Remap keys
-   (define-key org-mode-map (kbd "×") (kbd "*"))
-   (define-key org-mode-map (kbd "－") (kbd "-"))
-
-   ;; Babel
-   (im/org-config-babel)
-   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
-
-   ;; Plugins
-   (require 'ox-impress)
-   ;; (require 'ox-freemind)
-   (require 'org-download))
-
-
-;;; Commands
 
 (defun im/org-publish-note (&optional force)
   (interactive)
@@ -195,7 +191,10 @@
     (message "Publish Finished in %.2f seconds!" (time-subtract-seconds (current-time) start))))
 
 (defun im/org-publish-note-force ()
-  (interactive) (im/org-publish-note 'force))
+  (interactive)
+  (make-thread (lambda ()
+                 (thread-yield)  ;; also block
+                 (im/org-publish-note 'force))))
 
 (defun im/org-publish-clear-cache ()
   (interactive)
@@ -221,7 +220,7 @@
       (forward-line -2))))
 
 
-;;; Miscellaneous - Drawing, Download, etc.
+;;; Extensions - Drawing, Download, etc.
 
 (x ob-dot
    :if (executable-find "dot") ;; choco install graphviz

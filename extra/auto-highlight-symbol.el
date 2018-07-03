@@ -10,231 +10,6 @@
 ;; Keywords: highlight face match convenience
 ;; URL: http://github.com/gennad/auto-highlight-symbol/raw/master/auto-highlight-symbol.el
 ;; Compatibility: GNU Emacs 22.3 23.x 24.x later
-;;
-;; This file is NOT part of GNU Emacs.
-
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; Commentary:
-
-;;
-;; If you have `linkd.el' turn on `linkd-mode'
-;; and (setq linkd-use-icons t ) more easily navigation.
-;; You can get `linkd.el' here:
-;;  http://www.emacswiki.org/cgi-bin/wiki/download/linkd.el
-;;  http://www.emacswiki.org/emacs/linkd.tar.gz -- with cool icon
-;;
-
-;;; (@* "Index" )
-;;
-;; (@> "What's this")        I am ...
-;; (@> "Setup")              Basic setup
-;; (@> "Screencast")         Screencast
-;; (@> "Mode map")           Key binding
-;;
-;; (@> "Note")               Performance note
-;;
-;; (@> "Custom variable")    Customizable varible
-;; (@> "Face")               Face used in auto-highlight-symbol-mode
-;; (@> "Highlight Rules")    Whether to highlight the symbol.
-;;
-;; (@> "Internal variable")  Internal variables
-;; (@> "Logging")            Log data
-;; (@> "Range plugin")       Range plugin functions
-;; (@> "Built-in plugin")    Built-in plugin section
-;; (@> "Timer")              Timer functions
-;; (@> "Idle")               Idle functions
-;; (@> "Highlight")          Highlight functions
-;; (@> "Edit mode")          Edit mode functions
-;; (@> "Select")             Selective functions
-;; (@> "Misc")               Miscellaneous
-;; (@> "Interactive")        Interactive functions
-;; (@> "Define mode")        Mode definition
-;; (@> "Revert")             Protect from revert-buffer
-;;
-
-;;; (@* "What's this" )
-;;
-;;  A minor mode for emacs.
-;;
-;;   * automatic highlighting current symbol like eclipse IDE.
-;;   * cycle through highlighted locations.
-;;   * can specify the range to highlight.
-;;   * can edit the highlighted symbols at a time.
-;;
-;;  Tested on GNU Emacs 22.3/23.2/24.0.50/24.2
-;;
-
-;;; (@* "Setup" )
-;;
-;; Basic steps to setup:
-;;   1. Place `auto-highlight-symbol.el' in your `load-path'.
-;;
-;;   2. In your `.emacs.el' file
-;;      (require 'auto-highlight-symbol)
-;;      (global-auto-highlight-symbol-mode t)
-;;
-
-;;; (@* "Screencast" )
-;;
-;;  Screencast on YouTube and ScreenToaster
-;;    YouTube -- http://www.youtube.com/watch?v=xzJ2r4-s7fo
-;;    ScreenToaster -- http://www.screentoaster.com/watch/stUE9VQ0dMRFtXRlVeU19cX1Bd/auto_highlight_symbol_mode_screencast
-;;
-;;
-;;; More Information (currently underconstruction)
-;;   See also http://github.com/mitsuo-saito/auto-highlight-symbol-mode/wiki/
-;;
-
-;;; Commands:
-;;
-;; Below are complete command list:
-;;
-;;  `ahs-forward'
-;;    Select highlighted symbols forwardly.
-;;  `ahs-backward'
-;;    Select highlighted symbols backwardly.
-;;  `ahs-forward-definition'
-;;    Select highlighted symbols forwardly. only symbol definition.
-;;  `ahs-backward-definition'
-;;    Select highlighted symbols backwardly. only symbol definition.
-;;  `ahs-back-to-start'
-;;    Go back to the starting point.
-;;  `ahs-change-range'
-;;    Current plugin change to `RANGE' plugin. `RANGE' defaults to next runnable plugin.
-;;  `ahs-set-idle-interval'
-;;    Set wait until highlighting symbol when emacs is idle.
-;;  `ahs-display-stat'
-;;    Display current status.
-;;  `ahs-highlight-now'
-;;    Highlight NOW!!
-;;  `ahs-goto-web'
-;;    Go to official? web site.
-;;  `ahs-edit-mode'
-;;    Turn on edit mode. With a prefix argument, current plugin change to `whole buffer' temporary.
-;;  `auto-highlight-symbol-mode'
-;;    Toggle Auto Highlight Symbol Mode
-;;
-;;; Customizable Options:
-;;
-;; Below are customizable option list:
-;;
-;;  `ahs-modes'
-;;    Major modes `auto-highlight-symbol-mode' can run on.
-;;  `ahs-suppress-log'
-;;    *Non-nil means suppress log message.
-;;  `ahs-log-echo-area-only'
-;;    *Non-nil means log doesn't display the `*Messages*' buffer.
-;;  `ahs-decorate-log'
-;;    *Non-nil means decorate logs.
-;;  `ahs-default-range'
-;;    Default Plugin.
-;;  `ahs-edit-mode-lighter-pair'
-;;    Decorate mode line lighter in edit mode.
-;;  `ahs-select-invisible'
-;;    Behavior when selected symbol in hidden text.
-;;  `auto-highlight-symbol-mode-hook'
-;;    Hook for `auto-highlight-symbol-mode'.
-;;  `ahs-edit-mode-on-hook'
-;;    Normal hook for run when entering edit mode.
-;;  `ahs-edit-mode-off-hook'
-;;    Normal hook for run when go out edit mode.
-;;  `ahs-idle-interval'
-;;    Number of seconds to wait before highlighting symbol.
-;;  `ahs-case-fold-search'
-;;    *Non-nil means symbol search ignores case.
-;;  `ahs-include'
-;;    Variable for start highlighting.
-;;  `ahs-exclude'
-;;    Variable for inhibit highlighting.
-;;  `ahs-face-check-include-overlay'
-;;    *Non-nil means face checks include overlay face.
-;;  `ahs-inhibit-face-list'
-;;    Face list for inhibit highlighting.
-;;  `ahs-definition-face-list'
-;;    Face list for higilight definition.
-;;  `ahs-plugin-bod-modes'
-;;    Major modes `beginning of defun' plugin can run on.
-;;  `ahs-plugin-bod-function'
-;;    Function used in `beginning of defun' plugin.
-
-;;
-;; Happy Coding !!
-;;
-
-;;; SCM Log
-;;
-;;   $Revision: 243:6aa59061b1df tip $
-;;   $Commiter: Mitso Saito <arch320@NOSPAM.gmail.com> $
-;;   $LastModified: Sun, 21 Nov 2010 14:42:11 +0900 $
-;;
-;;   $Lastlog: font lock again $
-;;
-
-;;; (@* "Changelog" )
-;;
-;; v1.54 beta
-;;   Bug fix release
-;;   ** fix overlay violation problem in edit mode(backward) - !incomplete!
-;;   fix font-lock problem
-;;   fix built-in plugin
-;;   add onekey edit
-;;   remove ahs-invisible-face-list
-;;   remove obsoleted alias
-;;   minor bug fix
-;;
-;; v1.53 2010-11-03 22:17 +0900
-;;   improve invisible overlay's handling
-;;   new plugin property `face' available
-;;   add ahs-back-to-start
-;;   minor bug fix
-;;
-;; v1.52 2010-10-31 14:46 +0900
-;;   skip folding(select function only)
-;;
-;; v1.51 2010-10-30 09:17 +0900
-;;   plugin minor change
-;;
-;; v1.5  2010-10-30 02:31 +0900
-;;   add range plugin
-;;    ahs-whole-of-buffer is not working.
-;;    use ahs-default-range instead.
-;;    ahs-mode-lighter , ahs-wmode-lighter is not be used
-;;
-;; v1.03 2010-10-28 07:00 +0900
-;;   bug fix
-;;
-;; v1.02 2010-10-26 23:39 +0900
-;;   minor fix
-;;
-;; v1.01 2010-10-26 20:50 +0900
-;;   add edit mode hook for protect overlay
-;;
-;; v1.0  2010-10-26 16:33 +0900
-;;   first release
-;;
-
-;;; (@* "TODO" )
-;;
-;;  fix overlay violation problem
-;;  fix poor doc
-;;  face check tweak
-;;  add onekey-***
-;;  refactor
-;;  cleanup
-;;  add comment
-;;
 
 ;;; Code:
 
@@ -388,8 +163,9 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
 ;;
 ;; (@* "Face" )
 ;;
+;;:foreground "GhostWhite"
 (defface ahs-face
-  '((t (:foreground "GhostWhite" :background "LightYellow4")))
+  '((t (:background "#e0ffff")))
   "Highlight the symbol using this face."
   :group 'auto-highlight-symbol)
 (defvar ahs-face 'ahs-face)
@@ -407,19 +183,19 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
 (defvar ahs-warning-face 'ahs-warning-face)
 
 (defface ahs-plugin-defalt-face
-  '((t (:foreground "Black" :background "Orange1")))
+  '((t (:foreground "Black" :background "cornsilk")))
   "Face used in `display' plugin."
   :group 'auto-highlight-symbol)
 (defvar ahs-plugin-defalt-face 'ahs-plugin-defalt-face)
 
 (defface ahs-plugin-whole-buffer-face
-  '((t (:foreground "Black" :background "GreenYellow")))
+  '((t (:foreground "Black" :background "MistyRose")))
   "Face used in `whole buffer' plugin."
   :group 'auto-highlight-symbol)
 (defvar ahs-plugin-whole-buffer-face 'ahs-plugin-whole-buffer-face)
 
 (defface ahs-plugin-bod-face
-  '((t (:foreground "Black" :background "DodgerBlue")))
+  '((t (:foreground "Black" :background "DarkSeaGreen1")))
   "Face used in `beginning of defun' plugin."
   :group 'auto-highlight-symbol)
 (defvar ahs-plugin-bod-face 'ahs-plugin-bod-face)
@@ -794,6 +570,26 @@ You can do these operations at One Key!
   (setq ahs-current-range (symbol-value range))
   (ahs-current-plugin-prop 'init))
 
+
+;;; What is under point ? Word, Symbol or Region ?
+
+(defvar ahss-symbol-type nil)
+(defvar ahss-region-limit 3)
+
+(defun ahss-bounds-at-point ()
+  (if (and (use-region-p) (> (- (region-end) (region-beginning)) ahss-region-limit))
+      (progn
+        (setq ahss-symbol-type 'region)
+        (cons (region-beginning) (region-end)))
+    (setq ahss-symbol-type nil)
+    (bounds-of-thing-at-point 'symbol)))
+
+(defun ahss-search-symbol-regexp (symbol)
+  (let ((fmt (cond ((eq ahss-symbol-type 'region) "\\(%s\\)")
+                   (t "\\_<\\(%s\\)\\_>"))))
+    (format fmt (regexp-quote symbol))))
+
+
 ;;
 ;; (@* "Built-in plugin" )
 ;;
@@ -932,7 +728,7 @@ You can do these operations at One Key!
 
 (defun ahs-highlight-p ()
   "Ruturn Non-nil if symbols can be highlighted."
-  (let* ((bounds (bounds-of-thing-at-point 'symbol))
+  (let* ((bounds (ahss-bounds-at-point))
          (beg (car bounds))
          (end (cdr bounds))
          (face (when bounds
@@ -994,6 +790,7 @@ You can do these operations at One Key!
 ;;
 ;; (@* "Highlight" )
 ;;
+
 (defun ahs-prepare-highlight (symbol)
   "Prepare for highlight."
   (let ((before (ahs-current-plugin-prop 'before-search symbol))
@@ -1009,7 +806,7 @@ You can do these operations at One Key!
   "Search `SYMBOL' in `SEARCH-RANGE'."
   (save-excursion
     (let ((case-fold-search ahs-case-fold-search)
-          (regexp (concat "\\_<\\(" (regexp-quote symbol) "\\)\\_>" ))
+          (regexp (ahss-search-symbol-regexp symbol))
           (beg (car search-range))
           (end (cdr search-range)))
       (goto-char end)
@@ -1124,7 +921,8 @@ You can do these operations at One Key!
 
     (overlay-put overlay 'ahs-symbol 'current)
     (overlay-put overlay 'priority 1000)
-    (overlay-put overlay 'face (ahs-current-plugin-prop 'face))
+    (unless (use-region-p)
+      (overlay-put overlay 'face (ahs-current-plugin-prop 'face)))
     (overlay-put overlay 'help-echo '(ahs-stat-string))
 
     (overlay-put overlay 'modification-hooks    '(ahs-modification-hook))
@@ -1294,6 +1092,7 @@ You can do these operations at One Key!
 ;;
 (defun ahs-select (pred &optional reverse onlydef)
   "Select highlighted symbol."
+
   (when ahs-highlighted
     (let* ((next (loop with start = nil
                        for overlay in (if reverse
@@ -1494,11 +1293,13 @@ You can do these operations at One Key!
 (defun ahs-forward ()
   "Select highlighted symbols forwardly."
   (interactive)
+  (deactivate-mark)
   (ahs-select 'ahs-forward-p t))
 
 (defun ahs-backward ()
   "Select highlighted symbols backwardly."
   (interactive)
+  (deactivate-mark)
   (ahs-select 'ahs-backward-p))
 
 (defun ahs-forward-definition ()

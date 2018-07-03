@@ -3,6 +3,17 @@
 
 ;;; Code:
 
+;;;; Key-Chord
+
+(key-chord-define-global ",," 'imdra-buffer/body)
+(key-chord-define-global ",f" 'im/go-to-char)
+(key-chord-define-global ",t" (lambda () (interactive) (im/go-to-char t)))
+(key-chord-define-global ",r" 'counsel-mark-ring)
+(key-chord-define-global ",c" 'imdra-dash-counsel/body)
+
+
+;;;; Keybinds
+
 (global-unset-key (kbd "C-x m"))
 
 (bind-keys
@@ -14,7 +25,7 @@
  ( [f12]         . ivy-push-view        )
  ( [C-f12]       . ivy-pop-view         )
  ( "%"           . his-match-paren      )
- ( "C-,"         . imdra-superdot/body  )
+ ( "C-,"         . imdra-buffer/body  )
  ( "C-s"         . im/isearch-regexp    )
  ( "C-x O"       . imdra-window/body    )
  ( "C-x o"       . imdra-window/other-window )
@@ -83,21 +94,32 @@
   ("c"   (find-file _CACHE_) "cache/emacs   ")
   ("s"   (find-file "/sudo::/etc/systemd/system/multi-user.target.wants/") "systemd/"))
 
+;;; Dash Counsel
+
+(defhydra imdra-dash-counsel (:columns 3 :exit t)
+  "\nDash:"
+  ("cw" counsel-colors-web "Color(Web)")
+  ("ce" counsel-colors-emacs "Color(Emacs)")
+  ("uc" counsel-unicode-char "Unicode Char")
+  ("ag" counsel-ag "Search with ag")
+  ("hs" counsel-hydra-heads "Hydras")
+  ("ac" ascii-table-show "Ascii Table"))
+
 ;;; Org-Mode
 
 (defhydra imdra-org (:color blue :foreign-keys warn :hint nil)
   "
    ^
-   ^Org^              ^Clock^          ^Misc^
-   ^──^───────────────^──^─────────────^─────^────────
-   _c_ Capture        _d_ display      _q_ quit
-   ^^                 _i_ in           ^^
-   _l_ Store link     _o_ out          ^^
-   _L_ Last Stre      _j_ jump         ^^
-   ^^                 _r_ report       ^^
-   _n_ Publish        _e_ effort       ^^
-   _m_ Publish<f>     _C_ cancel
-   ^^                 ^^
+   ^Org^             ^Clock^          ^Misc^
+   ^──^──────────────^──^─────────────^─────^────────
+   _c_ Capture       _d_ display      _q_ quit
+   ^^                _i_ in           ^^
+   _l_ Store link    _o_ out          ^^
+   _L_ Stored Link   _j_ jump         ^^
+   ^^                _r_ report       ^^
+   _n_ Publish       _e_ effort       ^^
+   _m_ Publish<f>    _C_ cancel
+   ^^                ^^
     "
   ("q" nil)
   ("a" org-agenda)
@@ -117,21 +139,101 @@
   ("m" im/org-publish-note-force :exit t))
 
 
-;;;; SuperDot
+;;;; Super Window
 
-(key-chord-define-global ",," 'imdra-superdot/body)
-(key-chord-define-global ",f" 'im/go-to-char)
-(key-chord-define-global ",t" (lambda () (interactive) (im/go-to-char t)))
-(key-chord-define-global ",r" 'counsel-mark-ring)
-(key-chord-define-global ",c" 'imdra-dash-counsel/body)
+(defhydra imdra-window
+  (:body-pre
+   (progn
+     (setq hydra-is-helpful t)
+     (set-face-attribute 'mode-line nil :box t))
+   :pre
+   (progn
+     (setq hydra-is-helpful nil)
+     (set-face-attribute 'mode-line nil :box t))
+   :post
+   (progn
+     (setq hydra-is-helpful t)
+     (set-face-attribute 'mode-line nil :box nil))
+   :idle 0.8)
+  "\n"
 
-(defhydra imdra-superdot (:columns 8 :exit t :idle 1)
+  ("h" windmove-left "Left" :column "Switch")
+  ("j" windmove-down "Down")
+  ("k" windmove-up "Up")
+  ("l" windmove-right "Right")
+
+  ("C-j" (enlarge-window -2 nil) "v-" :column "Resize")
+  ("C-k" (enlarge-window  2 nil) "v+")
+  ("C-h" (enlarge-window -2 t)   "h-")
+  ("C-l" (enlarge-window  2 t)   "h+")
+
+  ("0" delete-window "Hide" :column "Action")
+  ("1" delete-other-windows "Maximum")
+  ("2" split-window-below "Split<h>")
+  ("3" split-window-right "Split<v>")
+  ("b" ivy-switch-buffer "Switch Buffer" :exit t)
+
+  ("a" ace-window "Ace" :exit t :column "Manage")
+  ("o" other-window nil)
+  ("C-o" other-window+ nil)
+  ("=" balance-windows-area "Balance")
+  ("C-=" balance-windows nil)
+
+  ("<left>" (progn (winner-undo) (setq this-command 'winner-undo)) "Winner ←")
+  ("<right>" winner-redo "Winner →")
+
+  ("S" (hydra-exp window-config window) "Config" :exit t :column "Misc")
+  ("d" imdra-desktop/body "Desktop" :exit t)
+  ("H" imdra-window/body "Help" :exit nil))
+
+;;; Window Config
+
+(defhydra imdra-window-config (:columns 1)
+  "Config\n"
+  ("o" im/other-window-set-exclude-regexp "Config Other Window Exclude Regexp" :exit t)
+  ("q" hydra-pop "Go Back"))
+
+;;; OtherWindow+
+
+(defvar im/other-window-exclude-regexp "^\\*")
+
+(defun other-window+ ()
+  (interactive)
+  (let* ((window-list (delq (selected-window) (window-list)))
+         (filtered-window-list (remove-if
+                                (lambda (w)
+                                  (string-match-p im/other-window-exclude-regexp (buffer-name (window-buffer w))))
+                                window-list)))
+    (if filtered-window-list
+        (select-window (car filtered-window-list)))))
+
+(defun im/other-window-set-exclude-regexp ()
+  (interactive)
+  (setq im/other-window-exclude-regexp
+        (read-from-minibuffer "Buffer to exclude (regexp): " im/other-window-exclude-regexp)))
+
+;;; Desktop
+
+(defhydra imdra-desktop (:color blue)
+  "Desktop"
+  ("l" desktop-change-dir "load")
+  ("s" desktop-save "save")
+  ("r" desktop-revert "revert")
+  ("c" desktop-clear "clear")
+  ("q" hydra-pop nil))
+
+
+;;;; Super Buffer
+
+(defhydra imdra-buffer (:columns 8 :exit t)
   "\n"
 
   ;; search
   ("g" engine/search-google "Google")
   ("t" youdao-dictionary-search-from-input "Translate")
-  ("T" youdao-dictionary-search-at-point+ nil)
+  ("T" (if (env-g) (youdao-dictionary-search-at-point-tooltip) (youdao-dictionary-search-at-point+)) nil)
+  ("t" youdao-dictionary-search-from-input "Translate")
+  ("C-t" youdao-dictionary-search-at-point-tooltip nil)
   ("G" engine/search-github "Github")
   ("S" engine/search-stackoverflow "StackOverflow")
   ("W" engine/search-wikipedia "Wikipedia")
@@ -164,98 +266,74 @@
   ("f" im/go-to-char "GoToChar")
   )
 
-(defhydra imdra-dash-counsel (:columns 3 :exit t)
-  "\nDash:"
-  ("cw" counsel-colors-web "Color(Web)")
-  ("ce" counsel-colors-emacs "Color(Emacs)")
-  ("uc" counsel-unicode-char "Unicode Char")
-  ("ag" counsel-ag "Search with ag")
-  ("hs" counsel-hydra-heads "Hydras")
-  ("ac" ascii-table-show "Ascii Table"))
+;;; HideShow Mode
+
+(defhydra imdra-hs (:foreign-keys run :hint nil)
+  "
+Hide^^            ^Show^            ^Toggle^
+-------------------------------------------------
+_H_ hide all      _S_ show all      _f_ toggle
+_h_ hide block    _s_ show block    _F_ toggle all
+_l_ hide level    _SPC_ cancel
+"
+  ("S" hs-show-all)
+  ("H" hs-hide-all)
+  ("s" hs-show-block)
+  ("h" hs-hide-block)
+  ("f" hs-toggle-hiding)
+  ("F" my/hs-toggle-all)
+  ("l" hs-hide-level)
+  ("q" nil)
+  ("SPC" nil))
+
+;;; Yank
+
+(defhydra imdra-yank-pop
+  (:hint nil :pre (hydra-set-property 'imdra-yank-pop :verbosity 0))
+  ("C-y" yank nil)
+  ("M-y" yank-pop nil)
+  ("M-l" counsel-yank-pop "list" :color blue))
+
+(global-set-key (kbd "C-y") 'imdra-yank-pop/yank)
+(global-set-key (kbd "M-y") 'imdra-yank-pop/yank-pop)
+
+;;; Narrow
+
+(defhydra imdra-narrow (:hint nil :exit t :idle 0.8)
+  "
+ narrow  _d_ → defun   _b_ → org-block    _w_ → widen
+         _n_ → region  _e_ → org-element
+         _p_ → page    _s_ → org-subtree
+"
+  ("b" org-narrow-to-block)
+  ("e" org-narrow-to-element)
+  ("s" org-narrow-to-subtree)
+  ("d" narrow-to-defun)
+  ("n" narrow-to-region)
+  ("p" narrow-to-page)
+  ("w" widen))
 
 
-;;;; Manage
+;;;; Miscellaneous
 
-;;; Switch Window
+;;; Projectile
 
-(defhydra imdra-window
-  (:body-pre
-   (progn
-     (setq hydra-is-helpful t)
-     (set-face-attribute 'mode-line nil :box t))
-   :pre
-   (progn
-     (setq hydra-is-helpful nil)
-     (set-face-attribute 'mode-line nil :box t))
-   :post
-   (progn
-     (setq hydra-is-helpful t)
-     (set-face-attribute 'mode-line nil :box nil))
-   :idle 0.8)
-  "\n"
+(defhydra imdra-projectile (:color teal :columns 4)
+  "Projectile"
+  ("f"   projectile-find-file                "Find File")
+  ("r"   projectile-recentf                  "Recent Files")
+  ("z"   projectile-cache-current-file       "Cache Current File")
+  ("x"   projectile-remove-known-project     "Remove Known Project")
 
-  ("h" windmove-left "Left" :column "Switch")
-  ("j" windmove-down "Down")
-  ("k" windmove-up "Up")
-  ("l" windmove-right "Right")
+  ("d"   projectile-find-dir                 "Find Directory")
+  ("b"   projectile-switch-to-buffer         "Switch to Buffer")
+  ("c"   projectile-invalidate-cache         "Clear Cache")
+  ("X"   projectile-cleanup-known-projects   "Cleanup Known Projects")
 
-  ("C-j" (enlarge-window -2 nil) "v-" :column "Resize")
-  ("C-k" (enlarge-window  2 nil) "v+")
-  ("C-h" (enlarge-window -2 t)   "h-")
-  ("C-l" (enlarge-window  2 t)   "h+")
-
-  ("a" ace-window "Ace" :exit t :column "Manage")
-  ("o" other-window nil)
-  ("C-o" other-window+ nil)
-  ("b" balance-windows-area "Balance")
-  ("B" balance-windows nil)
-
-  ("S" (hydra-exp window-config window) "Config" :exit t)
-  ("d" imdra-desktop/body "Desktop" :exit t)
-
-  ("0" delete-window nil)
-  ("1" delete-other-windows nil)
-
-  ("<left>" (progn (winner-undo) (setq this-command 'winner-undo)) "Winner ←" :column "Misc")
-  ("<right>" winner-redo "Winner →")
-
-  ("H" imdra-window/body "Help" :exit nil))
-
-;;; Window Config
-
-(defhydra imdra-window-config (:columns 1)
-  "Config\n"
-  ("o" im/other-window-set-exclude-regexp "Config Other Window Exclude Regexp" :exit t)
-  ("q" hydra-pop "Go Back"))
-
-;;; OtherWindow+
-
-(defvar im/other-window-exclude-regexp "^\\*")
-
-(defun other-window+ ()
-  (interactive)
-  (let* ((window-list (delq (selected-window) (window-list)))
-         (filtered-window-list (remove-if
-                                (lambda (w)
-                                  (string-match-p im/other-window-exclude-regexp (buffer-name (window-buffer w))))
-                                window-list)))
-    (if filtered-window-list
-        (select-window (car filtered-window-list)))))
-
-(defun im/other-window-set-exclude-regexp ()
-  (interactive)
-  (setq im/other-window-exclude-regexp
-        (read-from-minibuffer "Please give a new Regexp: " im/other-window-exclude-regexp)))
-
-;;; Desktop
-
-(defhydra imdra-desktop (:color blue)
-  "Desktop"
-  ("l" desktop-change-dir "load")
-  ("s" desktop-save "save")
-  ("r" desktop-revert "revert")
-  ("c" desktop-clear "clear")
-  ("q" hydra-pop nil))
+  ("o"   projectile-multi-occur              "Multi Occur")
+  ("s"   projectile-switch-project           "Switch Project")
+  ("k"   projectile-kill-buffers             "Kill Buffers")
+  ("q"   hydra-pop "Cancel" :color blue))
 
 ;;; Dired
 
@@ -288,93 +366,6 @@ _._ toggle hydra   _?_ summary
   ("s" dired-sort-toggle-or-edit) ("(" dired-hide-details-mode) (")" dired-omit-mode) ("e" dired-ediff-files) ("=" diredp-ediff) ;; util
   ("z" dired-du-mode) ("6" dired-up-directory) ("r" wdired-change-to-wdired-mode)
   ("." nil :color blue) ("?" dired-summary) ("q" nil))
-
-;;; Macro
-
-(defhydra imdra-macro (:hint nil :color pink :pre
-                             (when defining-kbd-macro
-                               (kmacro-end-macro 1)))
-  "
-  ^Create-Cycle^   ^Basic^           ^Insert^        ^Save^         ^Edit^
-╭─────────────────────────────────────────────────────────────────────────╯
-     ^_i_^           [_e_] execute    [_n_] insert    [_b_] name      [_'_] previous
-     ^^↑^^           [_d_] delete     [_t_] set       [_K_] key       [_,_] last
- _j_ ←   → _l_       [_o_] edit       [_a_] add       [_x_] register
-     ^^↓^^           [_r_] region     [_f_] format    [_B_] defun
-     ^_k_^           [_m_] step
-    ^^   ^^          [_s_] swap
-"
-  ("j" kmacro-start-macro :color blue)
-  ("l" kmacro-end-or-call-macro-repeat)
-  ("i" kmacro-cycle-ring-previous)
-  ("k" kmacro-cycle-ring-next)
-  ("r" apply-macro-to-region-lines)
-  ("d" kmacro-delete-ring-head)
-  ("e" kmacro-end-or-call-macro-repeat)
-  ("o" kmacro-edit-macro-repeat)
-  ("m" kmacro-step-edit-macro)
-  ("s" kmacro-swap-ring)
-  ("n" kmacro-insert-counter)
-  ("t" kmacro-set-counter)
-  ("a" kmacro-add-counter)
-  ("f" kmacro-set-format)
-  ("b" kmacro-name-last-macro)
-  ("K" kmacro-bind-to-key)
-  ("B" insert-kbd-macro)
-  ("x" kmacro-to-register)
-  ("'" kmacro-edit-macro)
-  ("," edit-kbd-macro)
-  ("q" nil :color blue))
-
-;;; Page Navigation
-
-(defhydra imdra-page (ctl-x-map "" :pre (widen))
-  "page"
-  ("]" forward-page "next")
-  ("[" backward-page "prev")
-  ("n" narrow-to-page "narrow to page" :bind nil :exit t))
-
-;;; HideShow Mode
-
-(defhydra imdra-hs (:foreign-keys run :hint nil)
-  "
-Hide^^            ^Show^            ^Toggle^
--------------------------------------------------
-_H_ hide all      _S_ show all      _f_ toggle
-_h_ hide block    _s_ show block    _F_ toggle all
-_l_ hide level    _SPC_ cancel
-"
-  ("S" hs-show-all)
-  ("H" hs-hide-all)
-  ("s" hs-show-block)
-  ("h" hs-hide-block)
-  ("f" hs-toggle-hiding)
-  ("F" my/hs-toggle-all)
-  ("l" hs-hide-level)
-  ("q" nil)
-  ("SPC" nil))
-
-
-;;;; Editable
-
-;;; Projectile
-
-(defhydra imdra-projectile (:color teal :columns 4)
-  "Projectile"
-  ("f"   projectile-find-file                "Find File")
-  ("r"   projectile-recentf                  "Recent Files")
-  ("z"   projectile-cache-current-file       "Cache Current File")
-  ("x"   projectile-remove-known-project     "Remove Known Project")
-
-  ("d"   projectile-find-dir                 "Find Directory")
-  ("b"   projectile-switch-to-buffer         "Switch to Buffer")
-  ("c"   projectile-invalidate-cache         "Clear Cache")
-  ("X"   projectile-cleanup-known-projects   "Cleanup Known Projects")
-
-  ("o"   projectile-multi-occur              "Multi Occur")
-  ("s"   projectile-switch-project           "Switch Project")
-  ("k"   projectile-kill-buffers             "Kill Buffers")
-  ("q"   hydra-pop "Cancel" :color blue))
 
 ;;; Yasnippet
 
@@ -425,32 +416,42 @@ _l_ hide level    _SPC_ cancel
   ("j" next-error "next" :bind nil)
   ("k" previous-error "previous" :bind nil))
 
-;;; Yank
+;;; Macro
 
-(defhydra imdra-yank-pop
-  (:hint nil :pre (hydra-set-property 'imdra-yank-pop :verbosity 0))
-  ("C-y" yank nil)
-  ("M-y" yank-pop nil)
-  ("M-l" counsel-yank-pop "list" :color blue))
-
-(global-set-key (kbd "C-y") 'imdra-yank-pop/yank)
-(global-set-key (kbd "M-y") 'imdra-yank-pop/yank-pop)
-
-;;; Narrow
-
-(defhydra imdra-narrow (:hint nil :exit t :idle 0.8)
+(defhydra imdra-macro (:hint nil :color pink :pre
+                             (when defining-kbd-macro
+                               (kmacro-end-macro 1)))
   "
- narrow  _d_ → defun   _b_ → org-block    _w_ → widen
-         _n_ → region  _e_ → org-element
-         _p_ → page    _s_ → org-subtree
+  ^Create-Cycle^   ^Basic^           ^Insert^        ^Save^         ^Edit^
+╭─────────────────────────────────────────────────────────────────────────╯
+     ^_i_^           [_e_] execute    [_n_] insert    [_b_] name      [_'_] previous
+     ^^↑^^           [_d_] delete     [_t_] set       [_K_] key       [_,_] last
+ _j_ ←   → _l_       [_o_] edit       [_a_] add       [_x_] register
+     ^^↓^^           [_r_] region     [_f_] format    [_B_] defun
+     ^_k_^           [_m_] step
+    ^^   ^^          [_s_] swap
 "
-  ("b" org-narrow-to-block)
-  ("e" org-narrow-to-element)
-  ("s" org-narrow-to-subtree)
-  ("d" narrow-to-defun)
-  ("n" narrow-to-region)
-  ("p" narrow-to-page)
-  ("w" widen))
+  ("j" kmacro-start-macro :color blue)
+  ("l" kmacro-end-or-call-macro-repeat)
+  ("i" kmacro-cycle-ring-previous)
+  ("k" kmacro-cycle-ring-next)
+  ("r" apply-macro-to-region-lines)
+  ("d" kmacro-delete-ring-head)
+  ("e" kmacro-end-or-call-macro-repeat)
+  ("o" kmacro-edit-macro-repeat)
+  ("m" kmacro-step-edit-macro)
+  ("s" kmacro-swap-ring)
+  ("n" kmacro-insert-counter)
+  ("t" kmacro-set-counter)
+  ("a" kmacro-add-counter)
+  ("f" kmacro-set-format)
+  ("b" kmacro-name-last-macro)
+  ("K" kmacro-bind-to-key)
+  ("B" insert-kbd-macro)
+  ("x" kmacro-to-register)
+  ("'" kmacro-edit-macro)
+  ("," edit-kbd-macro)
+  ("q" nil :color blue))
 
 (provide 'imkeys)
 

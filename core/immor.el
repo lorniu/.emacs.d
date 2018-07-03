@@ -48,7 +48,7 @@
      (save-window-excursion
        (when (and (eq major-mode 'emacs-lisp-mode)
                   (string-match-p "^[a-z]" (buffer-name))
-                  (file-exists-p (concat (or dir "~/.emacs.d/core/") (buffer-name))))
+                  (string-match-p "\\/\\.emacs\\.d\\/\\(core\\|extra\\)\\/" (buffer-file-name)))
          (byte-compile-file (buffer-file-name)))))
 
    (defun my/idle-once ()
@@ -109,11 +109,12 @@
                ("M-p" . ahs-backward)
                ("M-n" . ahs-forward)
                ("M-r" . ahs-change-range))
-   :config
+   :init
    (setq ahs-idle-interval 0.3
          ahs-case-fold-search nil
          ahs-default-range 'ahs-range-beginning-of-defun
-         ahs-exclude '(( ruby-mode . "\\_<\\(end\\)\\_>"))))
+         ahs-exclude '(( ruby-mode . "\\_<\\(end\\)\\_>")))
+   (require 'auto-highlight-symbol))
 
 
 ;;; Page Line Break
@@ -384,7 +385,7 @@
 
 ;;; Translate
 
-(x youdao-dictionary/w :init
+(x youdao-dictionary/w :init ;; pacman -S mpg123
    (setq url-automatic-caching t
          ;; youdao-dictionary-use-chinese-word-segmentation t
          youdao-dictionary-search-history-file (concat _CACHE_ ".youdao")))
@@ -710,7 +711,7 @@
      (let* ((ql-home (file-name-as-directory "~/.quicklisp"))
             (ql-url "http://beta.quicklisp.org/quicklisp.lisp")
             (ql-dist (concat ql-home "quicklisp.lisp"))
-            (slime-init "~/.cases/lang-lisp/misc/slime-init.lisp"))
+            (slime-init "~/.notes/x.code.lsp/misc/slime-init.lisp"))
        (if (file-exists-p ql-dist)  ;; load slime-init.lisp
            (when (file-exists-p slime-init)
              (with-temp-buffer
