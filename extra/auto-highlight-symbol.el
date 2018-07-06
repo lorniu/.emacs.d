@@ -713,11 +713,13 @@ You can do these operations at One Key!
   "Idle function. Called by `ahs-idle-timer'."
   (when (and auto-highlight-symbol-mode
              (not ahs-highlighted))
-    (let ((hl (ahs-highlight-p)))
-      (when hl
-        (ahs-highlight (nth 0 hl)
-                       (nth 1 hl)
-                       (nth 2 hl))))))
+    (make-thread (lambda ()
+                   (thread-yield)
+                   (let ((hl (ahs-highlight-p)))
+                     (when hl
+                       (ahs-highlight (nth 0 hl)
+                                      (nth 1 hl)
+                                      (nth 2 hl))))))))
 
 (defmacro ahs-add-overlay-face (pos face)
   `(if ahs-face-check-include-overlay
