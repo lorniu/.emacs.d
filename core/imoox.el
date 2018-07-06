@@ -50,7 +50,8 @@
    (im/org-config-babel)
    (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
 
-   ;; Plugins
+   ;; Miscellaneous
+   (x ox :config (add-to-list 'org-export-filter-paragraph-functions 'my/org-clean-space))
    (require 'ox-impress)
    (require 'org-download))
 
@@ -166,6 +167,50 @@
         :recursive            t)
 
        ("nnn" :components ("org" "res"))))))
+
+(defun my/org-clean-space (text backend info)
+  "在export为HTML时,删除中文之间不必要的空格"
+  (when (org-export-derived-backend-p backend 'html)
+    (let ((regexp "[[:multibyte:]]"))
+      ;; org默认将一个换行符转换为空格,但中文不需要这个空格,删除.
+      (setq text
+            (replace-regexp-in-string
+             (format "\\(%s\\) *\n *\\(%s\\)" regexp regexp)
+             "\\1\\2" text))
+      ;; 删除粗体之前的空格
+      (setq text
+            (replace-regexp-in-string
+             (format "\\(%s\\) +\\(<\\)" regexp)
+             "\\1\\2" text))
+      ;; 删除粗体之后的空格
+      (setq text
+            (replace-regexp-in-string
+             (format "\\(>\\) +\\(%s\\)" regexp)
+             "\\1\\2" text))
+      text)))
+
+(defun im/scale-of-chinese-in-display ()
+  (save-excursion
+    (let (en-pixel cn-pixel)
+      (condition-case nil
+          (progn
+            (goto-char (point-min))
+            (search-forward-regexp "\\(\\cC\\)")
+            (setq cn-pixel (car (window-text-pixel-size nil (1- (point)) (point))))
+
+            (goto-char (point-min))
+            (search-forward-regexp "\\([CC]\\)")
+            (setq en-pixel (car (window-text-pixel-size nil (1- (point)) (point))))
+
+            (/ cn-pixel (+ 0.0 en-pixel)))
+        (error 2)))))
+
+(defun im/string-width (string)
+  (let* ((string (org-string-display string))
+         (len (length string))
+         (width (string-width string))
+         (scale (im/scale-of-chinese-in-display)))
+    (+ len (* (- scale 1) (- width len)))))
 
 
 ;;; Commands
