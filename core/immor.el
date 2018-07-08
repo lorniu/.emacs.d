@@ -1,4 +1,4 @@
-;;; immor.el --- Modules Configuration
+;;;; immor.el --- Modules Configuration
 ;;; Commentary:
 
 ;; Download Mirror:
@@ -22,14 +22,17 @@
       `(("\\*Youdao Dictionary\\*\\|\\*Help\\*\\|\\*Messages\\*"
          (display-buffer-reuse-window display-buffer-at-bottom)
          (window-height . 0.3))
-        ("\\*e?shell\\*" display-buffer-same-window)))
+        ("\\*[cC]ompilation\\*"
+         (display-buffer-reuse-window display-buffer-at-bottom))
+        ("\\*e?shell\\*"
+         display-buffer-same-window)))
 
 
 ;;; Hooks
 
 ((lambda ()
 
-   (defun my/before-open ()
+   (defun -my/before-open ()
      ;; large file
      (when (> (buffer-size) (* 2 1024 1024))
        (setq buffer-read-only t)
@@ -40,38 +43,38 @@
           (let ((case-fold-search nil)) (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/" buffer-file-name))
           (view-mode 1)))
 
-   (defun my/before-save ()
+   (defun -my/before-save ()
      (unless (seq-contains '(org-mode) major-mode)
        (delete-trailing-whitespace)))
 
-   (defun my/el-compile (&optional dir)
+   (defun -my/el-compile (&optional dir)
      (save-window-excursion
        (when (and (eq major-mode 'emacs-lisp-mode)
                   (string-match-p "^[a-z]" (buffer-name))
                   (string-match-p "\\/\\.emacs\\.d\\/\\(core\\|extra\\)\\/" (buffer-file-name)))
          (byte-compile-file (buffer-file-name)))))
 
-   (defun my/idle-once ()
+   (defun -my/idle-once ()
      (let ((then (current-time)))
        (message "∵ [%s] Idle loading..." (time then 2))
        (mapc 'require im/need-idle-loads)
        (princ im/need-idle-loads)
        (message "∴ [%s] Idle loaded, %.2fs elapsed."
                 (time nil 2) (time-subtract-seconds (current-time) then)))
-     (remove-hook 'auto-save-hook 'my/idle-tasks))
+     (remove-hook 'auto-save-hook '-my/idle-once))
 
-   (defun my/when-close ()
+   (defun -my/when-close ()
      (recentf-save-list))
 
-   (add-hook 'find-file-hook    'my/before-open)
-   (add-hook 'before-save-hook  'my/before-save)
-   (add-hook 'after-save-hook   'my/el-compile)
-   (add-hook 'auto-save-hook    'my/idle-once)
-   (add-hook 'kill-emacs-hook   'my/when-close)))
+   (add-hook 'find-file-hook    '-my/before-open)
+   (add-hook 'before-save-hook  '-my/before-save)
+   (add-hook 'after-save-hook   '-my/el-compile)
+   (add-hook 'auto-save-hook    '-my/idle-once)
+   (add-hook 'kill-emacs-hook   '-my/when-close)))
 
 
 
-;;; Basic-Modes
+;;;; Basic-Modes
 
 (x winner :init (winner-mode 1))
 (x recentf :init (recentf-mode 1))
@@ -105,16 +108,18 @@
 ;;; Auto-Highlight-Symbol
 
 (x auto-highlight-symbol
-   :bind (:map auto-highlight-symbol-mode-map
+   :bind (:map ahs-mode-map
                ("M-p" . ahs-backward)
                ("M-n" . ahs-forward)
                ("M-r" . ahs-change-range))
    :init
    (setq ahs-idle-interval 0.3
          ahs-case-fold-search nil
-         ahs-default-range 'ahs-range-beginning-of-defun
-         ahs-exclude '(( ruby-mode . "\\_<\\(end\\)\\_>")))
-   (require 'auto-highlight-symbol))
+         ahs-default-range 'ahs-range-defun
+         ahs-exclude '(( ruby-mode . "\\_<\\(end\\)\\_>" )
+                       ( prog-mode . "\\_<\\(t\\|nil\\)\\_>" )))
+   (autoload 'global-ahs-mode "auto-highlight-symbol")
+   (global-ahs-mode 1))
 
 
 ;;; Page Line Break
@@ -177,7 +182,7 @@
          ( "6"  . dired-up-directory )
          ( "r"  . wdired-change-to-wdired-mode )
          ( "z"  . dired-du-mode )
-         ( "."  . imdra-dired/body))
+         ( "."  . imdra-dired/body ))
    :config
    (setq dired-dwim-target t)
    (setq dired-du-size-format 'comma)
@@ -201,46 +206,60 @@
 
    :config
    (setq ivy-use-virtual-buffers t)
-   (setq smex-save-file (concat _CACHE_ "smex-items")) ;; frequent used cmds
+   (setq smex-save-file (concat _CACHE_ "smex-items")) ;; frequently used cmds
    (ivy-mode 1))
 
 (x swiper/w)
 
 (x counsel-projectile/w
    :init
-   (setq projectile-cache-file          (concat _CACHE_ "__projectile.cache")
+   (setq projectile-completion-system 'ivy
+         projectile-cache-file (concat _CACHE_ "__projectile.cache")
          projectile-known-projects-file (concat _CACHE_ "__projectile-bookmark.eld")
          counsel-find-file-ignore-regexp "Volume\\|RECYCLE.BIN"
-         projectile-completion-system   'ivy
-         projectile-mode-line '(:eval (if (string= "-" (projectile-project-name)) "" (format " [%s]" (projectile-project-name)))))
-
-   :config
+         projectile-mode-line '(:eval (if (string= "-" (projectile-project-name)) nil
+                                        (list " ["
+                                              `(:propertize ("" "ᴘ")
+                                                            face (:weight bold)
+                                                            help-echo ,(format "[%s]:\n\n%s%s/\n"
+                                                                               (projectile-project-type)
+                                                                               (projectile-project-root)
+                                                                               (projectile-project-name)))
+                                              "]"))))
    (projectile-mode 1)
-   (if (fboundp 'counsel-projectile-on)
-       (counsel-projectile-on)
-     (counsel-projectile-mode)))
+   (counsel-projectile-mode 1))
 
 
 ;;; HS-Minor-Mode/Outline-Minor-Mode
-;; 20180111, Origami is removed
 
 (x hideshow
-   :diminish hs-minor-mode
+   :delight hs-minor-mode
    :hook ((web-mode prog-mode) . hs-minor-mode)
    :bind* (:map hs-minor-mode-map
                 ([(M-down-mouse-1)] . nil)
                 ([(M-mouse-1)] . hs-mouse-toggle-hiding)
                 ("C-c f"   . hs-toggle-hiding)
-                ("C-c F"   . my/hs-toggle-all)
+                ("C-c F"   . -my/hs-toggle-all)
                 ("C-c C-f" . imdra-hs/body))
    :config
 
-   (defun my/hs-toggle-all ()
+   (defun -my/hs-toggle-all ()
      (interactive)
-     (defvar im/hs-state nil)
-     (make-local-variable 'im/hs-state)
-     (setq im/hs-state (not im/hs-state))
-     (if im/hs-state (hs-hide-all) (hs-show-all)))
+     (if (seq-find
+          (lambda (ov) (and (overlayp ov) (overlay-get ov 'hs)))
+          (overlays-in (point-min) (point-max)))
+         (hs-show-all)
+       (hs-hide-all)))
+
+   (defun -my/display-code-line-counts (ov)
+     (when (eq 'code (overlay-get ov 'hs))
+       (overlay-put ov 'face font-lock-warning-face)
+       (overlay-put ov 'display
+                    (format " ...%d..."
+                            (count-lines (overlay-start ov)
+                                         (overlay-end ov))))))
+
+   (setq hs-set-up-overlay '-my/display-code-line-counts)
 
    (add-to-list
     'hs-special-modes-alist
@@ -266,6 +285,7 @@
    :bind ("C-x w" . ace-window)
    :config
    (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+
 
 ;;; Shell
 
@@ -350,7 +370,7 @@
          ( "l"     .  forward-char  )
          ( "j"     .  next-line     )
          ( "k"     .  previous-line )
-         ( "<DEL>" .  nil)))
+         ( "<DEL>" .  nil )))
 
 
 ;;; Magit
@@ -359,28 +379,6 @@
   (x magit/w
      :bind ("C-c m" . magit-status)
      :init (magit-auto-revert-mode -1)))
-
-
-;;; SQL
-
-(x sql
-   :init
-   (defalias 'mysql 'sql-mysql)
-   :config
-   (setq sql-user "root")
-   (setq sql-product 'mysql)
-   (setq sql-connection-alist
-         '((45.63.55.2
-            (sql-product 'mysql)
-            (sql-server "45.63.55.2")
-            (sql-port 3306)
-            (sql-database "ego")
-            (sql-user "root"))))
-   (sql-set-product-feature 'mysql
-                            :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
-   (env-windows
-    (setq sql-mysql-options '("-C" "-t" "-f" "-n"))
-    (add-hook 'sql-interactive-mode-hook 'im/cp936-encoding)))
 
 
 ;;; Translate
@@ -421,14 +419,15 @@
 
 
 
-;;; Programer - Common
+;;;; Programer - Common
+
+(x eldoc/v)
 
 (x prog-mode
    :bind (:map prog-mode-map ("C-c C-u" . backward-up-list))
    :init (add-hook-lambda 'prog-mode-hook
            (setq show-trailing-whitespace t)
            (abbrev-mode 1)
-           (auto-highlight-symbol-mode 1)
            (rainbow-delimiters-mode 1)
            (which-function-mode 1)))
 
@@ -479,20 +478,29 @@
    (if (file-exists-p abbrev-file-name)
        (quietly-read-abbrev-file)))
 
-(x company/vw
-   :init (defun add-company-backend (backend)
-           (add-to-list 'company-backends backend))
+(x company/w
    :hook ((prog-mode   . company-mode))
-   :init (setq company-idle-delay 0.2))
+   :bind (:map company-active-map
+               ("C-c"   . company-abort)
+               ("<SPC>" . -my/insert-blank))
+   :init
+   (setq company-idle-delay 0.2
+         company-lighter-base "")
+   (defun add-company-backend (backend)
+     (add-to-list 'company-backends backend))
+   (defun -my/insert-blank () (interactive) (company-abort) (insert " ")))
 
-(x yasnippet/e
-   :diminish (yas-minor-mode . " Y")
-   :bind (:map yas-keymap ("C-m" . 'yas-next-field-or-maybe-expand))
-   :init (setq yas-verbosity 2 yas-alias-to-yas/prefix-p nil)
+(x yasnippet/ev
+   :bind
+   (:map yas-keymap ("C-m" . 'yas-next-field-or-maybe-expand))
+   :init
+   (setq yas-verbosity 2
+         yas-alias-to-yas/prefix-p nil)
    :config
-   (add-hook 'yas-minor-mode-hook
-             (lambda ()
-               (yas-activate-extra-mode 'fundamental-mode)))
+   (defun -my/yasnipet-hook ()
+     (delight '((yas-minor-mode "" yasnippet)))
+     (yas-activate-extra-mode 'fundamental-mode))
+   (add-hook 'yas-minor-mode-hook '-my/yasnipet-hook)
    (yas-global-mode 1))
 
 
@@ -506,13 +514,35 @@
                      (let ((wstat (window-dedicated-p it)))
                        (set-window-dedicated-p it nil)
                        (aw-switch-to-window it)
-                       (set-window-dedicated-p it wstat))))))
-   :init (add-hook 'compilation-mode-hook
-                   (lambda () (aif (get-buffer "*compilation*") (switch-to-buffer it)))))
+                       (set-window-dedicated-p it wstat)))))))
 
 
 
-;;; Programer - Languages
+;;;; Programer - Languages
+
+;;; SQL
+;;
+;; M-x: sql-connect
+;;
+(x sql
+   :init
+   (defalias 'mysql 'sql-mysql)
+   :config
+   (setq sql-user "root")
+   (setq sql-product 'mysql)
+   (setq sql-connection-alist
+         '((45.63.55.2
+            (sql-product 'mysql)
+            (sql-server "45.63.55.2")
+            (sql-port 3306)
+            (sql-database "ego")
+            (sql-user "root"))))
+   (sql-set-product-feature 'mysql
+                            :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
+   (env-windows
+    (setq sql-mysql-options '("-C" "-t" "-f" "-n"))
+    (add-hook 'sql-interactive-mode-hook 'im/cp936-encoding)))
+
 
 ;;; lsp-mode
 ;;
@@ -590,7 +620,6 @@
    (setq cquery-extra-init-params '(:cacheFormat "msgpack" :completion (:detailedLabel t) :xref (:container t)
                                                  :diagnostics (:frequencyMs 5000)))
    (require 'company-lsp)
-   (require 'projectile)
    (add-to-list 'projectile-globally-ignored-directories cquery-cache-dir))
 
 (x semantic
@@ -607,7 +636,7 @@
 ;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
 ;;
 (x web-mode
-   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|jsx\\|tpl\\|css\\)\\'"
+   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|jsx\\|tpl\\|css\\|vue\\)\\'"
    :config
    (setq web-mode-markup-indent-offset    4
          web-mode-css-indent-offset       4
@@ -617,19 +646,29 @@
          web-mode-engines-alist       '(("blade"  . "\\.blade\\.")
                                         ("ruby"   . "\\.html\\.erb\\'")))
 
-   (add-hook-lambda 'web-mode-hook
+   (defun -my/web-mode-hook ()
      ;; (flycheck-mode +1)
      (hs-minor-mode -1)
      (set (make-local-variable 'company-backends)
-          '(company-css company-tide company-dabbrev-code company-keywords company-files)))
+          '(company-css company-web-html company-yasnippet company-keywords company-files)))
 
-   (add-hook-lambda 'yas-before-expand-snippet-hook
+   (defun -my/web-mode-bore-complete ()
+     (let ((curr-lang (web-mode-language-at-pos)))
+       (cond ((string= curr-lang "css")
+              (setq emmet-use-css-transform t))
+             (t (setq emmet-use-css-transform nil)))))
+
+   (defun -my/yas-before-expand ()
      (if (eq major-mode 'web-mode)
          (set (make-local-variable 'yas--extra-modes)
               (pcase (web-mode-language-at-pos)
                 ("html"           '(html-mode))
                 ("css"            '(css-mode))
-                ("javascript"     '(js2-mode))))))
+                ("javascript"     '(js-mode))))))
+
+   (add-hook 'web-mode-hook '-my/web-mode-hook)
+   (add-hook 'web-mode-before-auto-complete-hooks '-my/web-mode-bore-complete)
+   (add-hook 'yas-before-expand-snippet-hook '-my/yas-before-expand)
 
    ;; Indent
    (add-to-list 'web-mode-indentless-elements "html")
@@ -661,7 +700,7 @@
          js2-strict-inconsistent-return-warning nil)
 
    (add-hook-lambda 'js2-mode-hook
-     (setq mode-name "ES")
+     (setq mode-name "J2")
      (flycheck-mode +1)
      (js2-imenu-extras-mode +1))
 
@@ -669,7 +708,7 @@
 
 (when (executable-find "node")
   (x tide/w
-     :diminish " τ"
+     :delight " ť"
      :hook ((js2-mode) . tide)
      :init
      (setq tide-default-mode "JS")
@@ -682,7 +721,7 @@
        (set (make-local-variable 'company-tooltip-align-annotations) t))))
 
 
-;;; SLIME (The Superior Lisp Interaction Mode for Emacs)
+;;; Lisp/SLIME (The Superior Lisp Interaction Mode for Emacs)
 
 (x slime :config
    (setq inferior-lisp-program (seq-find #'executable-find '("sbcl" "ccl" "clisp")))
@@ -741,6 +780,8 @@
                  (append (butlast hippie-expand-try-functions-list 2)
                          (list 'try-expand-slime)))))
 
+(add-hook-lambda 'lisp-mode-hook (electric-pair-mode 1))
+
 
 ;;; Haskell
 ;;
@@ -769,74 +810,9 @@
 (x dante
    :commands 'dante-mode
    :bind (:map hs-minor-mode-map ("C-c '" . dante-eval-block))
-   :init
-   (add-hook-lambda 'dante-mode-hook
-     (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))
-
-   :config
-   ;; mess fix
-   (defun haskell-process-type ()
-     (let ((cabal-sandbox (locate-dominating-file default-directory "cabal.sandbox.config"))
-           (stack         (locate-dominating-file default-directory "stack.yaml"))
-           (cabal-new     (locate-dominating-file default-directory "cabal.project"))
-           (cabal         (locate-dominating-file default-directory (lambda (d) (cl-find-if (lambda (f) (string-match-p ".\\.cabal\\'" f)) (directory-files d))))))
-       (if (eq 'auto haskell-process-type)
-           (cond
-            ((and cabal-sandbox (executable-find "cabal")) (setq inferior-haskell-root-dir cabal-sandbox) 'cabal-repl)
-            ((and stack (executable-find "stack")) (setq inferior-haskell-root-dir stack) 'stack-ghci)
-            ((and cabal-new (executable-find "cabal")) (setq inferior-haskell-root-dir cabal-new) 'cabal-new-repl)
-            ((and cabal (executable-find "cabal")) (setq inferior-haskell-root-dir cabal) 'cabal-repl)
-            ((executable-find "ghc") (setq inferior-haskell-root-dir default-directory) 'ghci)
-            (t (error "Could not find any installation of GHC.")))
-         haskell-process-type)))
-   (defun haskell-process-load-complete (session process buffer reload module-buffer &optional cont)
-     (when (get-buffer (format "*%s:splices*" (haskell-session-name session)))
-       (with-current-buffer (haskell-interactive-mode-splices-buffer session)
-         (erase-buffer)))
-     (let* ((ok (cond
-                 ((haskell-process-consume process "Ok,\\(?:.+\\) modules? loaded\\.$") t)
-                 ((haskell-process-consume process "Failed,\\(?:.+\\) modules? loaded\\.$") nil)
-                 ((haskell-process-consume process "Ok, modules loaded: \\(.+\\)\\.$") t)
-                 ((haskell-process-consume process "Failed, modules loaded: \\(.+\\)\\.$") nil)
-                 (t (error (message "Unexpected response from haskell process.")))))
-            (modules (haskell-process-extract-modules buffer))
-            (cursor (haskell-process-response-cursor process))
-            (warning-count 0))
-       (haskell-process-set-response-cursor process 0)
-       (haskell-check-remove-overlays module-buffer)
-       (while
-           (haskell-process-errors-warnings module-buffer session process buffer)
-         (setq warning-count (1+ warning-count)))
-       (haskell-process-set-response-cursor process cursor)
-       (if (and (not reload) haskell-process-reload-with-fbytecode)
-           (haskell-process-reload-with-fbytecode process module-buffer)
-         (haskell-process-import-modules process (car modules)))
-       (if ok (haskell-mode-message-line (if reload "Reloaded OK." "OK."))
-         (haskell-interactive-mode-compile-error session "Compilation failed."))
-       (when cont
-         (condition-case-unless-debug e
-             (funcall cont ok)
-           (error (message "%S" e))
-           (quit nil)))))
-   (defun haskell-mode-find-def (ident)
-     (when (stringp ident)
-       (let ((reply (haskell-process-queue-sync-request
-                     (haskell-interactive-process)
-                     (format (if (string-match "^[a-zA-Z_]" ident) ":info %s" ":info (%s)") ident))))
-         (let ((match (string-match "-- Defined \\(at\\|in\\) \\(.+\\)$" reply)))
-           (when match
-             (let ((defined (match-string 2 reply)))
-               (let ((match (string-match "\\(.+?\\):\\([0-9]+\\):\\([0-9]+\\)$" defined)))
-                 (if match (list 'file
-                                 (expand-file-name (match-string 1 defined) (haskell-session-current-dir (haskell-interactive-session)))
-                                 (string-to-number (match-string 2 defined))
-                                 (string-to-number (match-string 3 defined)))
-                   (let ((match (string-match "‘\\(.+?\\):\\(.+?\\)’$" defined)))
-                     (if match (list 'library
-                                     (match-string 1 defined)
-                                     (match-string 2 defined))
-                       (let ((match (string-match "‘\\(.+?\\)’$" defined)))
-                         (if match (list 'module (match-string 1 defined)))))))))))))))
+   :init (add-hook-lambda 'dante-mode-hook
+           (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))
+   :config (load "patches" nil nil))
 
 
 ;;; Erlang
@@ -923,5 +899,6 @@
 
 ;;; Tooltips
 
+;; remove `Origami', I don't like it. 20180111
 ;; remove `multiple-cursors', it is boring. use `iedit' instead. 2018-07-01
-;; remove `iedit', as I found `auto-highlight-symbol' is so powerful, and it's code is amazing! I will hack it to full use. 2018-07-03
+;; remove `iedit', as I found `auto-highlight-symbol' is so powerful, and the code is amazing! I will hack it for fun. 2018-07-03

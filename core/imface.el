@@ -9,18 +9,13 @@
 (env-windows
 
  (defun im/win-font (&optional font-size)
-   (interactive (list (string-to-number (read-from-minibuffer "font size: " "1"))))
-
-   (let* ((size (or font-size 14)) (en "Consolas") (zh "微软雅黑 light") (tz "楷体"))
-
+   (interactive (list (string-to-number
+                       (read-from-minibuffer "font size: " "1"))))
+   (let* ((size (or font-size 14)) (en "Consolas") (zh "微软雅黑 light"))
      (set-frame-font (font-spec :name (im/find-ft en) :size size) t)
      (set-fontset-font "fontset-default" 'unicode (font-spec :name (im/find-ft zh)))
-     (set-face-attribute 'mode-line nil :height 110)
-     (add-to-list 'face-font-rescale-alist '(("Consolas"  1)))
-     (create-fontset-from-fontset-spec (format "-*-%s-normal-r-normal-*-%d-*-*-*-c-*-fontset-table,
-                                        unicode:-*-%s-normal-r-normal-*-%d-*-*-*-c-*-iso8859-1"
-                                               en (pcase font-size (14 13) (30 33) (_ size))
-                                               tz (pcase font-size (14 14) (30 35) (_ (* size 1.2)))))))
+     (add-to-list 'face-font-rescale-alist '(("Consolas"  1)))))
+
  (setq default-frame-alist
        '((title . "νερό")
          (top . 30) (left . 640)
@@ -44,10 +39,6 @@
  (setf (alist-get 'left default-frame-alist)   '850)
  (add-hook 'focus-in-hook (lambda () (im/win-font 24))))
 
-(env-out-classroom
- (load-theme 'atom-dark t)
- (add-hook 'focus-in-hook 'im/win-font))
-
 
 ;;; Linux
 
@@ -68,10 +59,7 @@
  (global-set-key [C-mouse-4] 'text-scale-increase)
  (global-set-key [C-mouse-5] 'text-scale-decrease)
  ;; font
- (setq default-frame-alist '((height . 110) (alpha . 85)))
- (create-fontset-from-fontset-spec
-  (concat "-*-WenQuanYi Zen Hei Mono-normal-r-normal-*-16-*-*-*-c-*-fontset-table,unicode:"
-          "-*-WenQuanYi Zen Hei Mono-normal-r-normal-*-16-*-*-*-c-*-iso10646-1"))
+ (setq default-frame-alist '((height . 110) (alpha . 100)))
  (set-fontset-font "fontset-default" 'unicode "Source Han Sans CN"))
 
 
@@ -84,27 +72,37 @@
 (prefer-coding-system     'utf-8-unix)
 
 (env-windows
- (defun im/cp936-encoding ()
-   (set-buffer-file-coding-system 'gbk)
-   (set-buffer-process-coding-system 'gbk 'gbk))
-
+ ;; generic encoding
  (set-language-environment "chinese-gbk")
  (prefer-coding-system 'utf-8)
 
+ ;; specified encoding
  (setq file-name-coding-system 'gbk)
  (set-terminal-coding-system 'gbk)
  (modify-coding-system-alist 'process "*" 'gbk)
+
+ (defun im/cp936-encoding ()
+   (set-buffer-file-coding-system 'gbk)
+   (set-buffer-process-coding-system 'gbk 'gbk))
 
  (add-hook 'shell-mode-hook 'im/cp936-encoding))
 
 
 ;;; Miscellaneous
 
+(setq-default
+ mode-line-format
+ '("%e" mode-line-front-space mode-line-mule-info mode-line-client mode-line-modified mode-line-remote mode-line-frame-identification
+   mode-line-buffer-identification
+   "   " mode-line-position
+   mode-line-modes mode-line-misc-info mode-line-end-spaces (vc-mode vc-mode)))
+
 (setq sentence-end-double-space nil)
+
 (setq sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*")
+
 (mapc (lambda (c) (modify-syntax-entry c "." (standard-syntax-table)))
       '( ?， ?。 ?！ ?； ?？ ?： ?/ ))
-
 
 (provide 'imface)
 

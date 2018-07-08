@@ -34,7 +34,7 @@
   (setq bm/last-time (copy-tree bm/time)) t)
 
 (defun display-startup-echo-area-message ()
-  (message ">> 加载完成，耗时 %.2f 秒."
+  (message ">> Loaded success with %.2f Seconds."
            (time-subtract-seconds after-init-time before-init-time)))
 
 

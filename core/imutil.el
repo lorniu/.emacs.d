@@ -81,8 +81,8 @@
     (call-interactively 'isearch-forward-regexp)))
 
 (defvar messaging-on t "Control whether to print message to minibuffer")
-(defun my/message-switch (f &rest args) (when messaging-on (apply f args)))
-(advice-add 'message :around 'my/message-switch)
+(defun -my/message-switch (f &rest args) (when messaging-on (apply f args)))
+(advice-add 'message :around '-my/message-switch)
 
 
 ;;; Miscellaneous
@@ -282,11 +282,11 @@
   "Find the proper font in NAMES."
   (catch 'ret
     (dolist (name names)
-      (let ((full-name (my/find-font-in-sys name)))
+      (let ((full-name (-my/find-font-in-sys name)))
         (if full-name
             (throw 'ret full-name))))))
 
-(defun my/find-font-in-sys (name &optional filter)
+(defun -my/find-font-in-sys (name &optional filter)
   (let* ((fs (sort (x-list-fonts name) 'string-greaterp)))
     (seq-find (lambda (f) (string-match-p (format ".*%s.*" (or filter "8859-1")) f)) fs)))
 

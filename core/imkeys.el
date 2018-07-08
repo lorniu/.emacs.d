@@ -25,11 +25,13 @@
  ( [f12]         . ivy-push-view        )
  ( [C-f12]       . ivy-pop-view         )
  ( "%"           . his-match-paren      )
- ( "C-,"         . imdra-buffer/body  )
+ ( "C-,"         . imdra-buffer/body    )
  ( "C-s"         . im/isearch-regexp    )
  ( "C-x O"       . imdra-window/body    )
  ( "C-x o"       . imdra-window/other-window )
  ( "C-x C-o"     . imdra-window/other-window+ )
+ ( "C-x 2"       . -my/split-window-below)
+ ( "C-x 3"       . -my/split-window-right)
  ( "C-x n"       . imdra-narrow/body    )
  ( "C-x C-r"     . imdra-favors/body    )
  ( "C-c C-j"     . ffap                 )
@@ -100,10 +102,11 @@
   "\nDash:"
   ("cw" counsel-colors-web "Color(Web)")
   ("ce" counsel-colors-emacs "Color(Emacs)")
-  ("uc" counsel-unicode-char "Unicode Char")
-  ("ag" counsel-ag "Search with ag")
-  ("hs" counsel-hydra-heads "Hydras")
-  ("ac" ascii-table-show "Ascii Table"))
+  ("cu" counsel-unicode-char "Unicode Char")
+  ("lf" list-faces-display "List Faces")
+  ("lh" counsel-hydra-heads "Hydras")
+  ("la" ascii-table-show "Ascii Table")
+  ("ag" counsel-ag "Search with ag"))
 
 ;;; Org-Mode
 
@@ -133,7 +136,7 @@
   ("C" org-clock-cancel :color pink)
 
   ("l" org-store-link)
-  ("L" org-capture-goto-last-stored "last Capture")
+  ("L" org-insert-link)
   ("c" org-capture :exit t)
   ("n" im/org-publish-note :exit t)
   ("m" im/org-publish-note-force :exit t))
@@ -142,19 +145,14 @@
 ;;;; Super Window
 
 (defhydra imdra-window
-  (:body-pre
-   (progn
-     (setq hydra-is-helpful t)
-     (set-face-attribute 'mode-line nil :box t))
-   :pre
+  (:pre
    (progn
      (setq hydra-is-helpful nil)
-     (set-face-attribute 'mode-line nil :box t))
+     (set-face-attribute 'mode-line nil :slant 'italic))
    :post
    (progn
      (setq hydra-is-helpful t)
-     (set-face-attribute 'mode-line nil :box nil))
-   :idle 0.8)
+     (set-face-attribute 'mode-line nil :slant 'normal)))
   "\n"
 
   ("h" windmove-left "Left" :column "Switch")
@@ -183,8 +181,10 @@
   ("<right>" winner-redo "Winner →")
 
   ("S" (hydra-exp window-config window) "Config" :exit t :column "Misc")
-  ("d" imdra-desktop/body "Desktop" :exit t)
-  ("H" imdra-window/body "Help" :exit nil))
+  ("D" imdra-desktop/body "Desktop" :exit t)
+  ("H" imdra-window/body "Help" :exit nil)
+  ("M-h" imdra-window/body "Help" :exit nil)
+  )
 
 ;;; Window Config
 
@@ -193,7 +193,7 @@
   ("o" im/other-window-set-exclude-regexp "Config Other Window Exclude Regexp" :exit t)
   ("q" hydra-pop "Go Back"))
 
-;;; OtherWindow+
+;;; Other Window+
 
 (defvar im/other-window-exclude-regexp "^\\*")
 
@@ -211,6 +211,18 @@
   (interactive)
   (setq im/other-window-exclude-regexp
         (read-from-minibuffer "Buffer to exclude (regexp): " im/other-window-exclude-regexp)))
+
+;;; Split Window+
+
+(defun -my/split-window-below ()
+  (interactive)
+  (call-interactively 'split-window-below)
+  (imdra-window/body))
+
+(defun -my/split-window-right ()
+  (interactive)
+  (call-interactively 'split-window-right)
+  (imdra-window/body))
 
 ;;; Desktop
 
@@ -232,7 +244,6 @@
   ("g" engine/search-google "Google")
   ("t" youdao-dictionary-search-from-input "Translate")
   ("T" (if (env-g) (youdao-dictionary-search-at-point-tooltip) (youdao-dictionary-search-at-point+)) nil)
-  ("t" youdao-dictionary-search-from-input "Translate")
   ("C-t" youdao-dictionary-search-at-point-tooltip nil)
   ("G" engine/search-github "Github")
   ("S" engine/search-stackoverflow "StackOverflow")
@@ -281,7 +292,7 @@ _l_ hide level    _SPC_ cancel
   ("s" hs-show-block)
   ("h" hs-hide-block)
   ("f" hs-toggle-hiding)
-  ("F" my/hs-toggle-all)
+  ("F" -my/hs-toggle-all)
   ("l" hs-hide-level)
   ("q" nil)
   ("SPC" nil))
