@@ -31,7 +31,7 @@
 
       ;; Import manually please.
       (if (yes-or-no-p (format "已保存为 %s。跳转？" reg-file))
-        (w32-shell-execute "open" emacs-home)))))
+          (w32-shell-execute "open" emacs-home)))))
 
 (defmacro im/walk-with-directory-buffers (dir filter &rest form)
   "Walk the DIR under FILTER, operate each with current buffer. FORM is the deal."
@@ -48,14 +48,13 @@
 
 (defun im/refactor-encoding-in-directory ()
   "Emacs style batch mode / change coding under the dir."
-  (dolist (file (directory-files-recursively "/var/www/" ".*\.rb"))
+  (dolist (file (directory-files-recursively "/var/www/" ".*\\.rb"))
     (with-current-buffer (find-file file)
       (when (or (eq buffer-file-coding-system 'chinese-gbk-dos)
                 (eq buffer-file-coding-system 'chinese-gbk-unix))
         (set-buffer-file-coding-system 'utf-8)
         (save-buffer))
       (kill-buffer))))
-
 
 (provide 'imsilly)
 

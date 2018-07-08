@@ -37,7 +37,7 @@
 
 ;;; Hook for special machine
 
-  (defun my/load-custom ()
+  (defun -my/load-custom ()
     (let ((sp-in-fi (format "~/.emacs.d/init_%s.el" system-name)))
       (setq custom-file sp-in-fi)
       (when (file-exists-p sp-in-fi)
@@ -46,7 +46,7 @@
 ;;; Modules
   (require 'cust)
   (require 'imface)
-  (my/load-custom)
+  (-my/load-custom)
   (require 'imkeys)
   (require 'imoox)
   (require 'immor)

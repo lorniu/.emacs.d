@@ -19,6 +19,14 @@
     ((env-classroom) (im/initial-org "e:/share/notes/"))
     (t (im/initial-org "~/.notes/")))
 
+   ;; Keys
+   (define-key org-mode-map (kbd "×") (kbd "*"))
+   (define-key org-mode-map (kbd "－") (kbd "-"))
+   (unbind-key "C-," org-mode-map)
+
+   ;; Faces
+   (im/org-config-faces)
+
    ;; Refresh color for html export
    (advice-add 'load-theme :after (lambda (&rest _) (im/org-config-base)))
    (advice-add 'disable-theme :after (lambda (&rest _) (im/org-config-base)))
@@ -35,37 +43,25 @@
      (font-lock-add-keywords nil '(("\\\\\\\\$" 0 'hi-org-break)
                                    ("\\<\\(FIXME\\|NOTE\\|AIA\\):" 1 'font-lock-warning-face prepend))))
 
-   ;; Faces
-   (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break" :group 'org-faces)
-
-   ;; Font for Org-Table
-   (env-g (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
-
-   ;; Keys
-   (define-key org-mode-map (kbd "×") (kbd "*"))
-   (define-key org-mode-map (kbd "－") (kbd "-"))
-   (unbind-key "C-," org-mode-map)
-
    ;; Babel
    (im/org-config-babel)
    (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
 
    ;; Miscellaneous
-   (x ox :config (add-to-list 'org-export-filter-paragraph-functions 'my/org-clean-space))
+   (x ox :config
+      (add-to-list 'org-export-filter-paragraph-functions '-my/org-clean-space))
    (require 'ox-impress)
    (require 'org-download))
 
 (defun im/org-config-base ()
-
   (interactive)
 
-  (cl-flet ((my/make-css (&rest styles) (string-join-newline (format "<style>\n%s\n</style>" (padding-left-to-string styles))))
-            (my/face-color (type) (if (eq type 'bg)
-                                      (let ((bg (face-background 'default))) (if (and (env-linux-ng) (string= "unspecified-bg" bg)) "#333" bg))
-                                    (let ((fg (face-foreground 'default))) (if (and (env-linux-ng) (string= "unspecified-fg" fg)) "#eee" fg)))))
+  (cl-flet ((-my/make-css (&rest styles) (string-join-newline (format "<style>\n%s\n</style>" (padding-left-to-string styles))))
+            (-my/face-color (type) (if (eq type 'bg)
+                                       (let ((bg (face-background 'default))) (if (and (env-linux-ng) (string= "unspecified-bg" bg)) "#333" bg))
+                                     (let ((fg (face-foreground 'default))) (if (and (env-linux-ng) (string= "unspecified-fg" fg)) "#eee" fg)))))
 
     ;; Basic
-
     (setq org-startup-indented                  t
           org-hide-leading-stars                t
           org-hide-block-startup                t
@@ -96,30 +92,51 @@
           org-html-validation-link              "Go ahead, never stop."
           org-html-htmlize-output-type          'inline-css
           org-html-head-include-scripts         nil
-          org-html-head                        (my/make-css
+          org-html-head                        (-my/make-css
                                                 "body { padding:10px; font-size:13px; }"
                                                 "a { text-decoration:none; }"
                                                 ".org-src-container { position:relative }"
-                                                (format "pre.src { position:static; overflow:auto; background: %s; color: %s; } "  (my/face-color 'bg) (my/face-color 'fg))
-                                                (format "pre.src:before { color: %s; } " (my/face-color 'bg))
+                                                (format "pre.src { position:static; overflow:auto; background: %s; color: %s; } "  (-my/face-color 'bg) (-my/face-color 'fg))
+                                                (format "pre.src:before { color: %s; } " (-my/face-color 'bg))
                                                 "blockquote { border-left: 3px solid #999; padding-left: 10px; margin-left: 10px; }"
+                                                "table { border-collapse: collapse; max-width: 100%; margin-bottom: 1em; }"
+                                                "th, td { border: 1px solid #ccc; padding: 0.6em 1em; }"
+                                                "pre { margin-left: 0; margin-right: 0; }"
                                                 ))
 
     ;; GTD
-
     (setq org-default-task-file     (concat org-directory "000/task.org")
           org-default-notes-file    (concat org-directory "000/journal.org")
-
           org-agenda-files          (file-expand-wildcards (concat org-directory "000/*.org"))
-
           org-time-clocksum-format  '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t)
           org-tag-alist             '(("Learns" . ?c) ("Work" . ?w) ("Life" . ?l) ("Dodo" . ?d))
           org-todo-keywords         '((sequence "TODO(t!)" "TING(i!)" "|" "DONE(d!)" "CANCEL(c!)"))
           org-refile-targets        `((org-agenda-files . (:level . 1)))
-
           org-capture-templates     `(("t" "新任务" entry (file+headline ,org-default-task-file "Ungrouped") "* TODO %i%?" :jump-to-captured t)
                                       ("d" "Diary"  plain (file+datetree ,org-default-notes-file) "%U\n\n%i%?" :empty-lines 1)
                                       ("n" "草稿箱" entry (file ,(concat org-directory "000/scratch.org")) "* %U\n\n%i%?" :prepend t :empty-lines 1)))))
+
+(defun im/org-config-faces ()
+  ;; define
+  (defvar im/org-table-font-size 14)
+  (env-windows
+   (let ((en "Consolas") (tz "楷体"))
+     (create-fontset-from-fontset-spec
+      (format "-*-%s-normal-r-normal-*-%d-*-*-*-c-*-fontset-table,unicode:-*-%s-normal-r-normal-*-%d-*-*-*-c-*-iso8859-1"
+              en (pcase im/org-table-font-size (14 13) (30 33) (_ im/org-table-font-size))
+              tz (pcase im/org-table-font-size (14 14) (30 35) (_ (* im/org-table-font-size 1.2)))))))
+  (env-linux-g
+   (create-fontset-from-fontset-spec
+    (concat "-*-WenQuanYi Zen Hei Mono-normal-r-normal-*-16-*-*-*-c-*-fontset-table,unicode:"
+            "-*-WenQuanYi Zen Hei Mono-normal-r-normal-*-16-*-*-*-c-*-iso10646-1")))
+
+  ;; config face for org-table
+  (env-g (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
+
+  ;; face for specified keywords
+  (defface hi-org-break
+    `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee")))))
+    "for org mode \\ break"))
 
 (defun im/org-config-babel ()
   (setq org-confirm-babel-evaluate    nil)
@@ -168,28 +185,18 @@
 
        ("nnn" :components ("org" "res"))))))
 
-(defun my/org-clean-space (text backend info)
-  "在export为HTML时,删除中文之间不必要的空格"
+(defun -my/org-clean-space (text backend info)
+  "When export to HTML, delete blanks between Chinese Char."
   (when (org-export-derived-backend-p backend 'html)
     (let ((regexp "[[:multibyte:]]"))
-      ;; org默认将一个换行符转换为空格,但中文不需要这个空格,删除.
-      (setq text
-            (replace-regexp-in-string
-             (format "\\(%s\\) *\n *\\(%s\\)" regexp regexp)
-             "\\1\\2" text))
-      ;; 删除粗体之前的空格
-      (setq text
-            (replace-regexp-in-string
-             (format "\\(%s\\) +\\(<\\)" regexp)
-             "\\1\\2" text))
-      ;; 删除粗体之后的空格
-      (setq text
-            (replace-regexp-in-string
-             (format "\\(>\\) +\\(%s\\)" regexp)
-             "\\1\\2" text))
-      text)))
+      ;; Avoid `Newline' to `SPACE'
+      (setq text (replace-regexp-in-string (format "\\(%s\\) *\n *\\(%s\\)" regexp regexp) "\\1\\2" text))
+      ;; Trim blanks before `BOLD'
+      (setq text (replace-regexp-in-string (format "\\(%s\\) +\\(<[a-z]>%s\\)" regexp regexp) "\\1\\2" text))
+      ;; Trim blanks after `BOLD'
+      (setq text (replace-regexp-in-string (format "\\(%s</[a-z]>\\) +\\(%s\\)" regexp regexp) "\\1\\2" text)) text)))
 
-(defun im/scale-of-chinese-in-display ()
+(defun -my/scale-of-chinese-in-display ()
   (save-excursion
     (let (en-pixel cn-pixel)
       (condition-case nil
@@ -297,21 +304,21 @@
 
    (fset 'org-download-clipboard 'org-download-screenshot)
 
-   (defun my/org-download-choose-dir (f &rest args)
+   (defun -my/org-download-choose-dir (f &rest args)
      (let ((dest-dir (read-directory-name "Save in directory: ")))
        (when (not (file-exists-p dest-dir))
          (make-directory dest-dir t))
        dest-dir))
-   (advice-add 'org-download--dir :around 'my/org-download-choose-dir)
+   (advice-add 'org-download--dir :around '-my/org-download-choose-dir)
 
-   (defun my/org-download-set-scrot-method (&rest args)
+   (defun -my/org-download-set-scrot-method (&rest args)
      (setq org-download-screenshot-method ;; linux: pacman -S xclip
            (cond
             ((executable-find "xclip") "xclip -selection clipboard -t image/png -o > %s")
             ((env-windows) "powershell -Command (Get-Clipboard -Format Image).save('%s')")
             (t (error "no proper tool, eg, xclip/powershell")))))
-   (advice-add 'org-download-clipboard :before 'my/org-download-set-scrot-method)
-   (advice-add 'org-download-screenshot :before 'my/org-download-set-scrot-method))
+   (advice-add 'org-download-clipboard :before '-my/org-download-set-scrot-method)
+   (advice-add 'org-download-screenshot :before '-my/org-download-set-scrot-method))
 
 (provide 'imoox)
 

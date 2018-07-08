@@ -22,23 +22,23 @@
 (im/refresh-package
  '(use-package
     ;; basic
-    bind-key diminish key-chord
+    bind-key delight key-chord
 
     ;; looking
-    atom-dark-theme rainbow-delimiters beacon page-break-lines rcirc-styles
+    spacegray-theme rainbow-delimiters beacon page-break-lines rcirc-styles
 
     ;; edit and utils
     expand-region dired-du session attrap syntax-subword
-    graphviz-dot-mode magit neotree gnuplot engine-mode youdao-dictionary
+    magit neotree engine-mode youdao-dictionary dired-dups
 
     ;; search and nav
     ag wgrep-ag anzu smex ivy hydra ace-window ivy-pages
 
     ;; org-mode
-    org-download ob-restclient ox-pandoc dired-dups
+    org-download ob-restclient ox-pandoc graphviz-dot-mode gnuplot
 
     ;; fronts
-    web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify
+    web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify xref-js2
 
     ;; backends
     slime php-mode robe elpy c-eldoc lua-mode go-mode
@@ -52,7 +52,7 @@
     counsel-projectile yasnippet company
 
     ;; companies
-    company-ghc company-php company-go
+    company-ghc company-php company-go company-web
 
     ))
 
@@ -130,16 +130,16 @@
 ;;; Use-Package
 
 (defvar im/need-idle-loads nil)
-(mapc 'require '(use-package diminish bind-key))
+(mapc 'require '(use-package delight bind-key))
 
 (defmacro x (NAME &rest args)
-  " e:demand w:wait else:defer v:dim x:disabled "
+  " e:demand w:wait else:defer v:delight x:disabled "
   (let* ((name-arr (split-string (symbol-name NAME) "/"))
          (name (intern (car name-arr)))
          (flag (cadr name-arr)) x-options)
     (push (if (seq-contains flag ?e) ':demand ':defer) x-options) ;
     (if (seq-contains flag ?x) (push ':disabled x-options))
-    (if (seq-contains flag ?v) (push ':diminish x-options))
+    (if (seq-contains flag ?v) (push ':delight x-options))
     `(progn
        ,(if (seq-contains flag ?w) `(add-to-list 'im/need-idle-loads ',name))
        (use-package ,name ,@x-options ,@args))))
