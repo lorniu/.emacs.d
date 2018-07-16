@@ -62,7 +62,10 @@
      squirrel-mode
      text-mode
      tcl-mode
-     visual-basic-mode )
+     visual-basic-mode
+
+     js2-mode
+     )
   "Major modes `auto-highlight-symbol-mode' can run on."
   :group 'auto-highlight-symbol
   :type '(repeat symbol))

@@ -30,6 +30,8 @@
 (defmacro mmm (&rest expr)
   `(message ,@expr))
 
+(defun im/patch () (load "patches" nil nil))
+
 (defun im/proxy (&optional args)
   (interactive "P")
   (if (and args (not (= args 1)))
