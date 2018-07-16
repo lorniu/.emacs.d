@@ -5,6 +5,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defvar --im/org-pub-home "~/.notes/")
 
 
@@ -231,22 +233,22 @@
 
 (defun im/org-publish-note (&optional force)
   (interactive)
-  (let ((start (current-time)))
+  (let ((start (current-time))
+        (vc-handled-backends nil)
+        (file-name-handler-alist nil)
+        (gc-cons-threshold (* 10 1024 1024))
+        (org-startup-folded 'showeverything))
     (with-temp-buffer
       (find-file (concat --im/org-pub-home " *publishing*.org"))
-      (let ((vc-handled-backends nil)
-            (file-name-handler-alist nil)
-            (gc-cons-threshold (* 10 1024 1024))
-            (org-startup-folded 'showeverything))
-        (org-publish "nnn" force))
-      (kill-buffer))
+      (flet ((run-hooks (&rest hooks) nil)
+             (run-hook-with-args (&rest args) nil))
+        (org-publish "nnn" force)
+        (kill-buffer)))
     (message "Publish Finished in %.2f seconds!" (time-subtract-seconds (current-time) start))))
 
 (defun im/org-publish-note-force ()
   (interactive)
-  (make-thread (lambda ()
-                 (thread-yield)  ;; also block
-                 (im/org-publish-note 'force))))
+  (im/org-publish-note 'force))
 
 (defun im/org-publish-clear-cache ()
   (interactive)

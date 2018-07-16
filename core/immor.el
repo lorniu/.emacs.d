@@ -234,7 +234,7 @@
 
 (x hideshow
    :delight hs-minor-mode
-   :hook ((web-mode prog-mode) . hs-minor-mode)
+   :hook ((prog-mode) . hs-minor-mode)
    :bind* (:map hs-minor-mode-map
                 ([(M-down-mouse-1)] . nil)
                 ([(M-mouse-1)] . hs-mouse-toggle-hiding)
@@ -483,11 +483,10 @@
    :bind (:map company-active-map
                ("C-c"   . company-abort)
                ("<SPC>" . -my/insert-blank))
-   :init
-   (setq company-idle-delay 0.2
-         company-lighter-base "")
-   (defun add-company-backend (backend)
-     (add-to-list 'company-backends backend))
+   :config
+   (setq company-minimum-prefix-length 1)
+   (setq company-idle-delay 0.2)
+   (setq company-lighter-base "")
    (defun -my/insert-blank () (interactive) (company-abort) (insert " ")))
 
 (x yasnippet/ev
@@ -495,12 +494,20 @@
    (:map yas-keymap ("C-m" . 'yas-next-field-or-maybe-expand))
    :init
    (setq yas-verbosity 2
-         yas-alias-to-yas/prefix-p nil)
-   :config
-   (defun -my/yasnipet-hook ()
+         yas-alias-to-yas/prefix-p nil
+         yas--basic-extras '(fundamental-mode))
+
+   (defun -my/yas--clear-extra-mode ()
+     (dolist (mode yas--extra-modes)
+       (unless (member mode yas--basic-extras)
+         (yas-deactivate-extra-mode mode))))
+
+   (defun -my/yasnippet-hook ()
      (delight '((yas-minor-mode "" yasnippet)))
-     (yas-activate-extra-mode 'fundamental-mode))
-   (add-hook 'yas-minor-mode-hook '-my/yasnipet-hook)
+     (mapc 'yas-activate-extra-mode yas--basic-extras))
+
+   (add-hook 'yas-minor-mode-hook '-my/yasnippet-hook)
+
    (yas-global-mode 1))
 
 
@@ -636,7 +643,9 @@
 ;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
 ;;
 (x web-mode
-   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|jsx\\|tpl\\|css\\|vue\\)\\'"
+   :mode
+   "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|jsx\\|tpl\\|css\\|vue\\)\\'"
+
    :config
    (setq web-mode-markup-indent-offset    4
          web-mode-css-indent-offset       4
@@ -649,26 +658,26 @@
    (defun -my/web-mode-hook ()
      ;; (flycheck-mode +1)
      (hs-minor-mode -1)
+
      (set (make-local-variable 'company-backends)
-          '(company-css company-web-html company-yasnippet company-keywords company-files)))
+          '(company-css company-web-html company-yasnippet company-keywords company-files))
 
-   (defun -my/web-mode-bore-complete ()
-     (let ((curr-lang (web-mode-language-at-pos)))
-       (cond ((string= curr-lang "css")
-              (setq emmet-use-css-transform t))
-             (t (setq emmet-use-css-transform nil)))))
+     (and (im/setup-tide-mode)
+          (add-to-list 'company-backends 'company-tide)))
 
-   (defun -my/yas-before-expand ()
-     (if (eq major-mode 'web-mode)
-         (set (make-local-variable 'yas--extra-modes)
-              (pcase (web-mode-language-at-pos)
-                ("html"           '(html-mode))
-                ("css"            '(css-mode))
-                ("javascript"     '(js-mode))))))
+   (defun -my/yas-expand-extra (&rest args)
+     "Yasnippet in in SCRIPT block."
+     (when (equal major-mode 'web-mode)
+       (-my/yas--clear-extra-mode)
+       (yas-activate-extra-mode
+        (pcase (web-mode-language-at-pos)
+          ("html"           'html-mode)
+          ("css"            'css-mode)
+          ("javascript"     'js2-mode)
+          ("jsx"            'js2-mode)))))
 
    (add-hook 'web-mode-hook '-my/web-mode-hook)
-   (add-hook 'web-mode-before-auto-complete-hooks '-my/web-mode-bore-complete)
-   (add-hook 'yas-before-expand-snippet-hook '-my/yas-before-expand)
+   (advice-add 'yas--maybe-expand-key-filter :before '-my/yas-expand-extra)
 
    ;; Indent
    (add-to-list 'web-mode-indentless-elements "html")
@@ -699,33 +708,71 @@
          js2-strict-missing-semi-warning nil
          js2-strict-inconsistent-return-warning nil)
 
-   (add-hook-lambda 'js2-mode-hook
-     (setq mode-name "J2")
-     (flycheck-mode +1)
-     (js2-imenu-extras-mode +1))
+   (defun -my/js2-hook ()
+     (setq mode-name "JS2")
+     (flycheck-mode 1)
+     (when (im/setup-tide-mode)
+       (make-variable-buffer-local 'company-backends)
+       (add-to-list 'company-backends 'company-tide))
 
-   (x web-beautify :if (executable-find "js-beautify")))
+   (add-hook 'js2-mode-hook '-my/js2-hook))
 
-(when (executable-find "node")
-  (x tide/w
-     :delight " ť"
-     :hook ((js2-mode) . tide)
-     :init
-     (setq tide-default-mode "JS")
-     (defun tide ()
-       (interactive)
-       (require 'tide)
+(when (executable-find "js-beautify")
+  (x web-beautify))
+
+(x tide
+   :delight " ť"
+   :if (executable-find "node")
+   :init
+   (setq tide-default-mode "JS")
+   (setq tide-sync-request-timeout 10)
+
+   (defun im/setup-tide-mode (&optional mode)
+     (interactive)
+     (when (executable-find "node")
        (tide-setup)
-       (eldoc-mode +1)
-       (tide-hl-identifier-mode +1)
-       (set (make-local-variable 'company-tooltip-align-annotations) t))))
+       (eldoc-mode 1)
+       (set (make-local-variable 'company-tooltip-align-annotations) t) t))
+
+   (defun im/tide-generate-config ()
+     "Generate jsconfig file for tide server."
+     (interactive)
+     (let ((dest (propertize (concat default-directory "jsconfig.json") 'face '(:foreground "ForestGreen"))))
+       (if (file-exists-p dest)
+           (message "File %s already exists." dest)
+         (with-temp-file dest
+           (insert (json-encode
+                    '((include . ["./**/*"])
+                      (exclude . ["node_modules" ".git"])
+                      (compilerOptions
+                       (target . "es2017")
+                       (allowSyntheticDefaultImports . t)
+                       (noEmit . t)
+                       (checkJs . t)
+                       (jsx . "react")
+                       (lib . ["dom" "es2017"])))))
+           (json-pretty-print-buffer))
+         (message "File %s Generated!" dest))))
+
+   :config
+   (im/patch)
+
+   (defun -my/company-with-tide (f &rest args)
+     "Complete with tide in SCRIPT block."
+     (let ((tide-mode (or (equal major-mode 'js2-mode)
+                          (and (equal major-mode 'web-mode)
+                               (or (string= (web-mode-language-at-pos) "javascript")
+                                   (string= (web-mode-language-at-pos) "jsx"))))))
+       (apply f args)))
+
+   (advice-add 'company-tide :around '-my/company-with-tide))
 
 
 ;;; Lisp/SLIME (The Superior Lisp Interaction Mode for Emacs)
 
 (x slime :config
    (setq inferior-lisp-program (seq-find #'executable-find '("sbcl" "ccl" "clisp")))
-   (add-to-list 'slime-contribs 'slime-fancy)
+   (slime-setup '(slime-fancy slime-company))
 
    ;; function
 
@@ -755,9 +802,7 @@
            (when (file-exists-p slime-init)
              (with-temp-buffer
                (insert-file-contents slime-init)
-               (slime-eval-buffer))
-             (sit-for 2)
-             (ignore-errors (slime-repl-set-package "IMFINE")))
+               (slime-eval-buffer)))
          (make-directory ql-home)   ;; begin to initial
          (url-copy-file ql-url ql-dist)
          (with-temp-buffer
@@ -766,19 +811,17 @@
            (insert (format "\n(quicklisp-quickstart:install :path \"%s\")" ql-home))
            (insert "(let ((*do-not-prompt* t)) (ql:add-to-init-file))")
            (slime-eval-buffer))))
+     ;; enhance hippie expand
+     (set-up-slime-hippie-expand)
      ;; auto switch to repl buffer
      (switch-to-buffer (format "*slime-repl %s*" inferior-lisp-program)))
 
    (add-hook-lambda 'slime-mode-hook
+     (set-up-slime-hippie-expand)
      (global-set-key "\C-cs" 'slime-selector))
 
    (add-hook-lambda 'slime-repl-mode-hook
-     (define-key slime-repl-mode-map (kbd "TAB") 'hippie-expand))
-
-   (add-hook-lambda 'slime-autodoc-mode-hook
-     (setq-local hippie-expand-try-functions-list
-                 (append (butlast hippie-expand-try-functions-list 2)
-                         (list 'try-expand-slime)))))
+     (define-key slime-repl-mode-map (kbd "TAB") 'hippie-expand)))
 
 (add-hook-lambda 'lisp-mode-hook (electric-pair-mode 1))
 
@@ -812,7 +855,7 @@
    :bind (:map hs-minor-mode-map ("C-c '" . dante-eval-block))
    :init (add-hook-lambda 'dante-mode-hook
            (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))
-   :config (load "patches" nil nil))
+   :config (im/patch))
 
 
 ;;; Erlang
@@ -849,7 +892,7 @@
    :hook ((ruby-mode . inf-ruby-minor-mode)
           (ruby-mode . robe-mode))
    :config
-   (add-company-backend 'company-robe)
+   (add-to-list 'company-backends 'company-robe)
 
    (x inf-ruby :config
       (define-key inf-ruby-minor-mode-map (kbd "C-c C-s")

@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: fetch
+# key: fc
+# --
+fetch(\`${1:http://$2}\`, {
+    method: '${3:get}',
+    body: ${0:''}   // headers body mode credentials
+}).then((resp) => resp.json())
+  .then((data) => console.log(data))
+  .catch((err) => console.log(err));

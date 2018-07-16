@@ -38,21 +38,23 @@
     org-download ob-restclient ox-pandoc graphviz-dot-mode gnuplot
 
     ;; fronts
-    web-mode emmet-mode yaml-mode sass-mode impatient-mode js2-mode tide htmlize web-beautify xref-js2
+    web-mode emmet-mode yaml-mode sass-mode impatient-mode
+    js2-mode tide htmlize web-beautify company-web
 
     ;; backends
-    slime php-mode robe elpy c-eldoc lua-mode go-mode
+    slime hippie-expand-slime slime-company
+    php-mode robe elpy c-eldoc lua-mode go-mode
     kotlin-mode scala-mode clojure-mode groovy-mode
     erlang dante hindent powershell csharp-mode
+
+    ;; company
+    company-ghc company-php company-go
 
     ;; lsp
     lsp-mode lsp-ui company-lsp cquery
 
     ;; projects
     counsel-projectile yasnippet company
-
-    ;; companies
-    company-ghc company-php company-go company-web
 
     ))
 
