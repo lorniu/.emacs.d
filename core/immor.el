@@ -180,8 +180,8 @@
    :bind
    (:map dired-mode-map
          ( "6"  . dired-up-directory )
-         ( "r"  . wdired-change-to-wdired-mode )
          ( "z"  . dired-du-mode )
+         ( "r"  . wdired-change-to-wdired-mode )
          ( "."  . imdra-dired/body ))
    :config
    (setq dired-dwim-target t)
@@ -192,6 +192,8 @@
      (require 'ls-lisp)
      (setq ls-lisp-dirs-first t)
      (setq ls-lisp-UCA-like-collation nil)))
+
+(x wgrep/e :init (setq wgrep-enable-key "r"))
 
 (x neotree/x :init
    (setq neo-theme 'arrow
@@ -715,7 +717,7 @@
        (make-variable-buffer-local 'company-backends)
        (add-to-list 'company-backends 'company-tide))
 
-   (add-hook 'js2-mode-hook '-my/js2-hook))
+   (add-hook 'js2-mode-hook '-my/js2-hook)))
 
 (when (executable-find "js-beautify")
   (x web-beautify))
