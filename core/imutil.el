@@ -59,18 +59,12 @@
     (message "No Region, Whole Line Yanked.")))
 
 (defun im/backward-kill-word ()
-  "Exactly like backward-kill-word, except doesn't kill across line breaks and without modifying killring."
   (interactive)
   (let ((init-pos (point))
-        (line-begin (line-beginning-position)))
-    (backward-word)
-    (let ((word-begin (point)))
-      (goto-char init-pos)
-      (if (= (point) line-begin)
-          (backward-delete-char 1)
-        (if (< word-begin line-begin)
-            (delete-region line-begin init-pos)
-          (delete-region word-begin init-pos))))))
+        (back-pos (progn (forward-same-syntax -1)
+                         (if (= 32 (char-syntax (char-before))) (forward-same-syntax -1))
+                         (point))))
+    (delete-region back-pos init-pos)))
 
 (defun im/isearch-regexp ()
   "Isearch+, default with region word, enable regexp."
