@@ -450,7 +450,7 @@ This variable can be set in three different types.
 
         when (or (equal 'none mode)
                  (and (listp mode)
-                      (memq major-mode mode))
+                      (apply 'derived-mode-p mode))
                  (eq major-mode mode))
         when (ahs-get-range-prop 'condition range)
         collect range into available
@@ -473,7 +473,7 @@ This variable can be set in three different types.
 (defvar ahs-range-defun-end   nil)
 
 (defcustom ahs-range-defun-modes
-  '( emacs-lisp-mode lisp-interaction-mode c++-mode c-mode )
+  '( prog-mode )
   "Major modes `beginning of defun' range can run on."
   :group 'auto-highlight-symbol
   :type '(repeat symbol))
