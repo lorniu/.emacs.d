@@ -29,6 +29,14 @@
    ;; Faces
    (im/org-config-faces)
 
+   ;; Emphasis
+   (setcar org-emphasis-regexp-components "：，。！、  \t('\"{")       ;; prematch
+   (setcar (nthcdr 1 org-emphasis-regexp-components) "- ：，。！、 \t.,:!?;'\")}\\") ;; postmatch
+   (setcar (nthcdr 2 org-emphasis-regexp-components) " \t\r\n,\"'")  ;; forbidden chars
+   (setcar (nthcdr 3 org-emphasis-regexp-components) ".")            ;; body
+   (setcar (nthcdr 4 org-emphasis-regexp-components) 1  )            ;; newlines
+   (org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
+
    ;; Refresh color for html export
    (advice-add 'load-theme :after (lambda (&rest _) (im/org-config-base)))
    (advice-add 'disable-theme :after (lambda (&rest _) (im/org-config-base)))
@@ -85,8 +93,6 @@
           org-export-with-sub-superscripts      '{}
           org-export-copy-to-kill-ring          nil
           org-publish-list-skipped-files        nil
-
-          org-emphasis-regexp-components '("：，。！、  \t('\"{" "- ：，。！、 \t.,:!?;'\")}\\" " \t\r\n,\"'"  "."  1)
 
           org-html-html5-fancy                  t
           org-html-doctype                      "html5"
