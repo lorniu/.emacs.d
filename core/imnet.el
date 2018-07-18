@@ -165,7 +165,7 @@
      (rcirc-track-minor-mode 1)
      (unless rcirc-omit-mode
        (rcirc-omit-mode)
-       (diminish 'rcirc-omit-mode ".")))
+       (delight 'rcirc-omit-mode ".")))
 
    (defun rcirc-generate-new-buffer-name (process target)
      (substring-no-properties

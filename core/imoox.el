@@ -48,10 +48,10 @@
 
    ;; Hooks
    (add-hook-lambda 'org-mode-hook
-     (diminish 'org-indent-mode)
+     (delight 'org-indent-mode)
      (set (make-local-variable 'system-time-locale) "C")
      (font-lock-add-keywords nil '(("\\\\\\\\$" 0 'hi-org-break)
-                                   ("\\<\\(FIXME\\|NOTE\\|AIA\\):" 1 'font-lock-warning-face prepend))))
+                                   ("\\<\\(FIXME\\|NOTE\\|AIA\\|TODO\\):" 1 'font-lock-warning-face prepend))))
 
    ;; Babel
    (im/org-config-babel)

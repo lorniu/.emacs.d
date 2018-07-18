@@ -3,6 +3,11 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
+
+;;; Helper
+
 (defmacro aif (test then &optional else)
   (declare (indent defun))
   `(let ((it ,test)) (if it ,then ,else)))
@@ -17,9 +22,6 @@
 (defmacro add-hook-lambda (hook &rest body)
   (declare (indent defun))
   `(add-hook ,hook (lambda () ,@body)))
-
-
-;;; Helper
 
 (defmacro pm (expr)
   `(pp (macroexpand-1 ',expr)))
@@ -46,7 +48,7 @@
           (profiler-stop)))
 
 
-;;; Override
+;;; Hack
 
 (defun im/yank-more ()
   "Copy-Current-Line-Or-Region."
@@ -61,9 +63,10 @@
 (defun im/backward-kill-word ()
   (interactive)
   (let ((init-pos (point))
-        (back-pos (progn (forward-same-syntax -1)
-                         (if (= 32 (char-syntax (char-before))) (forward-same-syntax -1))
-                         (point))))
+        (back-pos (let ((csb (char-syntax (char-before))))
+                    (if (or (= csb 34) (= csb 46)) (backward-char))
+                    (forward-same-syntax (if (= csb 32) -2 -1))
+                    (point))))
     (delete-region back-pos init-pos)))
 
 (defun im/isearch-regexp ()
@@ -81,38 +84,7 @@
 (advice-add 'message :around '-my/message-switch)
 
 
-;;; Miscellaneous
-
-(defun time (&optional time nano)
-  "Format TIME to String. if TIME is nil, return current time."
-  (format-time-string
-   (if nano (concat "%F %T.%" (number-to-string nano) "N") "%F %T")
-   time))
-
-(defun padding-left-to-string (item &optional needle)
-  "Padding every line of ITEM with NEEDLE. If ITEM is a list, then join it with padding."
-  (mapconcat (lambda (s) (concat (or needle "  ") s))
-             (if (listp item) item (split-string item "\n")) "\n"))
-
-(defun string-repeat (init times)
-  "Make a new string repeat TIMES for INIT."
-  (apply 'concat (make-list times init)))
-
-(defun string-join-newline (&rest strings)
-  "Join list STRINGS with newline, return one String."
-  (mapconcat 'identity strings "\n"))
-
-(defun im/read-file-content (file &optional callback)
-  "Read the FILE content as string, file can be a url."
-  (with-temp-buffer
-    (if (string-match-p "^\\(http\\|file://\\)" file)
-        (url-insert-file-contents file)
-      (insert-file-contents-literally file))
-    (let ((buffer-string (buffer-substring-no-properties
-                          (point-min) (point-max))))
-      (if callback
-          (funcall callback buffer-string)
-        (buffer-string)))))
+;;; Commands
 
 (defun im/view-url-cursor ()
   "Open a new buffer containing the contents of URL."
@@ -274,38 +246,6 @@
         (kill-region beg end))
     (kill-whole-line)))
 
-(defun im/find-ft (&rest names)
-  "Find the proper font in NAMES."
-  (catch 'ret
-    (dolist (name names)
-      (let ((full-name (-my/find-font-in-sys name)))
-        (if full-name
-            (throw 'ret full-name))))))
-
-(defun -my/find-font-in-sys (name &optional filter)
-  (let* ((fs (sort (x-list-fonts name) 'string-greaterp)))
-    (seq-find (lambda (f) (string-match-p (format ".*%s.*" (or filter "8859-1")) f)) fs)))
-
-(defun im/start-server ()
-  "Wrapper for Start Emacs server."
-  (require 'server)
-  (setq server-auth-dir "~/.emacs.d/.cache/server/")
-  (ignore-errors (delete-file (concat server-auth-dir "server")))
-  (server-start))
-
-(defmacro im/open-file-view (file &rest args)
-  "Open a file with View-Mode."
-  `(progn (find-file ,file ,@args) (view-mode +1)))
-
-(defmacro im/with-mode-silent (modes &rest something)
-  "Doing SOMETHING with some MODES absent."
-  (declare (indent 1))
-  (unless (listp modes) (setq modes (list modes)))
-  `(progn
-     ,@(mapcar (lambda (m) `(,m -1)) modes)
-     ,@something
-     ,@(mapcar (lambda (m) `(,m +1)) modes)))
-
 (defun im/clear-comment ()
   "Delete all comments in the buffer."
   (interactive)
@@ -329,6 +269,69 @@
        '(:foreground "red")
      '(:foreground "black")))
   (current-buffer))
+
+
+;;; Miscellaneous
+
+(defun time (&optional time nano)
+  "Format TIME to String. if TIME is nil, return current time."
+  (format-time-string
+   (if nano (concat "%F %T.%" (number-to-string nano) "N") "%F %T")
+   time))
+
+(defun string-repeat (init times)
+  "Make a new string repeat TIMES for INIT."
+  (apply 'concat (make-list times init)))
+
+(defun string-join-newline (&rest strings)
+  "Join list STRINGS with newline, return one String."
+  (mapconcat 'identity strings "\n"))
+
+(defun padding-left-to-string (item &optional needle)
+  "Padding every line of ITEM with NEEDLE. If ITEM is a list, then join it with padding."
+  (mapconcat (lambda (s) (concat (or needle "  ") s))
+             (if (listp item) item (split-string item "\n")) "\n"))
+
+(defun im/read-file-content (file &optional callback)
+  "Read the FILE content as string, file can be a url."
+  (with-temp-buffer
+    (if (string-match-p "^\\(http\\|file://\\)" file)
+        (url-insert-file-contents file)
+      (insert-file-contents-literally file))
+    (let ((buffer-string (buffer-substring-no-properties
+                          (point-min) (point-max))))
+      (if callback
+          (funcall callback buffer-string)
+        (buffer-string)))))
+
+(defun im/process-silence (regexp)
+  "No query from process with name of 'REGEXP' when emacs quit"
+  (dolist (process (process-list))
+    (when (string-match-p regexp (process-name process))
+      (set-process-query-on-exit-flag process nil))))
+
+(defun im/find-ft (&rest names)
+  "Find the proper font in NAMES."
+  (catch 'ret
+    (dolist (name names)
+      (let ((full-name (-my/find-font-in-sys name)))
+        (if full-name
+            (throw 'ret full-name))))))
+
+(defun -my/find-font-in-sys (name &optional filter)
+  (let* ((fs (sort (x-list-fonts name) 'string-greaterp)))
+    (seq-find (lambda (f) (string-match-p (format ".*%s.*" (or filter "8859-1")) f)) fs)))
+
+(defun im/start-server ()
+  "Wrapper for Start Emacs server."
+  (require 'server)
+  (setq server-auth-dir "~/.emacs.d/.cache/server/")
+  (ignore-errors (delete-file (concat server-auth-dir "server")))
+  (server-start))
+
+(defmacro im/open-file-view (file &rest args)
+  "Open a file with View-Mode."
+  `(progn (find-file ,file ,@args) (view-mode +1)))
 
 (provide 'imutil)
 

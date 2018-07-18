@@ -38,7 +38,7 @@
     org-download ob-restclient ox-pandoc graphviz-dot-mode gnuplot
 
     ;; fronts
-    web-mode emmet-mode yaml-mode sass-mode impatient-mode
+    simple-httpd web-mode emmet-mode yaml-mode sass-mode
     js2-mode tide htmlize web-beautify company-web
 
     ;; backends

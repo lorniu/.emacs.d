@@ -220,16 +220,15 @@
          projectile-known-projects-file (concat _CACHE_ "__projectile-bookmark.eld")
          counsel-find-file-ignore-regexp "Volume\\|RECYCLE.BIN"
          projectile-mode-line '(:eval (if (string= "-" (projectile-project-name)) nil
-                                        (list " ["
-                                              `(:propertize ("" "ᴘ")
-                                                            face (:weight bold)
-                                                            help-echo ,(format "[%s]:\n\n%s%s/\n"
-                                                                               (projectile-project-type)
-                                                                               (projectile-project-root)
-                                                                               (projectile-project-name)))
-                                              "]"))))
+                                        (list " [" `(:propertize ("" "ᴘ") face (:weight bold)
+                                                                 help-echo ,(format "[%s]:\n\n%s%s/\n"
+                                                                                    (projectile-project-type)
+                                                                                    (projectile-project-root)
+                                                                                    (projectile-project-name))) "]"))))
    (projectile-mode 1)
-   (counsel-projectile-mode 1))
+   (counsel-projectile-mode 1)
+   :config
+   (add-to-list 'projectile-project-root-files "package.json"))
 
 
 ;;; HS-Minor-Mode/Outline-Minor-Mode
@@ -640,6 +639,31 @@
    (global-semantic-stickyfunc-mode 1))
 
 
+;;; Simple-Httpd
+
+(x simple-httpd
+   :init
+   (setq httpd-port 5555
+         httpd-host "0.0.0.0"
+         httpd-root "~/vvv")
+
+   (defun im/httpd-here ()
+     (interactive)
+     (setf httpd-root default-directory)
+     (unless (process-status "httpd") (httpd-start)))
+
+   :config
+   ;; silence quit
+   (defun -my/httpd-quit-silence (proc _)
+     (set-process-query-on-exit-flag proc nil))
+   (advice-add 'httpd--filter :before '-my/httpd-quit-silence)
+   (add-hook 'httpd-start-hook (lambda () (im/process-silence "^httpd")))
+
+   ;; servlets
+   (defservlet time text/html ()
+     (insert (format "<h1>%s</h1>" (time)))))
+
+
 ;;; Web-Mode/JS-Mode/CSS-Mode
 ;;
 ;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
@@ -693,15 +717,13 @@
    :init (setq emmet-move-cursor-between-quotes t))
 
 (x impatient-mode
-   :commands imp-visit-buffer
-   :init
+   :commands (imp-visit-buffer liveload liveview)
+   :config
    (defalias 'liveload 'impatient-mode)
    (defalias 'liveview 'imp-visit-buffer)
-   (advice-add 'impatient-mode :before
-               (lambda (&rest args)
-                 (unless (process-status "httpd")
-                   (setq httpd-port 5555)
-                   (httpd-start)))))
+   (defun -my/impatient-hook ()
+     (unless (process-status "httpd") (httpd-start)))
+   (add-hook 'impatient-mode-hook '-my/impatient-hook))
 
 (x js2-mode
    :mode "\\.js\\'"
@@ -715,12 +737,12 @@
      (flycheck-mode 1)
      (when (im/setup-tide-mode)
        (make-variable-buffer-local 'company-backends)
-       (add-to-list 'company-backends 'company-tide))
+       (add-to-list 'company-backends 'company-tide)))
 
-   (add-hook 'js2-mode-hook '-my/js2-hook)))
+   (add-hook 'js2-mode-hook '-my/js2-hook))
 
-(when (executable-find "js-beautify")
-  (x web-beautify))
+(x web-beautify
+   :if (executable-find "js-beautify"))
 
 (x tide
    :delight " ť"
