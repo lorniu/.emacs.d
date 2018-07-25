@@ -44,7 +44,7 @@
     ;; backends
     slime hippie-expand-slime slime-company
     php-mode robe elpy c-eldoc lua-mode go-mode
-    kotlin-mode scala-mode clojure-mode groovy-mode
+    kotlin-mode clojure-mode groovy-mode scala-mode ensime
     erlang dante hindent powershell csharp-mode
 
     ;; company
