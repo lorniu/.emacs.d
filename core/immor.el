@@ -433,25 +433,6 @@
            (which-function-mode 1)))
 
 
-;;; Which-Func
-
-(x which-func/x
-   :config
-   (setq which-func-format
-         `("["
-           (:propertize (:eval (my-which-func-current))
-                        local-map ,which-func-keymap
-                        face which-func
-                        mouse-face mode-line-highlight
-                        help-echo "Singing...")
-           "]"))
-   (defun my-which-func-current ()
-     (let ((current (gethash (selected-window) which-func-table)))
-       (if current
-           (truncate-string-to-width current 20 nil nil "…")
-         which-func-unknown))))
-
-
 ;;; Flycheck/Flyspell
 
 (x flycheck/w)
@@ -486,7 +467,7 @@
                ("<SPC>" . -my/insert-blank))
    :config
    (setq company-minimum-prefix-length 1)
-   (setq company-idle-delay 0.2)
+   (setq company-idle-delay 0.1)
    (setq company-lighter-base "")
    (defun -my/insert-blank () (interactive) (company-abort) (insert " ")))
 
@@ -958,6 +939,22 @@
           (add-to-list 'company-backends 'company-ac-php-backend))))
 
    (add-hook 'php-mode-hook 'my-php-stuff))
+
+
+;;; Scala
+
+(x scala-mode
+   :init
+   (defun -my/scala-mode-hook ()
+     (message "If want mode, M-x ensime to connect."))
+   (setq scala-mode-hook '-my/scala-mode-hook)
+
+   :config
+   ;; echo 'addSbtPlugin("org.ensime" % "ensime-sbt" % "2.5.1")' > ~/.sbt/1.0/plugins/plugins.sbt
+   ;; sbt new xxx/tpl
+   ;; sbt ensimeConfig
+   (x ensime :config
+      (setq ensime-startup-notification nil)))
 
 
 (provide 'immor)
