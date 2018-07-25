@@ -16,10 +16,8 @@
    :bind (:map org-mode-map ( "C-x a a" . im/org-wrap-src ))
    :config
 
-   ;; Set notes
-   (cond
-    ((env-classroom) (im/initial-org "e:/share/notes/"))
-    (t (im/initial-org "~/.notes/")))
+   ;; Location
+   (im/initial-org --im/org-pub-home)
 
    ;; Keys
    (define-key org-mode-map (kbd "×") (kbd "*"))
@@ -27,7 +25,8 @@
    (unbind-key "C-," org-mode-map)
 
    ;; Faces
-   (im/org-config-faces)
+   (env-g (set-face-attribute 'org-table nil :family (im/find-ft im/probe-mono-fonts) :height (or im/mono-height 105)))
+   (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break")
 
    ;; Emphasis
    (setcar org-emphasis-regexp-components "：，。！、  \t('\"{")       ;; prematch
@@ -58,8 +57,7 @@
    (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
 
    ;; Miscellaneous
-   (x ox :config
-      (add-to-list 'org-export-filter-paragraph-functions '-my/org-clean-space))
+   (x ox :config (add-to-list 'org-export-filter-paragraph-functions '-my/org-clean-space))
    (require 'ox-impress)
    (require 'org-download))
 
@@ -123,28 +121,6 @@
           org-capture-templates     `(("t" "新任务" entry (file+headline ,org-default-task-file "Ungrouped") "* TODO %i%?" :jump-to-captured t)
                                       ("d" "Diary"  plain (file+datetree ,org-default-notes-file) "%U\n\n%i%?" :empty-lines 1)
                                       ("n" "草稿箱" entry (file ,(concat org-directory "000/scratch.org")) "* %U\n\n%i%?" :prepend t :empty-lines 1)))))
-
-(defun im/org-config-faces ()
-  ;; define
-  (defvar im/org-table-font-size 14)
-  (env-windows
-   (let ((en "Consolas") (tz "楷体"))
-     (create-fontset-from-fontset-spec
-      (format "-*-%s-normal-r-normal-*-%d-*-*-*-c-*-fontset-table,unicode:-*-%s-normal-r-normal-*-%d-*-*-*-c-*-iso8859-1"
-              en (pcase im/org-table-font-size (14 13) (30 33) (_ im/org-table-font-size))
-              tz (pcase im/org-table-font-size (14 14) (30 35) (_ (* im/org-table-font-size 1.2)))))))
-  (env-linux-g
-   (create-fontset-from-fontset-spec
-    (concat "-*-WenQuanYi Zen Hei Mono-normal-r-normal-*-16-*-*-*-c-*-fontset-table,unicode:"
-            "-*-WenQuanYi Zen Hei Mono-normal-r-normal-*-16-*-*-*-c-*-iso10646-1")))
-
-  ;; config face for org-table
-  (env-g (set-face-attribute 'org-table nil :font "fontset-table" :fontset "fontset-table"))
-
-  ;; face for specified keywords
-  (defface hi-org-break
-    `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee")))))
-    "for org mode \\ break"))
 
 (defun im/org-config-babel ()
   (setq org-confirm-babel-evaluate    nil)
@@ -232,7 +208,7 @@
 
 (defun im/initial-org (&optional home)
   (interactive (list (read-directory-name "选择笔记目录: ")))
-  (setq --im/org-pub-home  home)
+  (setq --im/org-pub-home home)
   (unless (called-interactively-p t) (setq org-directory home))
   (im/org-config-base)
   (im/org-config-publish))

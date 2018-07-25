@@ -313,14 +313,26 @@
 (defun im/find-ft (&rest names)
   "Find the proper font in NAMES."
   (catch 'ret
-    (dolist (name names)
-      (let ((full-name (-my/find-font-in-sys name)))
-        (if full-name
-            (throw 'ret full-name))))))
+    (if (listp (car names))
+        (setq names (car names)))
+    (let ((fonts (font-family-list)) res-font)
+      (dolist (name names)
+        (setq rs-font (seq-find (lambda (font) (string-match-p (format ".*%s.*" name) font)) fonts))
+        (if rs-font (throw 'ret rs-font))))))
 
-(defun -my/find-font-in-sys (name &optional filter)
-  (let* ((fs (sort (x-list-fonts name) 'string-greaterp)))
-    (seq-find (lambda (f) (string-match-p (format ".*%s.*" (or filter "8859-1")) f)) fs)))
+(defun im/mono-font-for-buffer (&optional font-height)
+  "Return the Mono Font can be used."
+  (interactive "sFont Height: ")
+  (let ((face (im/find-ft im/probe-mono-fonts)) face-plist)
+    (if (null face)
+        (message "No proper mono fonts found")
+      (setq face-plist `(:family ,face))
+      (setq font-height (or font-height im/mono-height))
+      (if (stringp font-height) (setq font-height (string-to-number font-height)))
+      (if (and font-height (> font-height 0))
+          (nconc face-plist `(:height ,font-height)))
+      (setq buffer-face-mode-face face-plist)
+      (buffer-face-mode))))
 
 (defun im/start-server ()
   "Wrapper for Start Emacs server."
