@@ -9,6 +9,7 @@
 
 ;;; Auto-Mode
 
+
 (mapc (lambda (s) (add-to-list 'auto-mode-alist s))
       '(("\\.\\(xml\\|xsl\\)\\'"      . sgml-mode)
         ("\\.class\\'"                . class-mode)
@@ -24,7 +25,7 @@
          (window-height . 0.3))
         ("\\*[cC]ompilation\\*"
          (display-buffer-reuse-window display-buffer-at-bottom))
-        ("\\*e?shell\\*"
+        ("\\*\\(e?shell\\|Python\\)\\*"
          display-buffer-same-window)))
 
 
@@ -292,17 +293,30 @@
 
 (x eshell/w
    :init
+
+   (setq eshell-visual-subcommands
+         '(("git" "log" "diff" "show")
+           ("sudo" "vi" "visudo")))
+
    (setq comint-scroll-show-maximum-output nil
          eshell-scroll-show-maximum-output nil
          eshell-history-size    500
          eshell-hist-ignoredups t
          eshell-destroy-buffer-when-process-dies t
-         eshell-aliases-file "~/.emacs.d/resource/eshell.alias"
-         eshell-visual-subcommands
-         '(("git" "log" "diff" "show")
-           ("sudo" "vi" "visudo")))
+         eshell-aliases-file "~/.emacs.d/resource/eshell.alias")
 
    :config
+
+   ;; 256-color
+   (setenv "TERM" "xterm-256color")
+   (add-hook-lambda 'eshell-before-prompt-hook
+     (setq xterm-color-preserve-properties t)
+     (setq eshell-preoutput-filter-functions '(xterm-color-filter))
+     (setq eshell-output-filter-functions (remove 'eshell-handle-ansi-color eshell-output-filter-functions)))
+
+   ;;; mode hook
+   (add-hook-lambda 'eshell-mode-hook
+     (define-key eshell-mode-map (kbd "C-r") 'eshell/h))
 
    (defun eshell/h ()
      (interactive)
@@ -325,12 +339,7 @@
        (cond
         ((and (eq display-type 't) (getenv "STY"))
          (send-string-to-terminal (format "\033]83;screen %s\007" cmd)))
-        (t (apply 'eshell-exec-visual (cons "ssh" args))))))
-
-   ;;; Hooks
-   (add-hook-lambda 'eshell-mode-hook
-     (define-key eshell-mode-map (kbd "C-r") 'eshell/h))
-   (add-hook 'eshell-preoutput-filter-functions 'ansi-color-filter-apply))
+        (t (apply 'eshell-exec-visual (cons "ssh" args)))))))
 
 
 ;;; Tramp
@@ -419,7 +428,7 @@
      "http://www.youtube.com/results?aq=f&oq=&search_query=%s"))
 
 
-
+
 ;;;; Programer - Common
 
 (x eldoc/v)
@@ -506,28 +515,29 @@
                        (set-window-dedicated-p it wstat)))))))
 
 
-
+
 ;;;; Programer - Languages
 
 ;;; SQL
 ;;
-;; M-x: sql-connect
+;; M-x: sql-connect/sql-postgres
 ;;
-(x sql
-   :init
-   (defalias 'mysql 'sql-mysql)
-   :config
-   (setq sql-user "root")
-   (setq sql-product 'mysql)
+(x sql :config
    (setq sql-connection-alist
-         '((45.63.55.2
+         '((postgres/45
+            (sql-product 'postgres)
+            (sql-server "45.63.55.2")
+            (sql-database "imdata")
+            (sql-user "vip"))
+           (mysql/45
             (sql-product 'mysql)
             (sql-server "45.63.55.2")
             (sql-port 3306)
             (sql-database "ego")
             (sql-user "root"))))
-   (sql-set-product-feature 'mysql
-                            :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
+   (add-hook 'sql-interactive-mode-hook 'im/mono-font-for-buffer)
+   (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
+
    (env-windows
     (setq sql-mysql-options '("-C" "-t" "-f" "-n"))
     (add-hook 'sql-interactive-mode-hook 'im/cp936-encoding)))
@@ -667,10 +677,10 @@
      (hs-minor-mode -1)
 
      (set (make-local-variable 'company-backends)
-          '(company-css company-web-html company-yasnippet company-keywords company-files))
+          '(company-tide company-css company-web-html company-yasnippet company-keywords company-files))
 
-     (and (im/setup-tide-mode)
-          (add-to-list 'company-backends 'company-tide)))
+     (and (string-match-p "jsx?$" (buffer-file-name))
+          (im/tide-enable)))
 
    (defun -my/yas-expand-extra (&rest args)
      "Yasnippet in in SCRIPT block."
@@ -716,7 +726,7 @@
    (defun -my/js2-hook ()
      (setq mode-name "JS2")
      (flycheck-mode 1)
-     (when (im/setup-tide-mode)
+     (when (im/tide-enable)
        (make-variable-buffer-local 'company-backends)
        (add-to-list 'company-backends 'company-tide)))
 
@@ -732,7 +742,7 @@
    (setq tide-default-mode "JS")
    (setq tide-sync-request-timeout 10)
 
-   (defun im/setup-tide-mode (&optional mode)
+   (defun im/tide-enable (&optional mode)
      (interactive)
      (when (executable-find "node")
        (tide-setup)

@@ -25,7 +25,7 @@
     bind-key delight key-chord
 
     ;; looking
-    spacegray-theme rainbow-delimiters beacon page-break-lines rcirc-styles
+    spacegray-theme rainbow-delimiters beacon page-break-lines rcirc-styles xterm-color
 
     ;; edit and utils
     expand-region dired-du session attrap syntax-subword

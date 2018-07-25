@@ -3,6 +3,10 @@
 
 ;;; Code:
 
+;; pacman -S ttf-ubuntu-font-family
+(defvar im/mono-height 108)
+(setq im/probe-mono-fonts '("Ubuntu Mono" "Courier New"))
+
 
 ;;; Windows
 
@@ -33,6 +37,7 @@
  (global-set-key [C-wheel-up]   'text-scale-increase)
  (global-set-key [C-wheel-down] 'text-scale-decrease))
 
+;; should config in separate init_xxx.el
 (env-classroom
  (setf (alist-get 'height default-frame-alist) '35)
  (setf (alist-get 'width default-frame-alist)  '70)
@@ -60,7 +65,8 @@
  (global-set-key [C-mouse-5] 'text-scale-decrease)
  ;; font
  (setq default-frame-alist '((height . 110) (alpha . 100)))
- (set-fontset-font "fontset-default" 'unicode "Source Han Sans CN"))
+ (set-fontset-font "fontset-default" 'unicode "Source Han Sans CN")
+ )
 
 
 ;;; Encoding
