@@ -37,13 +37,6 @@
  (global-set-key [C-wheel-up]   'text-scale-increase)
  (global-set-key [C-wheel-down] 'text-scale-decrease))
 
-;; should config in separate init_xxx.el
-(env-classroom
- (setf (alist-get 'height default-frame-alist) '35)
- (setf (alist-get 'width default-frame-alist)  '70)
- (setf (alist-get 'left default-frame-alist)   '850)
- (add-hook 'focus-in-hook (lambda () (im/win-font 24))))
-
 
 ;;; Linux
 

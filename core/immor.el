@@ -533,7 +533,7 @@
             (sql-product 'mysql)
             (sql-server "45.63.55.2")
             (sql-port 3306)
-            (sql-database "ego")
+            (sql-database "test")
             (sql-user "root"))))
    (add-hook 'sql-interactive-mode-hook 'im/mono-font-for-buffer)
    (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
