@@ -304,6 +304,15 @@
           (funcall callback buffer-string)
         (buffer-string)))))
 
+(defun im/replace-all-in-buffer (list &optional pre-hook)
+  "Replace all occurs in current buffer. eg:\n
+(im/replace-all-in-buffer '((aaa . bbb) (ccc . ddd)) (lambda () (message xxx))) "
+  (if pre-hook (funcall pre-hook))
+  (dolist (needle list)
+    (goto-char (point-min))
+    (while (re-search-forward (car needle) nil t)
+      (replace-match (cdr needle)))))
+
 (defun im/process-silence (regexp)
   "No query from process with name of 'REGEXP' when emacs quit"
   (dolist (process (process-list))

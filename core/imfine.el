@@ -26,8 +26,6 @@
 
   (define-environments
     ((env-windows       . (eq system-type 'windows-nt))
-     (env-classroom     . (and (eq system-type 'windows-nt) (string= user-login-name "lol")))
-     (env-out-classroom . (and (eq system-type 'windows-nt) (not (string= user-login-name "lol"))))
      (env-g             . (display-graphic-p))
      (env-ng            . (not (display-graphic-p)))
      (env-linux         . (eq system-type 'gnu/linux))
