@@ -3,36 +3,36 @@
 
 ;;; Code:
 
-;; pacman -S ttf-ubuntu-font-family
-(defvar im/mono-height 108)
-(setq im/probe-mono-fonts '("Ubuntu Mono" "Courier New"))
+(defvar im/mono-buffer-height 108)
+(defvar im/probe-mono-fonts '("Ubuntu Mono" "隶书"))  ;; pacman -S ttf-ubuntu-font-family
+
+(defvar im/win-font-cn "微软雅黑 light")
+(defvar im/win-frame-alist '(30 640 85 35 100))  ;; top:left:width:height:alpha
+
+(defvar im/nix-font-cn "Source Han Sans CN")
+(defvar im/nix-frame-alist '(110 100))           ;; height:alpha
 
 
 ;;; Windows
 
 (env-windows
-
- (defun im/win-font (&optional font-size)
-   (interactive (list (string-to-number
-                       (read-from-minibuffer "font size: " "1"))))
-   (let* ((size (or font-size 14)) (en "Consolas") (zh "微软雅黑 light"))
-     (set-frame-font (font-spec :name (im/find-ft en) :size size) t)
-     (set-fontset-font "fontset-default" 'unicode (font-spec :name (im/find-ft zh)))
-     (add-to-list 'face-font-rescale-alist '(("Consolas"  1)))))
-
+ (menu-bar-mode -1)
+ ;; font
  (setq default-frame-alist
-       '((title . "νερό")
-         (top . 30) (left . 640)
-         (width . 85) (height . 40)
-         ;; (line-spacing . 0.11)
+       `((title  . "νερό")
+         (top    . ,(nth 0 im/win-frame-alist))
+         (left   . ,(nth 1 im/win-frame-alist))
+         (width  . ,(nth 2 im/win-frame-alist))
+         (height . ,(nth 3 im/win-frame-alist))
+         (alpha  . ,(nth 4 im/win-frame-alist))
          (tool-bar-lines . 0)
          (scroll-bar . nil)
          (vertical-scroll-bars . nil)
          (cursor-type  . box)
-         (cursor-color . "red")
-         (alpha . 92)))
-
- (menu-bar-mode -1)
+         (cursor-color . "red")))
+ (set-fontset-font "fontset-default" 'unicode im/win-font-cn)
+ (setq face-font-rescale-alist '(("simsun" . 1) ("隶书" . 1)))
+ ;; key
  (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
  (global-set-key [C-wheel-up]   'text-scale-increase)
  (global-set-key [C-wheel-down] 'text-scale-decrease))
@@ -40,26 +40,26 @@
 
 ;;; Linux
 
-(env-linux
- (menu-bar-mode 0))
-
 (env-linux-ng
  (load-theme 'origin t)
+ (menu-bar-mode 0)
  (xterm-mouse-mode)
  (global-set-key [mouse-4] (lambdai (scroll-down 1)))
  (global-set-key [mouse-5] (lambdai (scroll-up 1))))
 
 (env-linux-g
+ (menu-bar-mode 0)
  (tool-bar-mode 0)
  (scroll-bar-mode 0)
+ ;; font
+ (setq default-frame-alist
+       `((height . ,(nth 0 im/nix-frame-alist))
+         (alpha  . ,(nth 1 im/nix-frame-alist))))
+ (set-fontset-font "fontset-default" 'unicode im/nix-font-cn)
  ;; key
  (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
  (global-set-key [C-mouse-4] 'text-scale-increase)
- (global-set-key [C-mouse-5] 'text-scale-decrease)
- ;; font
- (setq default-frame-alist '((height . 110) (alpha . 100)))
- (set-fontset-font "fontset-default" 'unicode "Source Han Sans CN")
- )
+ (global-set-key [C-mouse-5] 'text-scale-decrease))
 
 
 ;;; Encoding

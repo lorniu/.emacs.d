@@ -33,18 +33,23 @@
      (env-linux-ng      . (and (env-linux) (env-ng)))
      (env-linux-vps     . (string= (system-name) "remote"))))
 
-;;; Hook for special machine
+;;; Load-Path/Theme-Path
 
-  (defun -my/load-custom ()
-    (let ((sp-in-fi (format "~/.emacs.d/init_%s.el" system-name)))
-      (setq custom-file sp-in-fi)
-      (when (file-exists-p sp-in-fi)
-        (load sp-in-fi t t))))
+  (dolist (dir (directory-files "~/.emacs.d/extra" t))
+    (if (and (not (eq (file-name-extension dir) "")) (file-directory-p dir))
+        (add-to-list 'load-path dir)))
+  (add-to-list 'custom-theme-load-path "~/.emacs.d/extra/themes")
+
+;;; Hook for special endpoint
+
+  (let ((pri_file (format "~/.emacs.d/init_%s.el" (system-name))))
+    (setq custom-file pri_file)
+    (when (file-exists-p pri_file) (load pri_file t t)))
 
 ;;; Modules
+
   (require 'cust)
   (require 'imface)
-  (-my/load-custom)
   (require 'imoox)
   (require 'immor)
   (require 'imnet)
