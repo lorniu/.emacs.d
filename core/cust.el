@@ -59,16 +59,6 @@
     ))
 
 
-;;; Load-Path/Theme-Path
-
-(dolist (dir (directory-files "~/.emacs.d/extra" t))
-  (if (and (not (eq (file-name-extension dir) ""))
-           (file-directory-p dir))
-      (add-to-list 'load-path dir)))
-
-(add-to-list 'custom-theme-load-path "~/.emacs.d/extra/themes")
-
-
 ;;; Basic Variables
 
 (setq default-directory        "~/"

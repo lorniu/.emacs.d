@@ -336,7 +336,7 @@
     (if (null face)
         (message "No proper mono fonts found")
       (setq face-plist `(:family ,face))
-      (setq font-height (or font-height im/mono-height))
+      (setq font-height (or font-height im/mono-buffer-height))
       (if (stringp font-height) (setq font-height (string-to-number font-height)))
       (if (and font-height (> font-height 0))
           (nconc face-plist `(:height ,font-height)))

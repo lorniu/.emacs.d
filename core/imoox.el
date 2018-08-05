@@ -5,7 +5,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 (defvar note-dir '("~/.notes/" . "~/.cache/_notes"))
 
 
@@ -43,8 +43,7 @@
         org-html-head-include-scripts    nil)
 
   (im/org-config-html-head)
-  (im/org-config-gtd)
-  (im/org-config-babel))
+  (im/org-config-gtd))
 
 (defun im/org-config-html-head ()
   (setq org-html-head
@@ -133,7 +132,8 @@
    :init (im/org-configurations)
    :config
 
-   ;; initialize notes location
+   ;; post initialize
+   (im/org-config-babel)
    (im/org-initialize-notes (car note-dir) (cdr note-dir))
 
    ;; Keys
@@ -142,7 +142,7 @@
    (unbind-key "C-," org-mode-map)
 
    ;; Faces
-   (env-g (set-face-attribute 'org-table nil :family (im/find-ft im/probe-mono-fonts) :height (or im/mono-height 105)))
+   (env-g (set-face-attribute 'org-table nil :family (im/find-ft im/probe-mono-fonts)))
    (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break")
 
    ;; Emphasis
@@ -201,6 +201,7 @@
              (run-hook-with-args (&rest args) nil))
         (org-publish "nnn" force)
         (kill-buffer)))
+    (run-hooks 'post-publish-note)
     (message "Publish Finished in %.2f seconds!" (time-subtract-seconds (current-time) start))))
 
 (defun im/org-publish-note-force ()
