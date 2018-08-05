@@ -45,11 +45,11 @@
   (require 'cust)
   (require 'imface)
   (-my/load-custom)
-  (require 'imkeys)
   (require 'imoox)
   (require 'immor)
   (require 'imnet)
   (require 'imsilly)
+  (require 'imkeys)
   (env-windows (im/start-server)))
 
 (provide 'imfine)
