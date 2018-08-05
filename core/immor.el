@@ -89,13 +89,26 @@
    (setq auto-revert-mode-text "")
    (global-auto-revert-mode))
 
-(x key-chord :init
-   (setq key-chord-one-key-delay 0.3)
-   (setq key-chord-two-keys-delay 0.2)
-   (key-chord-mode 1))
-
 (x syntax-subword :init ;; vi-like word move
    (setq syntax-subword-skip-spaces t))
+
+
+;;; Key-Chord
+
+(x key-chord
+   :init
+   (setq key-chord-one-key-delay 0.3)
+   (setq key-chord-two-keys-delay 0.2)
+   (key-chord-mode 1)
+   ;; override, make keys sequencely
+   (defun key-chord-define (keymap keys command)
+     (if (/= 2 (length keys))
+         (error "Key-chord keys must have two elements"))
+     (let ((key1 (logand 255 (aref keys 0)))
+	       (key2 (logand 255 (aref keys 1))))
+       (if (eq key1 key2)
+	       (define-key keymap (vector 'key-chord key1 key2) command)
+         (define-key keymap (vector 'key-chord key1 key2) command)))))
 
 
 ;;; Ediff
