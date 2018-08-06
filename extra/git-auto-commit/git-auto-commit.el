@@ -1,7 +1,6 @@
 ;; auto commit and auto push to remote
 
 (defvar gac/ask-for-summary-p t)
-(defvar gac/auto-push-p t)
 
 (defun gac/process-filter (proc string)
   "Provide password if neccessary."
@@ -12,8 +11,8 @@
        ((or (string-match "^Enter passphrase for key '\\(.*\\)': $" string)
             (string-match "^\\(.*\\)'s password:" string))
         (setq ask (format "Password for '%s': " (match-string 1 string))))
-       ((string-match "^[pP]assword:" string)
-        (setq ask "Password:")))
+       ((string-match "^[pP]assword.*:" string)
+        (setq ask "Password :")))
       (when ask
         (process-send-string proc (concat (read-passwd ask nil) "\n"))))))
 
@@ -28,11 +27,15 @@
   (interactive)
   (let* ((buffer-file (buffer-file-name))
          (commit-msg (gac/commit-msg buffer-file))
-         (base-dir (or (projectile-project-root) (file-name-directory buffer-file))))
-    (shell-command (format "cd %s && git add ." base-dir))
-    (shell-command (format "cd %s && git commit -m %s" base-dir (shell-quote-argument commit-msg))))
-  ;; push if neccessary
-  (when gac/auto-push-p
-    (let ((proc (start-process "git" "*git-auto-push*" "git" "push")))
-      (set-process-filter proc 'gac/process-filter)
-      (set-process-sentinel proc (lambda (proc status) (message "Git push %s !" (substring status 0 -1)))))))
+         (default-directory (or (projectile-project-root) (file-name-directory buffer-file))))
+    (shell-command "git add .")
+    (shell-command (format "git commit -m %s" (shell-quote-argument commit-msg)))))
+
+(defun im/git-commit-and-push ()
+  (interactive)
+  (im/git-commit)
+  (let ((proc (start-process "git" "*git-auto-push*" "git" "push")))
+    (set-process-filter proc 'gac/process-filter)
+    (set-process-sentinel proc (lambda (proc status) (message "Git push %s !" (substring status 0 -1))))))
+
+(provide 'git-auto-commit)
