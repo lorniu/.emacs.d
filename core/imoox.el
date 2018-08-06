@@ -196,12 +196,12 @@
         (gc-cons-threshold (* 10 1024 1024))
         (org-startup-folded 'showeverything))
     (with-temp-buffer
-      (find-file (expand-file-name "*Exporting*.org" (car note-dir))) ;; preload .dir-local.el before publish started
+      (find-file (expand-file-name "*Notes*.org" (car note-dir))) ;; preload .dir-local.el before publish started
       (flet ((run-hooks (&rest hooks) nil)
              (run-hook-with-args (&rest args) nil))
-        (org-publish "nnn" force)
-        (kill-buffer)))
-    (run-hooks 'post-publish-note)
+        (org-publish "nnn" force))
+      (run-hooks 'post-publish-note-hook)
+      (kill-buffer))
     (message "Publish Finished in %.2f seconds!" (time-subtract-seconds (current-time) start))))
 
 (defun im/org-publish-note-force ()

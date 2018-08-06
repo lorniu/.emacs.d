@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: drawer / custom_id
+# key: d
+# condition: (= (current-column) 1)
+# --
+:PROPERTIES:
+:CUSTOM_ID: ${1:id}
+:END:
+$0

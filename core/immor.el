@@ -401,7 +401,8 @@
 (when (executable-find "git")
   (x magit/w
      :bind ("C-c m" . magit-status)
-     :init (magit-auto-revert-mode -1)))
+     :init (magit-auto-revert-mode -1))
+  (x git-auto-commit/e))
 
 
 ;;; Translate
@@ -535,12 +536,13 @@
 ;;
 ;; M-x: sql-connect/sql-postgres
 ;;
-(x sql :config
+(x sql
+   :init
    (setq sql-connection-alist
          '((postgres/45
             (sql-product 'postgres)
             (sql-server "45.63.55.2")
-            (sql-database "imdata")
+            (sql-database "imdev")
             (sql-user "vip"))
            (mysql/45
             (sql-product 'mysql)
@@ -548,6 +550,7 @@
             (sql-port 3306)
             (sql-database "test")
             (sql-user "root"))))
+   :config
    (add-hook 'sql-interactive-mode-hook 'im/mono-font-for-buffer)
    (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
 

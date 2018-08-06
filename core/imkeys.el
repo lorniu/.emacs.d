@@ -61,7 +61,8 @@
  ( "C-h b"       . counsel-descbinds    )
  ( "C-h v"       . counsel-describe-variable )
  ( "C-h f"       . counsel-describe-function )
- ( "C-h S"       . counsel-info-lookup-symbol))
+ ( "C-h S"       . counsel-info-lookup-symbol)
+ ( "C-#"         . cua-rectangle-mark-mode ))
 
 
 ;;;; Index
@@ -92,7 +93,7 @@
   ("C-r" (im/open-file-view "~/.emacs.d/core/immor.el") "immor.el")
   ("x"   (find-file "~/.notes/x.misc/posix/xmonad.hs") "xmonad.hs")
   ("v"   (find-file "~/vvv/") "vvv")
-  ("n"   (find-file "~/.notes/") ".notes/")
+  ("n"   (find-file (car note-dir)) ".notes/")
   ("c"   (find-file _CACHE_) "cache/emacs   ")
   ("s"   (find-file "/sudo::/etc/systemd/system/multi-user.target.wants/") "systemd/"))
 
