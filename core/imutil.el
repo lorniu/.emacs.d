@@ -47,6 +47,14 @@
           (ignore-errors ,@body (profiler-report))
           (profiler-stop)))
 
+(defun insert-here (content)
+  (save-excursion (insert (format "\n%s" content))))
+
+(defmacro append-local (where &rest what)
+  `(progn
+     (make-variable-buffer-local ,where)
+     ,@(mapcar (lambda (w) `(add-to-list ,where ,w)) what)))
+
 
 ;;; Hack
 
@@ -59,6 +67,21 @@
         (message "Region Yanked."))
     (copy-region-as-kill (line-beginning-position) (line-end-position))
     (message "No Region, Whole Line Yanked.")))
+
+(defun im/open-line ()
+  (interactive)
+  (cond
+   ((looking-at-p "[ \t]*$")
+    (newline-and-indent))
+   ((looking-back "^[ \t]*")
+    (beginning-of-line)
+    (open-line 1)
+    (indent-for-tab-command))
+   (t
+    (newline-and-indent)
+    (newline-and-indent)
+    (forward-line -1)
+    (indent-for-tab-command))))
 
 (defun im/backward-kill-word ()
   (interactive)
@@ -269,6 +292,12 @@
        '(:foreground "red")
      '(:foreground "black")))
   (current-buffer))
+
+(defun iv/normalize-gradle-dependency ()
+  (interactive)
+  (replace-regexp "group: " "" nil (line-beginning-position) (line-end-position))
+  (replace-regexp "', name: '\\|', version: '" ":" nil (line-beginning-position) (line-end-position))
+  (beginning-of-line))
 
 
 ;;; Miscellaneous

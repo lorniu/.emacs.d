@@ -27,6 +27,7 @@
  ( "%"           . his-match-paren      )
  ( "C-,"         . imdra-buffer/body    )
  ( "C-s"         . im/isearch-regexp    )
+ ( "C-o"         . im/open-line         )
  ( "C-x O"       . imdra-window/body    )
  ( "C-x o"       . imdra-window/other-window )
  ( "C-x C-o"     . imdra-window/other-window+ )
@@ -83,6 +84,7 @@
   ("o" (hydra-exp org overview) "Org-Mode" :column "Modes")
   ("c" (hydra-exp dash-counsel overview) "Dash(Counsel)" :column "Fast Way")
   ("l" (imdra-favors/body) "Favor Files")
+  ("s" yas-describe-tables "Snippet helper")
   ("<f1>" nil nil)
   )
 
@@ -143,7 +145,7 @@
   ("m" im/org-publish-note-force :exit t))
 
 
-;;;; Super Window
+;;;; Super *Window*
 
 (defhydra imdra-window
   (:pre
@@ -236,7 +238,7 @@
   ("q" hydra-pop nil))
 
 
-;;;; Super Buffer
+;;;; Super *Buffer*
 
 (defhydra imdra-buffer (:columns 8 :exit t)
   "\n"

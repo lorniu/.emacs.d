@@ -231,6 +231,14 @@
       (insert (format "%s %s\n\n%s\n" beg lang end))
       (forward-line -2))))
 
+(defun im/org-reformat-src-outside ()
+  (interactive)
+  (save-excursion
+    (forward-line)
+    (org-edit-special)
+    (indent-region (point-min) (point-max))
+    (org-edit-src-exit)))
+
 
 ;;; Extensions - Drawing, Download, etc.
 
