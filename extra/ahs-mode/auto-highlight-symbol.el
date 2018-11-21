@@ -65,6 +65,7 @@
      visual-basic-mode
 
      js2-mode
+     rjsx-mode
      )
   "Major modes `auto-highlight-symbol-mode' can run on."
   :group 'auto-highlight-symbol

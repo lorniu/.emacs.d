@@ -37,9 +37,9 @@
     ;; org-mode
     org-download ob-restclient ox-pandoc graphviz-dot-mode gnuplot
 
-    ;; fronts
+    ;; frontend
     simple-httpd web-mode emmet-mode yaml-mode sass-mode
-    js2-mode tide htmlize web-beautify company-web
+    js2-mode tide htmlize web-beautify company-web rjsx-mode json-mode
 
     ;; backends
     slime hippie-expand-slime slime-company

@@ -229,18 +229,15 @@
 
 (x counsel-projectile/w
    :init
-   (setq projectile-completion-system 'ivy
+   (setq projectile-mode-line-prefix ""
+         projectile-completion-system 'ivy
          projectile-cache-file (concat _CACHE_ "__projectile.cache")
          projectile-known-projects-file (concat _CACHE_ "__projectile-bookmark.eld")
-         counsel-find-file-ignore-regexp "Volume\\|RECYCLE.BIN"
-         projectile-mode-line '(:eval (if (string= "-" (projectile-project-name)) nil
-                                        (list " [" `(:propertize ("" "ᴘ") face (:weight bold)
-                                                                 help-echo ,(format "[%s]:\n\n%s%s/\n"
-                                                                                    (projectile-project-type)
-                                                                                    (projectile-project-root)
-                                                                                    (projectile-project-name))) "]"))))
+         counsel-find-file-ignore-regexp "Volume\\|RECYCLE.BIN")
+
    (projectile-mode 1)
    (counsel-projectile-mode 1)
+
    :config
    (add-to-list 'projectile-project-root-files "package.json"))
 
@@ -671,32 +668,35 @@
      (insert (format "<h1>%s</h1>" (time)))))
 
 
-;;; Web-Mode/JS-Mode/CSS-Mode
+;;; Front-End
 ;;
 ;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
 ;;
 (x web-mode
-   :mode
-   "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|jsx\\|tpl\\|css\\|vue\\)\\'"
+   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|css\\|vue\\)\\'"
 
    :config
-   (setq web-mode-markup-indent-offset    4
-         web-mode-css-indent-offset       4
-         web-mode-code-indent-offset      4
+   (setq web-mode-markup-indent-offset    2
+         web-mode-css-indent-offset       2
+         web-mode-code-indent-offset      2
          web-mode-enable-css-colorization t
          web-mode-content-types-alist '(("jsx"    . "\\.js[x]?\\'"))
          web-mode-engines-alist       '(("blade"  . "\\.blade\\.")
                                         ("ruby"   . "\\.html\\.erb\\'")))
 
    (defun -my/web-mode-hook ()
-     ;; (flycheck-mode +1)
      (hs-minor-mode -1)
+     ;; (flycheck-mode +1)
+     (append-local 'company-backends
+                   'company-tide 'company-css 'company-web-html)
+     (pcase (file-name-extension (buffer-file-name))
+       ("js"  (im/tide-enable))
+       ("jsx"
+        (im/tide-enable)
+        (rjsx-minor-mode 1) (set (make-local-variable 'web-mode-enable-auto-quoting) nil)
+        (electric-pair-local-mode 1))))
 
-     (set (make-local-variable 'company-backends)
-          '(company-tide company-css company-web-html company-yasnippet company-keywords company-files))
-
-     (and (string-match-p "jsx?$" (buffer-file-name))
-          (im/tide-enable)))
+   (add-hook 'web-mode-hook '-my/web-mode-hook)
 
    (defun -my/yas-expand-extra (&rest args)
      "Yasnippet in in SCRIPT block."
@@ -708,19 +708,10 @@
           ("css"            'css-mode)
           ("javascript"     'js2-mode)
           ("jsx"            'js2-mode)))))
-
-   (add-hook 'web-mode-hook '-my/web-mode-hook)
-   (advice-add 'yas--maybe-expand-key-filter :before '-my/yas-expand-extra)
-
-   ;; Indent
-   (add-to-list 'web-mode-indentless-elements "html")
-   (advice-add 'web-mode-markup-indentation :around
-               (lambda (name &rest args)
-                 (if (member (get-text-property (car args) 'tag-name) '("head"))
-                     0 (apply name args)))))
+   (advice-add 'yas--maybe-expand-key-filter :before '-my/yas-expand-extra))
 
 (x emmet-mode/v
-   :hook web-mode
+   :hook (web-mode rjsx-mode)
    :init (setq emmet-move-cursor-between-quotes t))
 
 (x impatient-mode
@@ -735,21 +726,33 @@
 (x js2-mode
    :mode "\\.js\\'"
    :config
-   (setq js2-highlight-level 3
+   (setq js2-basic-offset 2
+         js2-highlight-level 3
          js2-strict-missing-semi-warning nil
          js2-strict-inconsistent-return-warning nil)
 
    (defun -my/js2-hook ()
      (setq mode-name "JS2")
      (flycheck-mode 1)
-     (when (im/tide-enable)
-       (make-variable-buffer-local 'company-backends)
-       (add-to-list 'company-backends 'company-tide)))
+     (im/tide-enable))
 
    (add-hook 'js2-mode-hook '-my/js2-hook))
 
-(x web-beautify
-   :if (executable-find "js-beautify"))
+(x rjsx-mode
+   :config
+   (mapc (lambda (e) (define-key rjsx-mode-map e nil)) `(">" "<" ,(kbd "C-d")))
+   (add-hook-lambda 'rjsx-mode-hook
+     (electric-pair-local-mode 1)
+     (append-local 'company-backends 'company-tide 'company-files)
+     (set (make-local-variable 'emmet-expand-jsx-className?) t)))
+
+(x json-mode
+   :config
+   (add-hook-lambda 'json-mode-hook
+     (make-local-variable 'js-indent-level)
+     (setq js-indent-level 2)))
+
+(x web-beautify :if (executable-find "js-beautify"))
 
 (x tide
    :delight " ť"
@@ -790,7 +793,7 @@
 
    (defun -my/company-with-tide (f &rest args)
      "Complete with tide in SCRIPT block."
-     (let ((tide-mode (or (equal major-mode 'js2-mode)
+     (let ((tide-mode (or (derived-mode-p 'js2-mode)
                           (and (equal major-mode 'web-mode)
                                (or (string= (web-mode-language-at-pos) "javascript")
                                    (string= (web-mode-language-at-pos) "jsx"))))))
@@ -923,7 +926,7 @@
    :hook ((ruby-mode . inf-ruby-minor-mode)
           (ruby-mode . robe-mode))
    :config
-   (add-to-list 'company-backends 'company-robe)
+   (append-local 'company-backends 'company-robe)
 
    (x inf-ruby :config
       (define-key inf-ruby-minor-mode-map (kbd "C-c C-s")
@@ -961,8 +964,7 @@
      (when (executable-find "php")
        (x company-php :config
           (ac-php-core-eldoc-setup) ;; enable eldoc
-          (make-local-variable 'company-backends)
-          (add-to-list 'company-backends 'company-ac-php-backend))))
+          (append-local 'company-backends 'company-ac-php-backend))))
 
    (add-hook 'php-mode-hook 'my-php-stuff))
 
