@@ -74,7 +74,7 @@
 
 
 
-;; tide
+;;; tide
 
 (defun tide-project-root ()
   "Project root folder determined based on the presence of tsconfig.json."
@@ -88,3 +88,51 @@
      (let ((full-path (expand-file-name root)))
        (setq tide-project-root full-path)
        full-path))))
+
+
+
+;;; Simple-Httpd
+
+(defvar httpd-maybe-cache t)
+(defvar httpd-body-docorator nil)
+
+(cl-defun httpd-start
+    (&key (root "~/vvv") (host "0.0.0.0") (port 5555)
+          (cache t) (body-decorator (lambda (mime body) body)))
+  (interactive)
+  (httpd-stop)
+  (httpd-log `(start ,(current-time-string)))
+  (if root (setq httpd-root root))
+  (setq httpd-maybe-cache cache)
+  (setq httpd-body-docorator body-decorator)
+  (make-network-process :name     "httpd"
+                        :server   t
+                        :family   'ipv4
+                        :host     host
+                        :service  port
+                        :coding   'binary
+                        :filter-multibyte nil
+                        :filter   'httpd--filter
+                        :log      'httpd--log)
+  (run-hooks 'httpd-start-hook))
+
+(defun httpd-send-file (proc path &optional req)
+  (httpd-discard-buffer)
+  (let ((etag (httpd-etag path)) s
+        (req-etag (cadr (assoc "If-None-Match" req)))
+        (mtime (httpd-date-string (nth 4 (file-attributes path))))
+        (mime (httpd-get-mime (file-name-extension path))))
+    (if (and httpd-maybe-cache (equal req-etag etag))
+        (with-temp-buffer
+          (httpd-log `(file ,path not-modified))
+          (httpd-send-header proc "text/plain" 304))
+      (httpd-log `(file ,path))
+      (with-temp-buffer
+        (set-buffer-multibyte nil)
+        (insert-file-contents path)
+        (setq s (funcall httpd-body-docorator mime (buffer-string)))
+        (erase-buffer)
+        (insert s)
+        (httpd-send-header proc mime 200
+                           :Cache-Control "no-chache,no-store"
+                           :Last-Modified mtime :ETag etag)))))

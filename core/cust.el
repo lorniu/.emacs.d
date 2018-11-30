@@ -37,9 +37,15 @@
     ;; org-mode
     org-download ob-restclient ox-pandoc graphviz-dot-mode gnuplot
 
+    ;; projects
+    counsel-projectile yasnippet company simple-httpd websocket
+
+    ;; lsp
+    lsp-mode lsp-ui company-lsp cquery
+
     ;; frontend
-    simple-httpd web-mode emmet-mode yaml-mode sass-mode
-    js2-mode tide htmlize web-beautify company-web rjsx-mode json-mode
+    web-mode emmet-mode yaml-mode sass-mode json-mode
+    js2-mode tide htmlize web-beautify company-web rjsx-mode
 
     ;; backends
     slime hippie-expand-slime slime-company
@@ -49,12 +55,6 @@
 
     ;; company
     company-ghc company-php company-go
-
-    ;; lsp
-    lsp-mode lsp-ui company-lsp cquery
-
-    ;; projects
-    counsel-projectile yasnippet company
 
     ))
 
@@ -84,6 +84,7 @@
       track-eol                t
       visible-bell             nil
       ring-bell-function       'ignore
+      confirm-kill-processes   nil
 
       scroll-step              1
       scroll-margin            0
@@ -129,7 +130,7 @@
   (let* ((name-arr (split-string (symbol-name NAME) "/"))
          (name (intern (car name-arr)))
          (flag (cadr name-arr)) x-options)
-    (push (if (seq-contains flag ?e) ':demand ':defer) x-options) ;
+    (push (if (seq-contains flag ?e) ':demand ':defer) x-options)
     (if (seq-contains flag ?x) (push ':disabled x-options))
     (if (seq-contains flag ?v) (push ':delight x-options))
     `(progn
