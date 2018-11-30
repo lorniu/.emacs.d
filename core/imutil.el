@@ -342,12 +342,6 @@
     (while (re-search-forward (car needle) nil t)
       (replace-match (cdr needle)))))
 
-(defun im/process-silence (regexp)
-  "No query from process with name of 'REGEXP' when emacs quit"
-  (dolist (process (process-list))
-    (when (string-match-p regexp (process-name process))
-      (set-process-query-on-exit-flag process nil))))
-
 (defun im/find-ft (&rest names)
   "Find the proper font in NAMES."
   (catch 'ret

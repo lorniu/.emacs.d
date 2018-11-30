@@ -9,7 +9,6 @@
 
 ;;; Auto-Mode
 
-
 (mapc (lambda (s) (add-to-list 'auto-mode-alist s))
       '(("\\.\\(xml\\|xsl\\)\\'"      . sgml-mode)
         ("\\.class\\'"                . class-mode)
@@ -643,35 +642,26 @@
    (global-semantic-stickyfunc-mode 1))
 
 
-;;; Simple-Httpd
-
+;;; Front-End
+;;
+;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
+;;  - 20181120, Servers as Elnode is more powerful but too old. Simpled-Httpd is simple and enough.
+;;  - 20181120, Use Livereload replace Impatient! Websocket has a better experience than iframe.
+;;
 (x simple-httpd
    :init
-   (setq httpd-port 5555
-         httpd-host "0.0.0.0"
-         httpd-root "~/vvv")
-
    (defun im/httpd-here ()
      (interactive)
-     (setf httpd-root default-directory)
-     (unless (process-status "httpd") (httpd-start)))
+     (httpd-start :port 5555 :root default-directory))
 
-   :config
-   ;; silence quit
-   (defun -my/httpd-quit-silence (proc _)
-     (set-process-query-on-exit-flag proc nil))
-   (advice-add 'httpd--filter :before '-my/httpd-quit-silence)
-   (add-hook 'httpd-start-hook (lambda () (im/process-silence "^httpd")))
+   :config (im/patch)
 
    ;; servlets
    (defservlet time text/html ()
      (insert (format "<h1>%s</h1>" (time)))))
 
+(x livereload :commands (liveview liveload))
 
-;;; Front-End
-;;
-;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
-;;
 (x web-mode
    :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|css\\|vue\\)\\'"
 
@@ -714,15 +704,6 @@
    :hook (web-mode rjsx-mode)
    :init (setq emmet-move-cursor-between-quotes t))
 
-(x impatient-mode
-   :commands (imp-visit-buffer liveload liveview)
-   :config
-   (defalias 'liveload 'impatient-mode)
-   (defalias 'liveview 'imp-visit-buffer)
-   (defun -my/impatient-hook ()
-     (unless (process-status "httpd") (httpd-start)))
-   (add-hook 'impatient-mode-hook '-my/impatient-hook))
-
 (x js2-mode
    :mode "\\.js\\'"
    :config
@@ -733,6 +714,7 @@
 
    (defun -my/js2-hook ()
      (setq mode-name "JS2")
+     (electric-pair-local-mode 1)
      (flycheck-mode 1)
      (im/tide-enable))
 
@@ -788,8 +770,7 @@
            (json-pretty-print-buffer))
          (message "File %s Generated!" dest))))
 
-   :config
-   (im/patch)
+   :config (im/patch)
 
    (defun -my/company-with-tide (f &rest args)
      "Complete with tide in SCRIPT block."
