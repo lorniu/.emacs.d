@@ -28,7 +28,7 @@
          display-buffer-same-window)))
 
 
-;;; Hooks
+;;; Common-Hooks
 
 ((lambda ()
 
@@ -63,23 +63,24 @@
                 (time nil 2) (time-subtract-seconds (current-time) then)))
      (remove-hook 'auto-save-hook '-my/idle-once))
 
-   (defun -my/when-close ()
-     (recentf-save-list))
-
    (add-hook 'find-file-hook    '-my/before-open)
    (add-hook 'before-save-hook  '-my/before-save)
    (add-hook 'after-save-hook   '-my/el-compile)
-   (add-hook 'auto-save-hook    '-my/idle-once)
-   (add-hook 'kill-emacs-hook   '-my/when-close)))
+   (add-hook 'auto-save-hook    '-my/idle-once)))
 
 
 
 ;;;; Basic-Modes
 
+
 (x winner :init (winner-mode 1))
-(x recentf :init (recentf-mode 1))
 (x paren :init (show-paren-mode 1))
 (x beacon/v :init (beacon-mode 1))
+
+(x recentf :init
+   (setq recentf-max-saved-items 40)
+   (setq recentf-save-file (concat _CACHE_ "_recentf"))
+   (recentf-mode 1))
 
 (x desktop :init
    (setq desktop-path `(,_CACHE_ ".")))
@@ -90,24 +91,6 @@
 
 (x syntax-subword :init ;; vi-like word move
    (setq syntax-subword-skip-spaces t))
-
-
-;;; Key-Chord
-
-(x key-chord
-   :init
-   (setq key-chord-one-key-delay 0.3)
-   (setq key-chord-two-keys-delay 0.2)
-   (key-chord-mode 1)
-   ;; override, make keys sequencely
-   (defun key-chord-define (keymap keys command)
-     (if (/= 2 (length keys))
-         (error "Key-chord keys must have two elements"))
-     (let ((key1 (logand 255 (aref keys 0)))
-	       (key2 (logand 255 (aref keys 1))))
-       (if (eq key1 key2)
-	       (define-key keymap (vector 'key-chord key1 key2) command)
-         (define-key keymap (vector 'key-chord key1 key2) command)))))
 
 
 ;;; Ediff
@@ -218,10 +201,9 @@
    (:map ivy-minibuffer-map
          ("C-j" . ivy-done)
          ("C-m" . ivy-alt-done))
-
    :config
    (setq ivy-use-virtual-buffers t)
-   (setq smex-save-file (concat _CACHE_ "smex-items")) ;; frequently used cmds
+   (setq smex-save-file (concat _CACHE_ ".smex-items")) ;; frequently used cmds
    (ivy-mode 1))
 
 (x swiper/w)
@@ -238,6 +220,7 @@
    (counsel-projectile-mode 1)
 
    :config
+   (add-to-list 'projectile-project-root-files ".pro")
    (add-to-list 'projectile-project-root-files "package.json"))
 
 
@@ -312,6 +295,7 @@
          eshell-history-size    500
          eshell-hist-ignoredups t
          eshell-destroy-buffer-when-process-dies t
+         eshell-directory-name (concat _CACHE_ "eshell")
          eshell-aliases-file "~/.emacs.d/resource/eshell.alias")
 
    :config
@@ -389,6 +373,7 @@
          ( "l"     .  forward-char  )
          ( "j"     .  next-line     )
          ( "k"     .  previous-line )
+         ( "%"     .  his-match-paren )
          ( "<DEL>" .  nil )))
 
 
@@ -438,8 +423,9 @@
      "http://www.youtube.com/results?aq=f&oq=&search_query=%s"))
 
 
-
+
 ;;;; Programer - Common
+
 
 (x eldoc/v)
 
@@ -525,13 +511,16 @@
                        (set-window-dedicated-p it wstat)))))))
 
 
-
+
 ;;;; Programer - Languages
 
 ;;; SQL
 ;;
 ;; M-x: sql-connect/sql-postgres
 ;;
+
+;;; Sql-Client
+
 (x sql
    :init
    (setq sql-connection-alist
@@ -556,7 +545,7 @@
 
 
 ;;; lsp-mode
-;;
+
 (x lsp-mode)
 
 (x lsp-ui
@@ -640,147 +629,6 @@
    (global-semanticdb-minor-mode 1)
    (global-semantic-idle-scheduler-mode 1)
    (global-semantic-stickyfunc-mode 1))
-
-
-;;; Front-End
-;;
-;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
-;;  - 20181120, Servers as Elnode is more powerful but too old. Simpled-Httpd is simple and enough.
-;;  - 20181120, Use Livereload replace Impatient! Websocket has a better experience than iframe.
-;;
-(x simple-httpd
-   :init
-   (defun im/httpd-here ()
-     (interactive)
-     (httpd-start :port 5555 :root default-directory))
-
-   :config (im/patch)
-
-   ;; servlets
-   (defservlet time text/html ()
-     (insert (format "<h1>%s</h1>" (time)))))
-
-(x livereload :commands (liveview liveload))
-
-(x web-mode
-   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|css\\|vue\\)\\'"
-
-   :config
-   (setq web-mode-markup-indent-offset    2
-         web-mode-css-indent-offset       2
-         web-mode-code-indent-offset      2
-         web-mode-enable-css-colorization t
-         web-mode-content-types-alist '(("jsx"    . "\\.js[x]?\\'"))
-         web-mode-engines-alist       '(("blade"  . "\\.blade\\.")
-                                        ("ruby"   . "\\.html\\.erb\\'")))
-
-   (defun -my/web-mode-hook ()
-     (hs-minor-mode -1)
-     ;; (flycheck-mode +1)
-     (append-local 'company-backends
-                   'company-tide 'company-css 'company-web-html)
-     (pcase (file-name-extension (buffer-file-name))
-       ("js"  (im/tide-enable))
-       ("jsx"
-        (im/tide-enable)
-        (rjsx-minor-mode 1) (set (make-local-variable 'web-mode-enable-auto-quoting) nil)
-        (electric-pair-local-mode 1))))
-
-   (add-hook 'web-mode-hook '-my/web-mode-hook)
-
-   (defun -my/yas-expand-extra (&rest args)
-     "Yasnippet in in SCRIPT block."
-     (when (equal major-mode 'web-mode)
-       (-my/yas--clear-extra-mode)
-       (yas-activate-extra-mode
-        (pcase (web-mode-language-at-pos)
-          ("html"           'html-mode)
-          ("css"            'css-mode)
-          ("javascript"     'js2-mode)
-          ("jsx"            'js2-mode)))))
-   (advice-add 'yas--maybe-expand-key-filter :before '-my/yas-expand-extra))
-
-(x emmet-mode/v
-   :hook (web-mode rjsx-mode)
-   :init (setq emmet-move-cursor-between-quotes t))
-
-(x js2-mode
-   :mode "\\.js\\'"
-   :config
-   (setq js2-basic-offset 2
-         js2-highlight-level 3
-         js2-strict-missing-semi-warning nil
-         js2-strict-inconsistent-return-warning nil)
-
-   (defun -my/js2-hook ()
-     (setq mode-name "JS2")
-     (electric-pair-local-mode 1)
-     (flycheck-mode 1)
-     (im/tide-enable))
-
-   (add-hook 'js2-mode-hook '-my/js2-hook))
-
-(x rjsx-mode
-   :config
-   (mapc (lambda (e) (define-key rjsx-mode-map e nil)) `(">" "<" ,(kbd "C-d")))
-   (add-hook-lambda 'rjsx-mode-hook
-     (electric-pair-local-mode 1)
-     (append-local 'company-backends 'company-tide 'company-files)
-     (set (make-local-variable 'emmet-expand-jsx-className?) t)))
-
-(x json-mode
-   :config
-   (add-hook-lambda 'json-mode-hook
-     (make-local-variable 'js-indent-level)
-     (setq js-indent-level 2)))
-
-(x web-beautify :if (executable-find "js-beautify"))
-
-(x tide
-   :delight " ť"
-   :if (executable-find "node")
-   :init
-   (setq tide-default-mode "JS")
-   (setq tide-sync-request-timeout 10)
-
-   (defun im/tide-enable (&optional mode)
-     (interactive)
-     (when (executable-find "node")
-       (tide-setup)
-       (eldoc-mode 1)
-       (set (make-local-variable 'company-tooltip-align-annotations) t) t))
-
-   (defun im/tide-generate-config ()
-     "Generate jsconfig file for tide server."
-     (interactive)
-     (let ((dest (propertize (concat default-directory "jsconfig.json") 'face '(:foreground "ForestGreen"))))
-       (if (file-exists-p dest)
-           (message "File %s already exists." dest)
-         (with-temp-file dest
-           (insert (json-encode
-                    '((include . ["./**/*"])
-                      (exclude . ["node_modules" ".git"])
-                      (compilerOptions
-                       (target . "es2017")
-                       (allowSyntheticDefaultImports . t)
-                       (noEmit . t)
-                       (checkJs . t)
-                       (jsx . "react")
-                       (lib . ["dom" "es2017"])))))
-           (json-pretty-print-buffer))
-         (message "File %s Generated!" dest))))
-
-   :config (im/patch)
-
-   (defun -my/company-with-tide (f &rest args)
-     "Complete with tide in SCRIPT block."
-     (let ((tide-mode (or (derived-mode-p 'js2-mode)
-                          (and (equal major-mode 'web-mode)
-                               (or (string= (web-mode-language-at-pos) "javascript")
-                                   (string= (web-mode-language-at-pos) "jsx"))))))
-       (apply f args)))
-
-   (advice-add 'company-tide :around '-my/company-with-tide))
 
 
 ;;; Lisp/SLIME (The Superior Lisp Interaction Mode for Emacs)
@@ -964,6 +812,148 @@
    ;; sbt ensimeConfig
    (x ensime :config
       (setq ensime-startup-notification nil)))
+
+
+
+;;;; Programer - Front-End
+;;
+;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
+;;  - 20181120, Servers as Elnode is more powerful but too old. Simpled-Httpd is simple and enough.
+;;  - 20181120, Use Livereload replace Impatient! Websocket has a better experience than iframe.
+;;
+(x simple-httpd
+   :init
+   (defun im/httpd-here ()
+     (interactive)
+     (httpd-start :port 5555 :root default-directory))
+
+   :config (im/patch)
+
+   ;; servlets
+   (defservlet time text/html ()
+     (insert (format "<h1>%s</h1>" (time)))))
+
+(x livereload :commands (liveview liveload))
+
+(x web-mode
+   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|css\\|vue\\)\\'"
+
+   :config
+   (setq web-mode-markup-indent-offset    2
+         web-mode-css-indent-offset       2
+         web-mode-code-indent-offset      2
+         web-mode-enable-css-colorization t
+         web-mode-content-types-alist '(("jsx"    . "\\.js[x]?\\'"))
+         web-mode-engines-alist       '(("blade"  . "\\.blade\\.")
+                                        ("ruby"   . "\\.html\\.erb\\'")))
+
+   (defun -my/web-mode-hook ()
+     (hs-minor-mode -1)
+     ;; (flycheck-mode +1)
+     (append-local 'company-backends
+                   'company-tide 'company-css 'company-web-html)
+     (pcase (file-name-extension (buffer-file-name))
+       ("js"  (im/tide-enable))
+       ("jsx"
+        (im/tide-enable)
+        (rjsx-minor-mode 1) (set (make-local-variable 'web-mode-enable-auto-quoting) nil)
+        (electric-pair-local-mode 1))))
+
+   (add-hook 'web-mode-hook '-my/web-mode-hook)
+
+   (defun -my/yas-expand-extra (&rest args)
+     "Yasnippet in in SCRIPT block."
+     (when (equal major-mode 'web-mode)
+       (-my/yas--clear-extra-mode)
+       (yas-activate-extra-mode
+        (pcase (web-mode-language-at-pos)
+          ("html"           'html-mode)
+          ("css"            'css-mode)
+          ("javascript"     'js2-mode)
+          ("jsx"            'js2-mode)))))
+   (advice-add 'yas--maybe-expand-key-filter :before '-my/yas-expand-extra))
+
+(x emmet-mode/v
+   :hook (web-mode rjsx-mode)
+   :init (setq emmet-move-cursor-between-quotes t))
+
+(x js2-mode
+   :mode "\\.js\\'"
+   :config
+   (setq js2-basic-offset 2
+         js2-highlight-level 3
+         js2-strict-missing-semi-warning nil
+         js2-strict-inconsistent-return-warning nil)
+
+   (defun -my/js2-hook ()
+     (setq mode-name "JS2")
+     (electric-pair-local-mode 1)
+     (flycheck-mode 1)
+     (im/tide-enable))
+
+   (add-hook 'js2-mode-hook '-my/js2-hook))
+
+(x rjsx-mode
+   :config
+   (mapc (lambda (e) (define-key rjsx-mode-map e nil)) `(">" "<" ,(kbd "C-d")))
+   (add-hook-lambda 'rjsx-mode-hook
+     (electric-pair-local-mode 1)
+     (append-local 'company-backends 'company-tide 'company-files)
+     (set (make-local-variable 'emmet-expand-jsx-className?) t)))
+
+(x json-mode
+   :config
+   (add-hook-lambda 'json-mode-hook
+     (make-local-variable 'js-indent-level)
+     (setq js-indent-level 2)))
+
+(x web-beautify :if (executable-find "js-beautify"))
+
+(x tide
+   :delight " ť"
+   :if (executable-find "node")
+   :init
+   (setq tide-default-mode "JS")
+   (setq tide-sync-request-timeout 10)
+
+   (defun im/tide-enable (&optional mode)
+     (interactive)
+     (when (executable-find "node")
+       (tide-setup)
+       (eldoc-mode 1)
+       (set (make-local-variable 'company-tooltip-align-annotations) t) t))
+
+   (defun im/tide-generate-config ()
+     "Generate jsconfig file for tide server."
+     (interactive)
+     (let ((dest (propertize (concat default-directory "jsconfig.json") 'face '(:foreground "ForestGreen"))))
+       (if (file-exists-p dest)
+           (message "File %s already exists." dest)
+         (with-temp-file dest
+           (insert (json-encode
+                    '((include . ["./**/*"])
+                      (exclude . ["node_modules" ".git"])
+                      (compilerOptions
+                       (target . "es2017")
+                       (allowSyntheticDefaultImports . t)
+                       (noEmit . t)
+                       (checkJs . t)
+                       (jsx . "react")
+                       (lib . ["dom" "es2017"])))))
+           (json-pretty-print-buffer))
+         (message "File %s Generated!" dest))))
+
+   :config (im/patch)
+
+   (defun -my/company-with-tide (f &rest args)
+     "Complete with tide in SCRIPT block."
+     (let ((tide-mode (or (derived-mode-p 'js2-mode)
+                          (and (equal major-mode 'web-mode)
+                               (or (string= (web-mode-language-at-pos) "javascript")
+                                   (string= (web-mode-language-at-pos) "jsx"))))))
+       (apply f args)))
+
+   (advice-add 'company-tide :around '-my/company-with-tide))
 
 
 (provide 'immor)

@@ -3,7 +3,6 @@
 #+IMPRESS_JS: ./impress.js
 #+IMPRESS_CLASS: step slide
 #+EXTRA_HEAD: <style>
-#+EXTRA_HEAD:  body { background: #eee; } h1 { margin-top: 120px; color: darkgreen; font-size: 100px; }
 #+EXTRA_HEAD:  pre { padding: 12px 20px; border:1px solid #666; border-radius: 3px; margin-left: 10px; background: white; }
 #+EXTRA_HEAD:  .slide {
 #+EXTRA_HEAD:     background: rgba(255,255,255,0.9); border-radius: 10px; box-shadow: 0 0 30px #000;
@@ -14,7 +13,7 @@
 
 * +Why another one?
 :PROPERTIES:
-:DATA: rotate-y:27.7 x:1000 z:-250
+:DATA: rotate-y:27.7 x:1500 z:0
 :END:
 
 Ok, =impress.js= is great, I like it. And I want to use it in org-mode.
@@ -26,11 +25,7 @@ I googled and tried a lot, but at last I decide to write a new one.
 <span class="substep">Yes, just keep it   <i style="color:darkgreen;font-weight:bolder;font-size:1.2em;">simple</i>.</span>
 #+END_EXPORT
 
-* +Requirements
-:PROPERTIES:
-:DATA: rotate-y:55.4 x:1250 z:-500
-:END:
-
+* Requirements
 
 I'm using emacs 25 and org 9, and this works well:
 
@@ -39,9 +34,8 @@ I'm using emacs 25 and org 9, and this works well:
 - Org-Mode 9+
 - Emacs, 25+
 
-* +Installation
+* Installation
 :PROPERTIES:
-:data: rotate-y:83.1
 :style: font-size: 32px;
 :END:
 
@@ -54,9 +48,8 @@ I'm using emacs 25 and org 9, and this works well:
    (require ox-impress)
    #+END_SRC
 
-* +API - Global Vars
+* API - Global Vars
 :PROPERTIES:
-:DATA: rotate-y:110.8
 :CLASS: -slide
 :STYLE: font-size: 24px; background:white; border-radius: 10px; font-style: italic;
 :END:
@@ -73,9 +66,8 @@ I'm using emacs 25 and org 9, and this works well:
 | org-impress-include-default-style | as its name, include or not                    |
 | org-impress-single                | 0/1/2/3, whether zip ext files to html         |
 
-* +API - Inbuffer Properties
+* API - Inbuffer Properties
 :PROPERTIES:
-:DATA: rotate-y:138.5
 :CLASS: -slide
 :STYLE: font-size: 24px; padding: 40px 80px; box-shadow: inset 0 0 50px #000;
 :END:
@@ -92,9 +84,8 @@ I'm using emacs 25 and org 9, and this works well:
 | #+IMPRESS_PAGE_FOOTER: | insert after every slide page                  |
 | #+EXTRA_HEAD:          | extra head string                              |
 
-* +API - Inbuffer Options
+* API - Inbuffer Options
 :PROPERTIES:
-:DATA: rotate-y:166.2
 :STYLE: font-size: 24px;
 :END:
 
@@ -117,9 +108,9 @@ For example:
 <h2 style="color: red;position:absolute;right:10px;bottom:100px;transform:rotate(-25deg)" class="fly-in fly-out">Simple?  Yes, so easy!</h2>
 #+END_EXPORT
 
-* +A headline is a step
+* A headline is a step
 :PROPERTIES:
-:DATA: rotate-y:193.9
+:DATA: rotate-y:493.9
 :STYLE: font-size: 22px; background:white; padding: 20px 40px;
 :END:
 
@@ -136,9 +127,9 @@ You can set variables for it with drawer properties:
 
 - ~:style:~ :: Yes, just specify the inline style for the step node.
 
-* +This is just a simple demo for a node
+* This is just a simple demo for a node
 :PROPERTIES:
-:DATA: rotate-y:221.6
+:DATA: rotate-y:521.6
 :STYLE: font-size: 19px;
 :END:
 
@@ -165,9 +156,9 @@ You can set variables for it with drawer properties:
 
 Yes, syntax is so similar with the one in `impress.js`, but much easier and clear.
 
-* +Miscellaneous
+* Miscellaneous
 :PROPERTIES:
-:DATA: rotate-y:249.2
+:DATA: rotate-y:619.2
 :STYLE: font-size: 24px;
 :END:
 
@@ -186,9 +177,9 @@ don't want this page generated, just set =#+OPTIONS: toc:nil=.
 If you want to add some 'data-xxx' to root node(~<div id='impress'..~),
 config =#+IMPRESS_ROOT:= property.
 
-* +For More
+* For More
 :PROPERTIES:
-:DATA: rotate-y:277
+:DATA: rotate-y:777
 :STYLE: font-size: 26px;
 :END:
 
@@ -208,9 +199,9 @@ Read it, test it and extend it.
 <i style="font-size:2em; line-height:100px; color:goldenrod">For more? To be continued...</i>
 #+END_EXPORT
 
-* +Thanks
+* Thanks
 :PROPERTIES:
-:DATA: rotate-y:307.4
+:DATA: rotate-y:907.4
 :END:
 
 Courtesy to:
@@ -219,9 +210,9 @@ The powerful Emacs and Org-mode,
 
 the impressive impress.js.
 
-* +Copyright
+* Copyright
 :PROPERTIES:
-:DATA: rotate-y:332.4
+:DATA: rotate-y:932.4
 :END:
 
 Copyright 2018 lorniu@gmail.com.

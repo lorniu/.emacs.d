@@ -9,3 +9,5 @@
 !/snippets
 __pycache__/
 _*
+*.html
+*/**/.gitignore
