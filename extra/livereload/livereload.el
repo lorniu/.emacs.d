@@ -365,7 +365,7 @@ to it in the future.")
 
 (require 'simple-httpd)
 
-(defvar livereload--httpd-port 5566)
+(defvar livereload--httpd-port 5656)
 
 (defun livereload--body-decorator (mime body)
   (if (string= mime "text/html")

@@ -152,6 +152,13 @@
            (forward-sexp 1)))
         (t (indent-according-to-mode))))
 
+(defun im/tiny-code-buffer ()
+  "Indent codes according mode for whole buffer."
+  (interactive)
+  (save-excursion
+    (mark-whole-buffer)
+    (im/tiny-code)))
+
 (defun im/go-to-char (&optional backwardp)
   "Jump to the next CHAR, like `f' in vim, when backwardp is t, then search backward."
   (interactive)

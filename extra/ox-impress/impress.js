@@ -143,12 +143,12 @@
     var body = document.body;
     var impressSupported =
 
-        // Browser should support CSS 3D transtorms
-        ( pfx( "perspective" ) !== null ) &&
+                          // Browser should support CSS 3D transtorms
+                           ( pfx( "perspective" ) !== null ) &&
 
-        // And `classList` and `dataset` APIs
-        ( body.classList ) &&
-        ( body.dataset );
+                          // And `classList` and `dataset` APIs
+                           ( body.classList ) &&
+                           ( body.dataset );
 
     if ( !impressSupported ) {
 
@@ -308,9 +308,9 @@
             css( el, {
                 position: "absolute",
                 transform: "translate(-50%,-50%)" +
-                    translate( step.translate ) +
-                    rotate( step.rotate ) +
-                    scale( step.scale ),
+                           translate( step.translate ) +
+                           rotate( step.rotate ) +
+                           scale( step.scale ),
                 transformStyle: "preserve-3d"
             } );
         };
@@ -562,12 +562,12 @@
             // I know that this `if` statement looks scary, but it's pretty simple when you know
             // what is going on - it's simply comparing all the values.
             if ( currentState.scale === target.scale ||
-                 ( currentState.rotate.x === target.rotate.x &&
-                   currentState.rotate.y === target.rotate.y &&
-                   currentState.rotate.z === target.rotate.z &&
-                   currentState.translate.x === target.translate.x &&
-                   currentState.translate.y === target.translate.y &&
-                   currentState.translate.z === target.translate.z ) ) {
+                ( currentState.rotate.x === target.rotate.x &&
+                  currentState.rotate.y === target.rotate.y &&
+                  currentState.rotate.z === target.rotate.z &&
+                  currentState.translate.x === target.translate.x &&
+                  currentState.translate.y === target.translate.y &&
+                  currentState.translate.z === target.translate.z ) ) {
                 delay = 0;
             }
 
@@ -719,7 +719,7 @@
 
             css( canvas, {
                 transform: rotate( interpolatedStep.rotate, true ) +
-                    translate( interpolatedStep.translate ),
+                           translate( interpolatedStep.translate ),
                 transitionDuration: "0ms",
                 transitionDelay: "0ms"
             } );
@@ -1389,8 +1389,8 @@
 
     var addToolbarButton = function( toolbar ) {
         var html = '<button id="impress-autoplay-playpause" ' + // jshint ignore:line
-            'title="Autoplay" class="impress-autoplay">' + // jshint ignore:line
-            getButtonText() + "</button>"; // jshint ignore:line
+                   'title="Autoplay" class="impress-autoplay">' + // jshint ignore:line
+                   getButtonText() + "</button>"; // jshint ignore:line
         toolbarButton = makeDomElement( html );
         toolbarButton.addEventListener( "click", function() {
             toggleStatus();
@@ -1550,30 +1550,30 @@
             // Query all .markdown elements and translate to HTML
             var markdownDivs = document.querySelectorAll( ".markdown" );
             for ( var idx = 0; idx < markdownDivs.length; idx++ ) {
-                var element = markdownDivs[ idx ];
+              var element = markdownDivs[ idx ];
 
-                var slides = element.textContent.split( /^-----$/m );
-                var i = slides.length - 1;
-                element.innerHTML = markdown.toHTML( slides[ i ] );
+              var slides = element.textContent.split( /^-----$/m );
+              var i = slides.length - 1;
+              element.innerHTML = markdown.toHTML( slides[ i ] );
 
-                // If there's an id, unset it for last, and all other, elements,
-                // and then set it for the first.
-                var id = null;
-                if ( element.id ) {
-                    id = element.id;
-                    element.id = "";
-                }
+              // If there's an id, unset it for last, and all other, elements,
+              // and then set it for the first.
+              var id = null;
+              if ( element.id ) {
+                id = element.id;
+                element.id = "";
+              }
+              i--;
+              while ( i >= 0 ) {
+                var newElement = element.cloneNode( false );
+                newElement.innerHTML = markdown.toHTML( slides[ i ] );
+                element.parentNode.insertBefore( newElement, element );
+                element = newElement;
                 i--;
-                while ( i >= 0 ) {
-                    var newElement = element.cloneNode( false );
-                    newElement.innerHTML = markdown.toHTML( slides[ i ] );
-                    element.parentNode.insertBefore( newElement, element );
-                    element = newElement;
-                    i--;
-                }
-                if ( id !== null ) {
-                    element.id = id;
-                }
+              }
+              if ( id !== null ) {
+                element.id = id;
+              }
             }
         } // Markdown
 
@@ -2017,30 +2017,30 @@
 
     // This is the default template for the speaker console window
     const consoleTemplate = '<!DOCTYPE html>' +
-          '<html id="impressconsole"><head>' +
+        '<html id="impressconsole"><head>' +
 
           // Order is important: If user provides a cssFile, those will win, because they're later
           '{{cssStyle}}' +
           '{{cssLink}}' +
-          '</head><body>' +
-          '<div id="console">' +
+        '</head><body>' +
+        '<div id="console">' +
           '<div id="views">' +
-          '<iframe id="slideView" scrolling="no"></iframe>' +
-          '<iframe id="preView" scrolling="no"></iframe>' +
-          '<div id="blocker"></div>' +
+            '<iframe id="slideView" scrolling="no"></iframe>' +
+            '<iframe id="preView" scrolling="no"></iframe>' +
+            '<div id="blocker"></div>' +
           '</div>' +
           '<div id="notes"></div>' +
-          '</div>' +
-          '<div id="controls"> ' +
+        '</div>' +
+        '<div id="controls"> ' +
           '<div id="prev"><a  href="#" onclick="impress().prev(); return false;" />' +
-          '{{prev}}</a></div>' +
+            '{{prev}}</a></div>' +
           '<div id="next"><a  href="#" onclick="impress().next(); return false;" />' +
-          '{{next}}</a></div>' +
+            '{{next}}</a></div>' +
           '<div id="clock">--:--</div>' +
           '<div id="timer" onclick="timerReset()">00m 00s</div>' +
           '<div id="status">{{loading}}</div>' +
-          '</div>' +
-          '</body></html>';
+        '</div>' +
+        '</body></html>';
 
     // Default css location
     var cssFileOldDefault = 'css/impressConsole.css';
@@ -2210,9 +2210,9 @@
         var spaceHandler = function() {
             var notes = consoleWindow.document.getElementById( 'notes' );
             if ( notes.scrollTopMax - notes.scrollTop > 20 ) {
-                notes.scrollTop = notes.scrollTop + notes.clientHeight * 0.8;
+               notes.scrollTop = notes.scrollTop + notes.clientHeight * 0.8;
             } else {
-                window.impress().next();
+               window.impress().next();
             }
         };
 
@@ -2236,7 +2236,7 @@
 
             // Clock
             var clockStr = zeroPad( hours ) + ':' + zeroPad( minutes ) + ':' + zeroPad( seconds ) +
-                ' ' + ampm;
+                           ' ' + ampm;
             consoleWindow.document.getElementById( 'clock' ).firstChild.nodeValue = clockStr;
 
             // Timer
@@ -2272,50 +2272,50 @@
             window.document.addEventListener( 'keyup', function( event ) {
                 if ( !event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey &&
                      keyCodes.indexOf( event.keyCode ) !== -1 ) {
-                    handler();
-                    event.preventDefault();
+                        handler();
+                        event.preventDefault();
                 }
             }, false );
         };
 
         var consoleOnLoad = function() {
-            var slideView = consoleWindow.document.getElementById( 'slideView' );
-            var preView = consoleWindow.document.getElementById( 'preView' );
+                var slideView = consoleWindow.document.getElementById( 'slideView' );
+                var preView = consoleWindow.document.getElementById( 'preView' );
 
-            // Firefox:
-            slideView.contentDocument.body.classList.add( 'impress-console' );
-            preView.contentDocument.body.classList.add( 'impress-console' );
-            if ( cssFileIframe !== undefined ) {
-                slideView.contentDocument.head.insertAdjacentHTML(
-                    'beforeend',
-                    '<link rel="stylesheet" type="text/css" href="' + cssFileIframe + '">'
-                );
-                preView.contentDocument.head.insertAdjacentHTML(
-                    'beforeend',
-                    '<link rel="stylesheet" type="text/css" href="' + cssFileIframe + '">'
-                );
-            }
-
-            // Chrome:
-            slideView.addEventListener( 'load', function() {
+                // Firefox:
                 slideView.contentDocument.body.classList.add( 'impress-console' );
+                preView.contentDocument.body.classList.add( 'impress-console' );
                 if ( cssFileIframe !== undefined ) {
                     slideView.contentDocument.head.insertAdjacentHTML(
                         'beforeend',
-                        '<link rel="stylesheet" type="text/css" href="' +
-                            cssFileIframe + '">'
+                        '<link rel="stylesheet" type="text/css" href="' + cssFileIframe + '">'
                     );
-                }
-            } );
-            preView.addEventListener( 'load', function() {
-                preView.contentDocument.body.classList.add( 'impress-console' );
-                if ( cssFileIframe !== undefined ) {
                     preView.contentDocument.head.insertAdjacentHTML(
                         'beforeend',
-                        '<link rel="stylesheet" type="text/css" href="' +
-                            cssFileIframe + '">' );
+                        '<link rel="stylesheet" type="text/css" href="' + cssFileIframe + '">'
+                    );
                 }
-            } );
+
+                // Chrome:
+                slideView.addEventListener( 'load', function() {
+                        slideView.contentDocument.body.classList.add( 'impress-console' );
+                        if ( cssFileIframe !== undefined ) {
+                            slideView.contentDocument.head.insertAdjacentHTML(
+                                'beforeend',
+                                '<link rel="stylesheet" type="text/css" href="' +
+                                    cssFileIframe + '">'
+                            );
+                        }
+                } );
+                preView.addEventListener( 'load', function() {
+                        preView.contentDocument.body.classList.add( 'impress-console' );
+                        if ( cssFileIframe !== undefined ) {
+                            preView.contentDocument.head.insertAdjacentHTML(
+                                'beforeend',
+                                '<link rel="stylesheet" type="text/css" href="' +
+                                    cssFileIframe + '">' );
+                        }
+                } );
         };
 
         var open = function() {
@@ -2343,15 +2343,15 @@
                     message.style.bottom = 0;
                     message.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
                     var clickStr = 'var x = document.getElementById(\'impress-console-button\');' +
-                        'x.parentNode.removeChild(x);' +
-                        'var r = document.getElementById(\'' + rootId + '\');' +
-                        'impress(\'' + rootId +
-                        '\').lib.util.triggerEvent(r, \'impress:console:open\', {})';
+                                     'x.parentNode.removeChild(x);' +
+                                     'var r = document.getElementById(\'' + rootId + '\');' +
+                                     'impress(\'' + rootId +
+                                     '\').lib.util.triggerEvent(r, \'impress:console:open\', {})';
                     var styleStr = 'margin: 25vh 25vw;width:50vw;height:50vh;';
                     message.innerHTML = '<button style="' + styleStr + '" ' +
-                        'onclick="' + clickStr + '">' +
-                        lang.clickToOpen +
-                        '</button>';
+                                                 'onclick="' + clickStr + '">' +
+                                        lang.clickToOpen +
+                                        '</button>';
                     document.body.appendChild( message );
                     return;
                 }
@@ -2359,7 +2359,7 @@
                 var cssLink = '';
                 if ( cssFile !== undefined ) {
                     cssLink = '<link rel="stylesheet" type="text/css" media="screen" href="' +
-                        cssFile + '">';
+                              cssFile + '">';
                 }
 
                 // This sets the window location to the main window location, so css can be loaded:
@@ -2370,10 +2370,10 @@
 
                     // CssStyleStr is lots of inline <style></style> defined at the end of this file
                     consoleTemplate.replace( '{{cssStyle}}', cssStyleStr() )
-                        .replace( '{{cssLink}}', cssLink )
-                        .replace( /{{.*?}}/gi, function( x ) {
-                            return lang[ x.substring( 2, x.length - 2 ) ]; }
-                                )
+                                   .replace( '{{cssLink}}', cssLink )
+                                   .replace( /{{.*?}}/gi, function( x ) {
+                                       return lang[ x.substring( 2, x.length - 2 ) ]; }
+                                   )
                 );
                 consoleWindow.document.title = 'Speaker Console (' + document.title + ')';
                 consoleWindow.impress = window.impress;
@@ -2455,7 +2455,7 @@
             if ( preViewWidth <= Math.floor( slideViewWidth * preViewMinimumFactor ) ) {
                 slideViewWidth = ( views.clientWidth - delta );
                 slideViewHeight = Math.floor( ( views.clientHeight - delta - preViewGap ) /
-                                              ( 1 + preViewMinimumFactor ) );
+                                             ( 1 + preViewMinimumFactor ) );
 
                 preViewTop = slideViewHeight + preViewGap;
 
@@ -2518,8 +2518,8 @@
             if ( ( cssConsole === undefined || cssConsole === cssFileOldDefault ) &&
                  ( cssIframe === undefined  || cssIframe === cssFileIframeOldDefault ) ) {
                 window.console.log( 'impressConsole().init() is deprecated. ' +
-                                    'impressConsole is now initialized automatically when you ' +
-                                    'call impress().init().' );
+                                   'impressConsole is now initialized automatically when you ' +
+                                   'call impress().init().' );
             }
             _init( cssConsole, cssIframe );
         };
@@ -2542,7 +2542,7 @@
 
         // Return the object
         allConsoles[ rootId ] = { init: init, open: open, clockTick: clockTick,
-                                  registerKeyEvent: registerKeyEvent, _init: _init };
+                               registerKeyEvent: registerKeyEvent, _init: _init };
         return allConsoles[ rootId ];
 
     };
@@ -2555,7 +2555,7 @@
 
         // Add 'P' to the help popup
         triggerEvent( document, 'impress:help:add',
-                      { command: 'P', text: 'Presenter console', row: 10 } );
+                        { command: 'P', text: 'Presenter console', row: 10 } );
     } );
 
     // Returns a string to be used inline as a css <style> element in the console window.
@@ -3001,8 +3001,8 @@
     document.addEventListener( "impress:init", function( event ) {
         var body = document.body;
         if ( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent
-        ) ) {
+                 navigator.userAgent
+             ) ) {
             body.classList.add( "impress-mobile" );
         }
 
@@ -3027,20 +3027,20 @@
     // classes. (Naming rules would require us to use css classes mobile-next and mobile-prev,
     // based on plugin name.)
     document.addEventListener( "impress:stepenter", function( event ) {
-	    var oldprev = document.getElementsByClassName( "prev" )[ 0 ];
-	    var oldnext = document.getElementsByClassName( "next" )[ 0 ];
+	      var oldprev = document.getElementsByClassName( "prev" )[ 0 ];
+	      var oldnext = document.getElementsByClassName( "next" )[ 0 ];
 
-	    var prev = getPrevStep( event.target );
-	    prev.classList.add( "prev" );
-	    var next = getNextStep( event.target );
-	    next.classList.add( "next" );
+	      var prev = getPrevStep( event.target );
+	      prev.classList.add( "prev" );
+	      var next = getNextStep( event.target );
+	      next.classList.add( "next" );
 
-	    if ( typeof oldprev !== "undefined" ) {
-		    oldprev.classList.remove( "prev" );
-        }
-	    if ( typeof oldnext !== "undefined" ) {
-		    oldnext.classList.remove( "next" );
-        }
+	      if ( typeof oldprev !== "undefined" ) {
+		      oldprev.classList.remove( "prev" );
+              }
+	      if ( typeof oldnext !== "undefined" ) {
+		      oldnext.classList.remove( "next" );
+              }
     } );
 } )( document );
 
@@ -3202,24 +3202,25 @@
             if ( isNavigationEvent( event ) ) {
                 if ( event.shiftKey ) {
                     switch ( event.keyCode ) {
-                    case 9: // Shift+tab
-                        api.prev();
-                        break;
+                        case 9: // Shift+tab
+                        case 32: // Shift+space
+                            api.prev();
+                            break;
                     }
                 } else {
                     switch ( event.keyCode ) {
-                    case 33: // Pg up
-                    case 37: // Left
-                    case 38: // Up
-                        api.prev( event );
-                        break;
-                    case 9:  // Tab
-                    case 32: // Space
-                    case 34: // Pg down
-                    case 39: // Right
-                    case 40: // Down
-                        api.next( event );
-                        break;
+                        case 33: // Pg up
+                        case 37: // Left
+                        case 38: // Up
+                                 api.prev( event );
+                                 break;
+                        case 9:  // Tab
+                        case 32: // Space
+                        case 34: // Pg down
+                        case 39: // Right
+                        case 40: // Down
+                                 api.next( event );
+                                 break;
                     }
                 }
                 event.preventDefault();
@@ -3272,7 +3273,7 @@
 
                 // Find closest step element that is not active
                 while ( !( target.classList.contains( "step" ) &&
-                           !target.classList.contains( "active" ) ) &&
+                        !target.classList.contains( "active" ) ) &&
                         ( target !== document.documentElement ) ) {
                     target = target.parentNode;
                 }
@@ -3351,7 +3352,7 @@
             // Omit steps that are listed as hidden from select widget
             if ( hideSteps.indexOf( steps[ i ] ) < 0 ) {
                 options = options + '<option value="' + steps[ i ].id + '">' + // jshint ignore:line
-                steps[ i ].id + '</option>' + '\n'; // jshint ignore:line
+                                    steps[ i ].id + '</option>' + '\n'; // jshint ignore:line
             }
         }
         return options;
@@ -3364,24 +3365,24 @@
         steps = root.querySelectorAll( '.step' );
 
         var prevHtml   = '<button id="impress-navigation-ui-prev" title="Previous" ' +
-            'class="impress-navigation-ui">&lt;</button>';
+                         'class="impress-navigation-ui">&lt;</button>';
         var selectHtml = '<select id="impress-navigation-ui-select" title="Go to" ' +
-            'class="impress-navigation-ui">' + '\n' +
-            selectOptionsHtml() +
-            '</select>';
+                         'class="impress-navigation-ui">' + '\n' +
+                           selectOptionsHtml() +
+                           '</select>';
         var nextHtml   = '<button id="impress-navigation-ui-next" title="Next" ' +
-            'class="impress-navigation-ui">&gt;</button>';
+                         'class="impress-navigation-ui">&gt;</button>';
 
         prev = makeDomElement( prevHtml );
         prev.addEventListener( 'click',
-                               function() {
-                                   api.prev();
-                               } );
+            function() {
+                api.prev();
+        } );
         select = makeDomElement( selectHtml );
         select.addEventListener( 'change',
-                                 function( event ) {
-                                     api.goto( event.target.value );
-                                 } );
+            function( event ) {
+                api.goto( event.target.value );
+        } );
         gc.addEventListener( root, 'impress:steprefresh', function( event ) {
 
             // As impress.js core now allows to dynamically edit the steps, including adding,
@@ -3396,9 +3397,9 @@
         } );
         next = makeDomElement( nextHtml );
         next.addEventListener( 'click',
-                               function() {
-                                   api.next();
-                               } );
+            function() {
+                api.next();
+        } );
 
         triggerEvent( toolbar, 'impress:toolbar:appendChild', { group: 0, element: prev } );
         triggerEvent( toolbar, 'impress:toolbar:appendChild', { group: 0, element: select } );
@@ -3440,23 +3441,23 @@
         var steps = root.querySelectorAll( ".step" );
         for ( var i = 0; i < steps.length; i++ )
         {
-            stepids[ i + 1 ] = steps[ i ].id;
+          stepids[ i + 1 ] = steps[ i ].id;
         }
-    };
+        };
 
     // Wait for impress.js to be initialized
     document.addEventListener( "impress:init", function( event ) {
-        root = event.target;
+            root = event.target;
         getSteps();
         var gc = event.detail.api.lib.gc;
         gc.pushCallback( function() {
             stepids = [];
             if ( progressbar ) {
                 progressbar.style.width = "";
-            }
+                        }
             if ( progress ) {
                 progress.innerHTML = "";
-            }
+                        }
         } );
     } );
 
@@ -3478,7 +3479,7 @@
     function updateProgressbar( slideId ) {
         var slideNumber = stepids.indexOf( slideId );
         if ( null !== progressbar ) {
-            var width = 100 / ( stepids.length - 1 ) * ( slideNumber );
+                        var width = 100 / ( stepids.length - 1 ) * ( slideNumber );
             progressbar.style.width = width.toFixed( 2 ) + "%";
         }
         if ( null !== progress ) {
@@ -3575,16 +3576,47 @@
             prev = { x:0, y:0, z:0, relative: { x:0, y:0, z:0 } };
         }
 
-        var step = {
-            x: toNumber( data.x, prev.x ),
-            y: toNumber( data.y, prev.y ),
-            z: toNumber( data.z, prev.z ),
-            relative: {
-                x: toNumberAdvanced( data.relX, prev.relative.x ),
-                y: toNumberAdvanced( data.relY, prev.relative.y ),
-                z: toNumberAdvanced( data.relZ, prev.relative.z )
+        if ( data.relTo ) {
+
+            var ref = document.getElementById( data.relTo );
+            if ( ref ) {
+
+                // Test, if it is a previous step that already has some assigned position data
+                if ( el.compareDocumentPosition( ref ) & Node.DOCUMENT_POSITION_PRECEDING ) {
+                    prev.x = toNumber( ref.getAttribute( "data-x" ) );
+                    prev.y = toNumber( ref.getAttribute( "data-y" ) );
+                    prev.z = toNumber( ref.getAttribute( "data-z" ) );
+                    prev.relative = {};
+                } else {
+                    window.console.error(
+                        "impress.js rel plugin: Step \"" + data.relTo + "\" is not defined " +
+                        "*before* the current step. Referencing is limited to previously defined " +
+                        "steps. Please check your markup. Ignoring data-rel-to attribute of " +
+                        "this step. Have a look at the documentation for how to create relative " +
+                        "positioning to later shown steps with the help of the goto plugin."
+                    );
+                }
+            } else {
+
+                // Step not found
+                window.console.warn(
+                    "impress.js rel plugin: \"" + data.relTo + "\" is not a valid step in this " +
+                    "impress.js presentation. Please check your markup. Ignoring data-rel-to " +
+                    "attribute of this step."
+                );
             }
-        };
+        }
+
+        var step = {
+                x: toNumber( data.x, prev.x ),
+                y: toNumber( data.y, prev.y ),
+                z: toNumber( data.z, prev.z ),
+                relative: {
+                    x: toNumberAdvanced( data.relX, prev.relative.x ),
+                    y: toNumberAdvanced( data.relY, prev.relative.y ),
+                    z: toNumberAdvanced( data.relZ, prev.relative.z )
+                }
+            };
 
         // Relative position is ignored/zero if absolute is given.
         // Note that this also has the effect of resetting any inherited relative values.
@@ -3959,42 +3991,42 @@
     } );
 
     document.addEventListener( "touchmove", function( event ) {
-        var x = event.touches[ 0 ].clientX;
-        var diff = x - startX;
+         var x = event.touches[ 0 ].clientX;
+         var diff = x - startX;
 
-        // To be used in touchend
-        lastDX = lastX - x;
-        lastX = x;
+         // To be used in touchend
+         lastDX = lastX - x;
+         lastX = x;
 
-        window.impress().swipe( diff / window.innerWidth );
-    } );
+         window.impress().swipe( diff / window.innerWidth );
+     } );
 
-    document.addEventListener( "touchend", function() {
-        var totalDiff = lastX - startX;
-        if ( Math.abs( totalDiff ) > window.innerWidth / 5 && ( totalDiff * lastDX ) <= 0 ) {
-            if ( totalDiff > window.innerWidth / 5 && lastDX <= 0 ) {
-                window.impress().prev();
-            } else if ( totalDiff < -window.innerWidth / 5 && lastDX >= 0 ) {
-                window.impress().next();
-            }
-        } else if ( Math.abs( lastDX ) > threshold ) {
-            if ( lastDX < -threshold ) {
-                window.impress().prev();
-            } else if ( lastDX > threshold ) {
-                window.impress().next();
-            }
-        } else {
+     document.addEventListener( "touchend", function() {
+         var totalDiff = lastX - startX;
+         if ( Math.abs( totalDiff ) > window.innerWidth / 5 && ( totalDiff * lastDX ) <= 0 ) {
+             if ( totalDiff > window.innerWidth / 5 && lastDX <= 0 ) {
+                 window.impress().prev();
+             } else if ( totalDiff < -window.innerWidth / 5 && lastDX >= 0 ) {
+                 window.impress().next();
+             }
+         } else if ( Math.abs( lastDX ) > threshold ) {
+             if ( lastDX < -threshold ) {
+                 window.impress().prev();
+             } else if ( lastDX > threshold ) {
+                 window.impress().next();
+             }
+         } else {
 
-            // No movement - move (back) to the current slide
-            window.impress().goto( document.querySelector( "#impress .step.active" ) );
-        }
-    } );
+             // No movement - move (back) to the current slide
+             window.impress().goto( document.querySelector( "#impress .step.active" ) );
+         }
+     } );
 
-    document.addEventListener( "touchcancel", function() {
+     document.addEventListener( "touchcancel", function() {
 
-        // Move (back) to the current slide
-        window.impress().goto( document.querySelector( "#impress .step.active" ) );
-    } );
+             // Move (back) to the current slide
+             window.impress().goto( document.querySelector( "#impress .step.active" ) );
+     } );
 
 } )( document, window );
 

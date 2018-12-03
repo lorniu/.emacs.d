@@ -81,7 +81,6 @@ body.impress-mouse-timeout { cursor: none; }
 </style>
 
 <style>
-body { background: #eee; } h1 { margin-top: 120px; color: darkgreen; font-size: 100px; }
 pre { padding: 12px 20px; border:1px solid #666; border-radius: 3px; margin-left: 10px; background: white; }
 .slide {
 background: rgba(255,255,255,0.9); border-radius: 10px; box-shadow: 0 0 30px #000;
@@ -101,13 +100,13 @@ width: 1000px; height: 650px; padding: 20px 60px; box-sizing: border-box; font-s
 <h1>ox-impress</h1>
 <div id="postamble" class="status">
 <p class="author">Author: imfine</p>
-<p class="date">Created: 2018-04-12 Thu 22:13</p>
+<p class="date">Created: 2018-12-01 Sat 16:01</p>
 <p class="validation">Go ahead, never stop.</p>
 </div>
 </section>
 
 
-<section id="step-1" class="step slide outline-1" data-rotate-y="27.7" data-x="1000" data-z="-250">
+<section id="step-1" class="step slide outline-1" data-rotate-y="27.7" data-x="1500" data-z="0">
 
 <h2>Why another one?</h2>
 <div class="outline-text-2" id="text-1">
@@ -124,9 +123,7 @@ I googled and tried a lot, but at last I decide to write a new one.
 </div>
 </section>
 
-<section id="step-2" class="step slide outline-1" data-rotate-y="55.4" data-x="1250" data-z="-500">
-
-<h2>Requirements</h2>
+<section id="step-2" class="step slide outline-1">
 <div class="outline-text-2" id="text-2">
 <p>
 I'm using emacs 25 and org 9, and this works well:
@@ -141,9 +138,7 @@ I'm using emacs 25 and org 9, and this works well:
 </div>
 </section>
 
-<section id="step-3" class="step slide outline-1" data-rotate-y="83.1" style="font-size: 32px;">
-
-<h2>Installation</h2>
+<section id="step-3" class="step slide outline-1" style="font-size: 32px;">
 <div class="outline-text-2" id="text-3">
 <ol class="org-ol">
 <li>Download <code>Impress.js</code> from <a href="https://github.com/impress/impress.js/">here</a>, and extract it to your favorite
@@ -154,16 +149,14 @@ Download this <code>ox-impress.el</code> to your emacs load-path,
 then load it with:
 </p>
 <div class="org-src-container">
-<pre class="src src-elisp"><span style="color: #707183;">(</span><span style="color: #a020f0;">require</span> <span style="color: #008b8b;">ox-impress</span><span style="color: #707183;">)</span>
+<pre class="src src-elisp"><span style="color: #8c8c8c;">(</span><span style="color: #00ffff;">require</span> <span style="color: #8470ff; font-weight: bold;">ox-impress</span><span style="color: #8c8c8c;">)</span>
 </pre>
 </div></li>
 </ol>
 </div>
 </section>
 
-<section id="step-4" class="step outline-1" data-rotate-y="110.8" style="font-size: 24px; background:white; border-radius: 10px; font-style: italic;">
-
-<h2>API - Global Vars</h2>
+<section id="step-4" class="step outline-1" style="font-size: 24px; background:white; border-radius: 10px; font-style: italic;">
 <div class="outline-text-2" id="text-4">
 <table>
 <caption class="t-above"><span class="table-number">Table 1:</span> In global config file, these variables can be used</caption>
@@ -228,9 +221,7 @@ then load it with:
 </div>
 </section>
 
-<section id="step-5" class="step outline-1" data-rotate-y="138.5" style="font-size: 24px; padding: 40px 80px; box-shadow: inset 0 0 50px #000;">
-
-<h2>API - Inbuffer Properties</h2>
+<section id="step-5" class="step outline-1" style="font-size: 24px; padding: 40px 80px; box-shadow: inset 0 0 50px #000;">
 <div class="outline-text-2" id="text-5">
 <table>
 <caption class="t-above"><span class="table-number">Table 2:</span> Or use buffer-local properties as:</caption>
@@ -295,9 +286,7 @@ then load it with:
 </div>
 </section>
 
-<section id="step-6" class="step slide outline-1" data-rotate-y="166.2" style="font-size: 24px;">
-
-<h2>API - Inbuffer Options</h2>
+<section id="step-6" class="step slide outline-1" style="font-size: 24px;">
 <div class="outline-text-2" id="text-6">
 <table>
 <caption class="t-above"><span class="table-number">Table 3:</span> Also, these can be config in <code>#+OPTION:</code> of the .org file:</caption>
@@ -339,10 +328,10 @@ then load it with:
 For example:
 </p>
 <div class="org-src-container">
-<pre class="src src-org"><span style="color: #b22222;">#+OPTIONS: toc:nil tb:t pg:t single:1</span>
-<span style="color: #b22222;">#+OPTIONS: default_style:nil</span>
-<span style="color: #b22222;">#+IMPRESS_FILE_CSS: ./my-custom.css</span>
-<span style="color: #b22222;">#+IMPRESS_BASE_CLASS: step slide</span>
+<pre class="src src-org"><span style="color: #ff7f24; font-style: italic;">#+OPTIONS: toc:nil tb:t pg:t single:1</span>
+<span style="color: #ff7f24; font-style: italic;">#+OPTIONS: default_style:nil</span>
+<span style="color: #ff7f24; font-style: italic;">#+IMPRESS_FILE_CSS: ./my-custom.css</span>
+<span style="color: #ff7f24; font-style: italic;">#+IMPRESS_BASE_CLASS: step slide</span>
 </pre>
 </div>
 
@@ -350,9 +339,7 @@ For example:
 </div>
 </section>
 
-<section id="step-7" class="step slide outline-1" data-rotate-y="193.9" style="font-size: 22px; background:white; padding: 20px 40px;">
-
-<h2>A headline is a step</h2>
+<section id="step-7" class="step slide outline-1" data-rotate-y="493.9" style="font-size: 22px; background:white; padding: 20px 40px;">
 <div class="outline-text-2" id="text-7">
 <p>
 You can set variables for it with drawer properties:
@@ -381,26 +368,24 @@ x:33 y:44 rotate:30 transition-duration:3000         ===&gt;
 </div>
 </section>
 
-<section id="step-8" class="step slide outline-1" data-rotate-y="221.6" style="font-size: 19px;">
-
-<h2>This is just a simple demo for a node</h2>
+<section id="step-8" class="step slide outline-1" data-rotate-y="521.6" style="font-size: 19px;">
 <div class="outline-text-2" id="text-8">
 <div class="org-src-container">
-<pre class="src src-org"><span style="color: #0000ff;">* this is a node/step</span>
-<span style="color: #a020f0;">:PROPERTIES:</span>
-<span style="color: #a020f0;">:CUSTOM_ID:</span> id_for_the_step_if_set_or_will_be_STEP-N
-<span style="color: #a020f0;">:DATA:</span> x:333 y:444 rel-z:555 rotate:66
-<span style="color: #a020f0;">:CLASS:</span> step slide classes_add/rm/override_based_default
-<span style="color: #a020f0;">:STYLE:</span> color: red; padding: 3333 ...
-<span style="color: #a020f0;">:END:</span>
+<pre class="src src-org"><span style="color: #87cefa;">* this is a node/step</span>
+<span style="color: #ffa07a;">:PROPERTIES:</span>
+<span style="color: #ffa07a;">:CUSTOM_ID:</span> id_for_the_step_if_set_or_will_be_STEP-N
+<span style="color: #ffa07a;">:DATA:</span> x:333 y:444 rel-z:555 rotate:66
+<span style="color: #ffa07a;">:CLASS:</span> step slide classes_add/rm/override_based_default
+<span style="color: #ffa07a;">:STYLE:</span> color: red; padding: 3333 ...
+<span style="color: #ffa07a;">:END:</span>
 
   Configurations for this node/step ONLY.
 
-<span style="color: #0000ff;">* Another node/step</span>
+<span style="color: #87cefa;">* Another node/step</span>
 
   When no property drawer, will generate 'div' with default config.
 
-<span style="color: #0000ff;">* +A headline title with a '+' prefix</span>
+<span style="color: #87cefa;">* +A headline title with a '+' prefix</span>
 
   When headline title with a '+', then the generated step will have a '&lt;h1&gt;' node, or omit..
 
@@ -413,15 +398,13 @@ Yes, syntax is so similar with the one in `impress.js`, but much easier and clea
 </div>
 </section>
 
-<section id="step-9" class="step slide outline-1" data-rotate-y="249.2" style="font-size: 24px;">
-
-<h2>Miscellaneous</h2>
+<section id="step-9" class="step slide outline-1" data-rotate-y="619.2" style="font-size: 24px;">
 <div class="outline-text-2" id="text-9">
 <p>
 Config for the welcome page, just like this:
 </p>
 <div class="org-src-container">
-<pre class="src src-org"><span style="color: #b22222;">#+IMPRESS_HOME: x:44 y:55 class:step slide</span>
+<pre class="src src-org"><span style="color: #ff7f24; font-style: italic;">#+IMPRESS_HOME: x:44 y:55 class:step slide</span>
 </pre>
 </div>
 
@@ -445,9 +428,7 @@ config <code>#+IMPRESS_ROOT:</code> property.
 </div>
 </section>
 
-<section id="step-10" class="step slide outline-1" data-rotate-y="277" style="font-size: 26px;">
-
-<h2>For More</h2>
+<section id="step-10" class="step slide outline-1" data-rotate-y="777" style="font-size: 26px;">
 <div class="outline-text-2" id="text-10">
 <p>
 You can make the most of org-mode to your presentation, eg <code>babel</code>, <code>graph</code> etc.
@@ -471,9 +452,7 @@ Read it, test it and extend it.
 </div>
 </section>
 
-<section id="step-11" class="step slide outline-1" data-rotate-y="307.4">
-
-<h2>Thanks</h2>
+<section id="step-11" class="step slide outline-1" data-rotate-y="907.4">
 <div class="outline-text-2" id="text-11">
 <p>
 Courtesy to:
@@ -489,9 +468,7 @@ the impressive impress.js.
 </div>
 </section>
 
-<section id="step-12" class="step slide outline-1" data-rotate-y="332.4">
-
-<h2>Copyright</h2>
+<section id="step-12" class="step slide outline-1" data-rotate-y="932.4">
 <div class="outline-text-2" id="text-12">
 <p>
 Copyright 2018 lorniu@gmail.com.

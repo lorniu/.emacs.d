@@ -29,7 +29,8 @@
 
     ;; edit and utils
     expand-region dired-du session attrap syntax-subword
-    magit neotree engine-mode youdao-dictionary dired-dups
+    neotree engine-mode youdao-dictionary dired-dups
+    magit git-timemachine
 
     ;; search and nav
     ag wgrep-ag anzu smex ivy hydra ace-window ivy-pages
@@ -61,18 +62,15 @@
 
 ;;; Basic Variables
 
-(setq default-directory        "~/"
-      user-full-name           "imfine"
+(setq user-full-name           "imfine"
       user-mail-address        "lorniu@gmail.com"
-      eshell-aliases-file      "~/.emacs.d/ass/eshell-alias"
+
+      default-directory        "~/"
       _CACHE_                  "~/.cache/emacs/"
       bbdb-file                (concat _CACHE_ "_bbdb")
       diary-file               (concat _CACHE_ "_diary")
-      bookmark-default-file    (concat _CACHE_ "_bookmark")
       abbrev-file-name         (concat _CACHE_ "_abbrevs")
-      recentf-save-file        (concat _CACHE_ "_recentf")
-      eshell-directory-name    (concat _CACHE_ "eshell")
-      org-publish-timestamp-directory (concat _CACHE_ "org-publish-timestamp/")
+      bookmark-default-file    (concat _CACHE_ "_bookmark")
 
       auto-save-interval 0
       auto-save-list-file-prefix nil

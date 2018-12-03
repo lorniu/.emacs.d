@@ -34,6 +34,7 @@
         org-export-copy-to-kill-ring     nil
         org-publish-list-skipped-files   nil
         org-blank-before-new-entry       '((heading . t) (plain-list-item . nil))
+        org-publish-timestamp-directory  (concat _CACHE_ "org-publish-timestamp/")
 
         org-html-html5-fancy             t
         org-html-doctype                 "html5"
@@ -171,7 +172,7 @@
 
    ;; Miscellaneous
    (x ox :config (add-to-list 'org-export-filter-paragraph-functions '-my/org-clean-space))
-   (require 'ox-impress)
+   (require 'ox-spectacle)
    (require 'org-download))
 
 (defun -my/org-clean-space (text backend info)
