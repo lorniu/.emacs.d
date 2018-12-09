@@ -1,11 +1,10 @@
 ;;;; immor.el --- Modules Configuration
 ;;; Commentary:
 
-;; Download Mirror:
+;; Download Emacs Mirror:
 ;; http://mirrors.ustc.edu.cn/gnu/emacs/windows/
 
 ;;; Code:
-
 
 ;;; Auto-Mode
 
@@ -14,7 +13,6 @@
         ("\\.class\\'"                . class-mode)
         ("\\.scm\\'"                  . scheme-mode)
         ("\\.\\(ba\\)?sh\\'"          . sh-mode)))
-
 
 ;;; Display-Buffer
 
@@ -26,7 +24,6 @@
          (display-buffer-reuse-window display-buffer-at-bottom))
         ("\\*\\(e?shell\\|Python\\)\\*"
          display-buffer-same-window)))
-
 
 ;;; Common-Hooks
 
@@ -68,10 +65,8 @@
    (add-hook 'after-save-hook   '-my/el-compile)
    (add-hook 'auto-save-hook    '-my/idle-once)))
 
-
 
 ;;;; Basic-Modes
-
 
 (x winner :init (winner-mode 1))
 (x paren :init (show-paren-mode 1))
@@ -89,9 +84,9 @@
    (setq auto-revert-mode-text "")
    (global-auto-revert-mode))
 
-(x syntax-subword :init ;; vi-like word move
+(x syntax-subword :init
+   ;; vi-like word move
    (setq syntax-subword-skip-spaces t))
-
 
 ;;; Ediff
 
@@ -99,7 +94,6 @@
    (setq ediff-window-setup-function 'ediff-setup-windows-plain)
    (setq-default ediff-highlight-all-diffs 'nil)
    (setq ediff-diff-options "-w"))
-
 
 ;;; Auto-Highlight-Symbol
 
@@ -117,7 +111,6 @@
    (autoload 'global-ahs-mode "auto-highlight-symbol")
    (global-ahs-mode 1))
 
-
 ;;; Page Line Break
 
 (x page-break-lines/e
@@ -125,7 +118,6 @@
    (setq page-break-lines-lighter "")
    (nconc page-break-lines-modes '(web-mode css-mode))
    (global-page-break-lines-mode))
-
 
 ;;; Isearch/Anzu/Occur
 
@@ -144,7 +136,6 @@
               (occur (read-from-minibuffer "Occurs: " str nil nil 'regexp-history))))
   (advice-add 'occur :after ; After Ocur, jump to the result buffer.
               (lambda (&rest _) (aif (get-buffer-window "*Occur*") (select-window it)))))
-
 
 ;;; Ibuffer
 
@@ -169,7 +160,6 @@
    (add-hook-lambda 'ibuffer-mode-hook
      (ibuffer-switch-to-saved-filter-groups "default")))
 
-
 ;;; Dired/Neotree/Ivy/Swiper/Projectile
 
 (x wdired/e
@@ -189,7 +179,8 @@
      (setq ls-lisp-dirs-first t)
      (setq ls-lisp-UCA-like-collation nil)))
 
-(x wgrep/e :init (setq wgrep-enable-key "r"))
+(x wgrep/e :init
+   (setq wgrep-enable-key "r"))
 
 (x neotree/x :init
    (setq neo-theme 'arrow
@@ -222,7 +213,6 @@
    :config
    (add-to-list 'projectile-project-root-files ".pro")
    (add-to-list 'projectile-project-root-files "package.json"))
-
 
 ;;; HS-Minor-Mode/Outline-Minor-Mode
 
@@ -261,7 +251,6 @@
       "\\(def\\|do\\|{\\)" "\\(end\\|end\\|}\\)" "#"
       (lambda (arg) (ruby-end-of-block)) nil)))
 
-
 ;;; Hydra/Ace-Window
 
 (x hydra :init
@@ -279,7 +268,6 @@
    :bind ("C-x w" . ace-window)
    :config
    (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
-
 
 ;;; Shell
 
@@ -334,14 +322,20 @@
          (send-string-to-terminal (format "\033]83;screen %s\007" cmd)))
         (t (apply 'eshell-exec-visual (cons "ssh" args)))))))
 
-
 ;;; Tramp
 
-(x tramp/w :init
-   (setq tramp-default-user "root"
-         tramp-default-method "sshx")
+(x tramp/w
+   "Common ssh CONNECTIONS:
+   "
+   " - M-x ssh-edit
+   "
+   :init
+   (setq
+    tramp-my-hosts
+    '(("ygmall" . "/sshx:Administrator@120.24.78.141:/c/soft/phpstudy/WWW/ygmall")
+      ("vps.45" . "/sshx:root@45.63.55.2:~/")))
 
-   ;; optimize
+   (setq tramp-default-user "root" tramp-default-method "sshx")
    (setq remote-file-name-inhibit-cache nil)
    (setq vc-ignore-dir-regexp (format "%s\\|%s" vc-ignore-dir-regexp tramp-file-name-regexp))
    (setq tramp-verbose 1)
@@ -350,20 +344,15 @@
    (defun ssh-edit ()
      "Shortcut for remote site."
      (interactive)
-     (let* ((hosts
-             '(("ygmall" . "/sshx:Administrator@120.24.78.141:/c/soft/phpstudy/WWW/ygmall")
-               ("vps.45" . "/sshx:root@45.63.55.2:~/")))
-            (item (completing-read "Connect to: " (mapcar 'car hosts)))
-            (host (or (cdr (assoc-string item hosts)) item)))
+     (let* ((item (completing-read "Connect to: " (mapcar 'car tramp-my-hosts)))
+            (host (or (cdr (assoc-string item tramp-my-hosts)) item)))
        (find-file host))))
-
 
 ;;; Edebug
 
 (x edebug :init
    (add-hook-lambda 'edebug-mode-hook
      (view-mode -1)))
-
 
 ;;; View
 
@@ -376,23 +365,24 @@
          ( "%"     .  his-match-paren )
          ( "<DEL>" .  nil )))
 
-
 ;;; Magit
 
 (when (executable-find "git")
+  (x git-auto-commit/e)
+
   (x magit/w
      :bind ("C-c m" . magit-status)
-     :init (magit-auto-revert-mode -1))
-  (x git-auto-commit/e))
-
+     :init (magit-auto-revert-mode -1)))
 
 ;;; Translate
 
-(x youdao-dictionary/w :init ;; pacman -S mpg123
-   (setq url-automatic-caching t
-         ;; youdao-dictionary-use-chinese-word-segmentation t
-         youdao-dictionary-search-history-file (concat _CACHE_ ".youdao")))
-
+(x youdao-dictionary/w
+   "pacman -S mpg123
+   "
+   "youdao-dictionary-use-chinese-word-segmentation t
+   "
+   :init
+   (setq url-automatic-caching t youdao-dictionary-search-history-file (concat _CACHE_ ".youdao")))
 
 ;;; Engine Search
 
@@ -422,10 +412,8 @@
    (defengine youtube
      "http://www.youtube.com/results?aq=f&oq=&search_query=%s"))
 
-
 
 ;;;; Programer - Common
-
 
 (x eldoc/v)
 
@@ -436,7 +424,6 @@
            (abbrev-mode 1)
            (rainbow-delimiters-mode 1)
            (which-function-mode 1)))
-
 
 ;;; Flycheck/Flyspell
 
@@ -449,7 +436,6 @@
           (prog-mode . flyspell-prog-mode)
           (rcirc-mode . flyspell-mode))
    :config (ispell-change-dictionary "american" t))
-
 
 ;;; Abbrev/Hippie-Expand/Company-Mode/Yasnippet
 
@@ -497,7 +483,6 @@
 
    (yas-global-mode 1))
 
-
 ;;; Compile Buffer
 
 (x compile
@@ -510,43 +495,12 @@
                        (aw-switch-to-window it)
                        (set-window-dedicated-p it wstat)))))))
 
-
 
-;;;; Programer - Languages
-
-;;; SQL
-;;
-;; M-x: sql-connect/sql-postgres
-;;
-
-;;; Sql-Client
-
-(x sql
-   :init
-   (setq sql-connection-alist
-         '((postgres/45
-            (sql-product 'postgres)
-            (sql-server "45.63.55.2")
-            (sql-database "imdev")
-            (sql-user "vip"))
-           (mysql/45
-            (sql-product 'mysql)
-            (sql-server "45.63.55.2")
-            (sql-port 3306)
-            (sql-database "test")
-            (sql-user "root"))))
-   :config
-   (add-hook 'sql-interactive-mode-hook 'im/mono-font-for-buffer)
-   (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
-
-   (env-windows
-    (setq sql-mysql-options '("-C" "-t" "-f" "-n"))
-    (add-hook 'sql-interactive-mode-hook 'im/cp936-encoding)))
-
-
-;;; lsp-mode
+;;;; Programer - LSP
 
 (x lsp-mode)
+
+;; (x dap-mode)
 
 (x lsp-ui
    :init
@@ -563,16 +517,46 @@
    (setq company-transformers nil)
    (push 'company-lsp company-backends))
 
+
+;;;; Programer - Languages
+
+;;; SQL-Client
+
+(x sql
+   "M-x: sql-connect/sql-postgres"
+
+   :init
+   (setq sql-connection-alist
+         '((postgres/45
+            (sql-product 'postgres)
+            (sql-server "45.63.55.2")
+            (sql-database "imdev")
+            (sql-user "vip"))
+           (mysql/45
+            (sql-product 'mysql)
+            (sql-server "45.63.55.2")
+            (sql-port 3306)
+            (sql-database "test")
+            (sql-user "root"))))
+
+   :config
+   (add-hook 'sql-interactive-mode-hook 'im/mono-font-for-buffer)
+   (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
+
+   (env-windows
+    (setq sql-mysql-options '("-C" "-t" "-f" "-n"))
+    (add-hook 'sql-interactive-mode-hook 'im/cp936-encoding)))
 
 ;;; CC-Mode
-;;
-;; If use lsp, need cquery support
-;;
-;;    # pacman -S cquery-git
-;;
-;; CEDET + ECB is a choice, and Irony for C++ for another choice.
-;;
-(x cc-mode/w :config
+
+(x cc-mode/w
+   "If use lsp, need cquery support
+   "
+   "   # pacman -S cquery-git
+   "
+   "CEDET + ECB is a choice, and Irony for C++ is another choice.
+   "
+   :config
    (setq-default c-basic-offset     4
                  gdb-many-windows   t
                  gdb-show-main      t)
@@ -630,10 +614,12 @@
    (global-semantic-idle-scheduler-mode 1)
    (global-semantic-stickyfunc-mode 1))
 
-
 ;;; Lisp/SLIME (The Superior Lisp Interaction Mode for Emacs)
 
-(x slime :config
+(x slime :init
+   (add-hook-lambda 'lisp-mode-hook (electric-pair-mode 1))
+
+   :config
    (setq inferior-lisp-program (seq-find #'executable-find '("sbcl" "ccl" "clisp")))
    (slime-setup '(slime-fancy slime-company))
 
@@ -686,22 +672,20 @@
    (add-hook-lambda 'slime-repl-mode-hook
      (define-key slime-repl-mode-map (kbd "TAB") 'hippie-expand)))
 
-(add-hook-lambda 'lisp-mode-hook (electric-pair-mode 1))
-
-
 ;;; Haskell
-;;
-;;  Basic usage, with interactive-mode
-;;
-;;  Advanced usage, with Intero, IDE-like, based on Stack:
-;;
-;;    pacman -S stack
-;;
-;;  Intero will take a long time to initialize for the first time, download a lot!
-;;
-;;  Get out, intero! Toooo much disk space used! Change to Dante 20180513, saved 3G space...
-;;
-(x haskell-mode :init
+
+(x haskell-mode
+   "Basic usage, with interactive-mode
+   "
+   "Advanced usage, with Intero, IDE-like, based on Stack:
+   "
+   "  pacman -S stack
+   "
+   "Intero will take a long time to initialize for the first time, download a lot!
+   "
+   "Get out, intero! Toooo much disk space used! Change to Dante 20180513, saved 3G space...
+   "
+   :init
    (setq haskell-tags-on-save nil
          haskell-process-log t
          haskell-process-show-debug-tips nil
@@ -720,19 +704,17 @@
            (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))
    :config (im/patch))
 
-
 ;;; Erlang
 ;; Distel is said a good IDE. try some day.
 ;; other setups later too.
 
-
 ;;; Python-Elpy
-;;
-;;  Install these modules for more features
-;;  - pip install jedi importmagic
-;;  - pip install flake8 autopep8
-;;
+
 (x python
+   "Install these modules for more features
+    - pip install jedi importmagic
+    - pip install flake8 autopep8"
+
    :interpreter ("python" . python-mode)
    :config
    (when (executable-find "python")
@@ -741,17 +723,17 @@
       (setq python-shell-completion-native-enable nil)
       (add-hook 'inferior-python-mode-hook 'im/cp936-encoding))))
 
-
 ;;; Ruby-Mode
-;;
-;;  Rinari is a collection to develop RoR
-;;
-;;  Inf-ruby provide a REPL
-;;
-;;  Robe-mode provide company backend.
-;;    - gem install pry.
-;;
+
 (x ruby-mode
+   "Rinari is a collection to develop RoR
+   "
+   "Inf-ruby provide a REPL
+   "
+   "Robe-mode provide company backend.
+   "
+   "  - gem install pry
+   "
    :hook ((ruby-mode . inf-ruby-minor-mode)
           (ruby-mode . robe-mode))
    :config
@@ -764,16 +746,13 @@
              (ignore-errors (inf-ruby)))
          (robe-start)))))
 
-
 ;;; Golang
 
 (x go-mode
    :hook ((go-mode . smartparens-mode))
    :config
    (x company-go
-      :bind (:map go-mode-map
-                  ("M-." . godef-jump))))
-
+      :bind (:map go-mode-map ("M-." . godef-jump))))
 
 ;;; PHP
 
@@ -797,22 +776,23 @@
 
    (add-hook 'php-mode-hook 'my-php-stuff))
 
-
 ;;; Scala
 
 (x scala-mode
+   "M-x `ensime' to connect for this mode.
+   "
+   "To use ensime with sbt:
+   "
+   " echo 'addSbtPlugin(\"org.ensime\" % \"ensime-sbt\" % \"2.5.1\")' > ~/.sbt/1.0/plugins/plugins.sbt"
+   " sbt new xxx/tpl"
+   " sbt ensimeConfig
+   "
    :init
-   (defun -my/scala-mode-hook ()
-     (message "If want mode, M-x ensime to connect."))
    (setq scala-mode-hook '-my/scala-mode-hook)
 
    :config
-   ;; echo 'addSbtPlugin("org.ensime" % "ensime-sbt" % "2.5.1")' > ~/.sbt/1.0/plugins/plugins.sbt
-   ;; sbt new xxx/tpl
-   ;; sbt ensimeConfig
    (x ensime :config
       (setq ensime-startup-notification nil)))
-
 
 
 ;;;; Programer - Front-End
@@ -820,20 +800,29 @@
 ;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
 ;;  - 20181120, Servers as Elnode is more powerful but too old. Simpled-Httpd is simple and enough.
 ;;  - 20181120, Use Livereload replace Impatient! Websocket has a better experience than iframe.
-;;
+
 (x simple-httpd
+   "Start local server with port 5555:
+   "
+   " - M-x im/http-here
+   "
+   "Define your own servlet:
+   "
+   "  (defservlet time text/html () (insert (format \"%s\" (time))))
+   "
+   "Then you can visit with 'http://host:5555/time'
+   "
    :init
    (defun im/httpd-here ()
      (interactive)
      (httpd-start :port 5555 :root default-directory))
 
    :config (im/patch)
-
-   ;; servlets
    (defservlet time text/html ()
      (insert (format "<h1>%s</h1>" (time)))))
 
-(x livereload :commands (liveview liveload))
+(x livereload
+   :commands (liveview liveload))
 
 (x web-mode
    :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|css\\|vue\\)\\'"
@@ -907,7 +896,8 @@
      (make-local-variable 'js-indent-level)
      (setq js-indent-level 2)))
 
-(x web-beautify :if (executable-find "js-beautify"))
+(x web-beautify
+   :if (executable-find "js-beautify"))
 
 (x tide
    :delight " ť"
@@ -943,7 +933,17 @@
            (json-pretty-print-buffer))
          (message "File %s Generated!" dest))))
 
-   :config (im/patch)
+   :config
+   (defun tide-project-root ()
+     "Project root folder determined based on the presence of tsconfig.json."
+     (or tide-project-root
+         (let ((root (or (locate-dominating-file default-directory "tsconfig.json")
+                         (locate-dominating-file default-directory "jsconfig.json"))))
+           (unless root
+             (message "Using current %s as project root." (propertize default-directory 'face '(:foreground "ForestGreen")))
+             (setq root default-directory))
+           (let ((full-path (expand-file-name root)))
+             (setq tide-project-root full-path) full-path))))
 
    (defun -my/company-with-tide (f &rest args)
      "Complete with tide in SCRIPT block."
@@ -952,7 +952,6 @@
                                (or (string= (web-mode-language-at-pos) "javascript")
                                    (string= (web-mode-language-at-pos) "jsx"))))))
        (apply f args)))
-
    (advice-add 'company-tide :around '-my/company-with-tide))
 
 
