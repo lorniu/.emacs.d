@@ -1,11 +1,11 @@
-;;; patches.el --- Patches, Override
+;;; patches.el --- Patches, Overrides
 
 ;;; Code:
 
 (defconst patches-loaded t)
 
 
-;;; Haskell
+;;; Haskell Patch
 
 (defun haskell-process-type ()
   (let ((cabal-sandbox (locate-dominating-file default-directory "cabal.sandbox.config"))
@@ -73,25 +73,7 @@
                       (if match (list 'module (match-string 1 defined))))))))))))))
 
 
-
-;;; tide
-
-(defun tide-project-root ()
-  "Project root folder determined based on the presence of tsconfig.json."
-  (or
-   tide-project-root
-   (let ((root (or (locate-dominating-file default-directory "tsconfig.json")
-                   (locate-dominating-file default-directory "jsconfig.json"))))
-     (unless root
-       (message "Using current %s as project root." (propertize default-directory 'face '(:foreground "ForestGreen")))
-       (setq root default-directory))
-     (let ((full-path (expand-file-name root)))
-       (setq tide-project-root full-path)
-       full-path))))
-
-
-
-;;; Simple-Httpd
+;;; Simple-Httpd Patch
 
 (defvar httpd-maybe-cache t)
 (defvar httpd-body-docorator nil)

@@ -60,6 +60,35 @@
     ))
 
 
+;;; Use-Package
+
+(defvar im/need-idle-loads nil)
+(mapc 'require '(use-package delight bind-key))
+
+(defmacro defhelper (name &rest doc-strings)
+  "Make a helper function of NAME-helper to show the DOC-STRINGS."
+  (let ((fun-name (intern (concat "h/" (symbol-name name))))
+        (doc-string (mapconcat 'identity doc-strings "\n")))
+    `(defun ,fun-name () ,doc-string
+            (interactive) (describe-function ',fun-name))))
+
+(defmacro x (NAME &rest args)
+  " e:demand w:wait else:defer v:delight x:disabled "
+  (let* ((name-arr (split-string (symbol-name NAME) "/"))
+         (name (intern (car name-arr)))
+         (name-without-mode (replace-regexp-in-string "-mode" "" (car name-arr)))
+         (doc-strings (cl-loop for i in args until (keywordp i) collect i))
+         (args (cl-set-difference args doc-strings))
+         (flags (cadr name-arr)) x-options)
+    (push (if (seq-contains flags ?e) ':demand ':defer) x-options)
+    (if (seq-contains flags ?x) (push ':disabled x-options))
+    (if (seq-contains flags ?v) (push ':delight x-options))
+    `(progn
+       ,(if doc-strings `(defhelper ,(intern name-without-mode) ,@doc-strings))
+       ,(if (seq-contains flags ?w) `(add-to-list 'im/need-idle-loads ',name))
+       (use-package ,name ,@x-options ,@args))))
+
+
 ;;; Basic Variables
 
 (setq user-full-name           "imfine"
@@ -72,17 +101,17 @@
       abbrev-file-name         (concat _CACHE_ "_abbrevs")
       bookmark-default-file    (concat _CACHE_ "_bookmark")
 
-      auto-save-interval 0
-      auto-save-list-file-prefix nil
-      backup-directory-alist `((".*" . ,temporary-file-directory))
-      auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
-
       inhibit-startup-message  t
       gnus-inhibit-startup-message t
       track-eol                t
       visible-bell             nil
       ring-bell-function       'ignore
       confirm-kill-processes   nil
+
+      auto-save-interval 0
+      auto-save-list-file-prefix nil
+      backup-directory-alist `((".*" . ,temporary-file-directory))
+      auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
 
       scroll-step              1
       scroll-margin            0
@@ -116,24 +145,6 @@
 
 (mapc (lambda (x) (put x 'disabled nil))
       '(narrow-to-region narrow-to-page downcase-region upcase-region set-goal-column erase-buffer))
-
-
-;;; Use-Package
-
-(defvar im/need-idle-loads nil)
-(mapc 'require '(use-package delight bind-key))
-
-(defmacro x (NAME &rest args)
-  " e:demand w:wait else:defer v:delight x:disabled "
-  (let* ((name-arr (split-string (symbol-name NAME) "/"))
-         (name (intern (car name-arr)))
-         (flag (cadr name-arr)) x-options)
-    (push (if (seq-contains flag ?e) ':demand ':defer) x-options)
-    (if (seq-contains flag ?x) (push ':disabled x-options))
-    (if (seq-contains flag ?v) (push ':delight x-options))
-    `(progn
-       ,(if (seq-contains flag ?w) `(add-to-list 'im/need-idle-loads ',name))
-       (use-package ,name ,@x-options ,@args))))
 
 
 ;;; Editable
