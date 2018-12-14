@@ -31,7 +31,8 @@
      (env-linux         . (eq system-type 'gnu/linux))
      (env-linux-g       . (and (env-linux) (env-g)))
      (env-linux-ng      . (and (env-linux) (env-ng)))
-     (env-linux-vps     . (string= (system-name) "remote"))))
+     (env-linux-vps     . (string= (system-name) "remote"))
+     (env-macos         . (eq system-type 'darwin))))
 
 ;;; Load-Path/Theme-Path
 
