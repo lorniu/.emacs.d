@@ -12,11 +12,13 @@
 (defvar im/nix-font-cn "Source Han Sans CN")
 (defvar im/nix-frame-alist '(110 100))           ;; height:alpha
 
+(menu-bar-mode 0)
+(tool-bar-mode 0)
+
 
 ;;; Windows
 
 (env-windows
- (menu-bar-mode -1)
  ;; font
  (setq default-frame-alist
        `((title  . "νερό")
@@ -40,16 +42,13 @@
 
 ;;; Linux
 
-(env-linux-ng
+(env-ng
  (load-theme 'origin t)
- (menu-bar-mode 0)
  (xterm-mouse-mode)
  (global-set-key [mouse-4] (lambdai (scroll-down 1)))
  (global-set-key [mouse-5] (lambdai (scroll-up 1))))
 
 (env-linux-g
- (menu-bar-mode 0)
- (tool-bar-mode 0)
  (scroll-bar-mode 0)
  ;; font
  (setq default-frame-alist
@@ -60,6 +59,17 @@
  (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
  (global-set-key [C-mouse-4] 'text-scale-increase)
  (global-set-key [C-mouse-5] 'text-scale-decrease))
+
+
+
+;;; Mac OS
+
+(env-macos
+ (menu-bar-mode 1)
+ (scroll-bar-mode 0)
+
+ (global-set-key [C-wheel-up] 'text-scale-increase)
+ (global-set-key [C-wheel-down] 'text-scale-decrease))
 
 
 ;;; Encoding
