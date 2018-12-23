@@ -149,16 +149,17 @@
 
 ;;; Editable
 
+(defvar mi/sudo-prefix "/sudo::" "How to switch to super mode")
+(defface find-file-root-header-face '((t (:foreground "white" :background "red3"))) "Edit as ROOT")
+
 (defun su ()
   (interactive)
   (let ((pt (point))
         (buf-name (expand-file-name (or buffer-file-name default-directory))))
-    (setq buf-name (or (file-remote-p buf-name 'localname) (concat "/sudo::" buf-name)))
+    (setq buf-name (or (file-remote-p buf-name 'localname) (concat mi/sudo-prefix buf-name)))
     (cl-flet ((server-buffer-done (buffer (&optional for-killing)) nil))
       (find-file buf-name))
     (goto-char pt)))
-
-(defface find-file-root-header-face '((t (:foreground "white" :background "red3"))) "Edit as ROOT")
 
 (defun find-file-root-header-warning ()
   "*Display a warning in header line of the current buffer."

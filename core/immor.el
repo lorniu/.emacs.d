@@ -330,15 +330,15 @@
    " - M-x ssh-edit
    "
    :init
-   (setq
-    tramp-my-hosts
-    '(("ygmall" . "/sshx:Administrator@120.24.78.141:/c/soft/phpstudy/WWW/ygmall")
-      ("vps.45" . "/sshx:root@45.63.55.2:~/")))
-
-   (setq tramp-default-user "root" tramp-default-method "sshx")
+   (setq tramp-verbose 1)
+   (setq tramp-default-user "root" tramp-default-method "scp")
    (setq remote-file-name-inhibit-cache nil)
    (setq vc-ignore-dir-regexp (format "%s\\|%s" vc-ignore-dir-regexp tramp-file-name-regexp))
-   (setq tramp-verbose 1)
+
+   (setq
+    tramp-my-hosts
+    '(("vps.45" . "/sshx:vip@45.63.55.2:~/")
+      ("ygmall" . "/sshx:Administrator@120.24.78.141:/c/soft/phpstudy/WWW/ygmall")))
 
    ;; shortcuts
    (defun ssh-edit ()
