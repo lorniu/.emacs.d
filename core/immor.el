@@ -36,8 +36,10 @@
        (buffer-disable-undo)
        (fundamental-mode))
      ;; system file
-     (and (not (string-match-p "\\(autoloads\\|loaddefs\\).el$" buffer-file-name))
-          (let ((case-fold-search nil)) (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/" buffer-file-name))
+     (and (not (string-match-p "^/usr/home" buffer-file-name))
+          (not (string-match-p "\\(autoloads\\|loaddefs\\).el$" buffer-file-name))
+          (let ((case-fold-search nil))
+            (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/" buffer-file-name))
           (view-mode 1)))
 
    (defun -my/before-save ()

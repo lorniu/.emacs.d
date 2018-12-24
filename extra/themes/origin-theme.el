@@ -12,7 +12,9 @@
  '(font-lock-type-face ((t (:foreground "PaleGreen"))))
  '(custom-variable-tag ((t (:foreground "#0035ff" :weight bold))))
  '(minibuffer-prompt ((t (:foreground "cyan"))))
- 
+ '(org-code ((t (:foreground "#aaaaaa"))))
+ '(org-block ((t (:foreground "#aaaaaa"))))
+
  `(magit-diff-context-highlight ((t (:background "#111111" :foreground "#b2b2b2"))))
  '(magit-diff-added-highlight ((t (:background "#66aa66" :foreground "#002200"))))
  '(magit-section-highlight ((t (:background "#333333"))))
