@@ -39,7 +39,7 @@
      (and (not (string-match-p "^/usr/home" buffer-file-name))
           (not (string-match-p "\\(autoloads\\|loaddefs\\).el$" buffer-file-name))
           (let ((case-fold-search nil))
-            (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/" buffer-file-name))
+            (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/\\|.roswell/lisp/quicklisp" buffer-file-name))
           (view-mode 1)))
 
    (defun -my/before-save ()
@@ -70,25 +70,24 @@
 
 ;;;; Basic-Modes
 
-(x winner :init (winner-mode 1))
-(x paren :init (show-paren-mode 1))
-(x beacon/v :init (beacon-mode 1))
+(setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
 
-(x recentf :init
-   (setq recentf-max-saved-items 40)
-   (setq recentf-save-file (concat _CACHE_ "_recentf"))
-   (recentf-mode 1))
+(setq desktop-path `(,_CACHE_ "."))
 
-(x desktop :init
-   (setq desktop-path `(,_CACHE_ ".")))
+(setq auto-revert-mode-text "")
+(global-auto-revert-mode)
 
-(x autorevert :init
-   (setq auto-revert-mode-text "")
-   (global-auto-revert-mode))
+(setq syntax-subword-skip-spaces t)
 
-(x syntax-subword :init
-   ;; vi-like word move
-   (setq syntax-subword-skip-spaces t))
+(setq recentf-max-saved-items 40)
+(setq recentf-save-file (concat _CACHE_ "_recentf"))
+(recentf-mode 1)
+
+(winner-mode 1)
+
+(show-paren-mode 1)
+
+(x beacon/d :init (beacon-mode 1))
 
 ;;; Ediff
 
@@ -123,7 +122,7 @@
 
 ;;; Isearch/Anzu/Occur
 
-(x anzu/v :init (global-anzu-mode))
+(x anzu/d :init (global-anzu-mode))
 
 (with-eval-after-load "isearch"
   (bind-key "\C-e" ; Superword-Mode when search
@@ -189,7 +188,7 @@
          neotree-smart-optn t
          neo-window-fixed-size nil))
 
-(x ivy/v
+(x ivy/d
    :bind
    (:map ivy-minibuffer-map
          ("C-j" . ivy-done)
@@ -417,7 +416,7 @@
 
 ;;;; Programer - Common
 
-(x eldoc/v)
+(x eldoc/d)
 
 (x prog-mode
    :bind (:map prog-mode-map ("C-c C-u" . backward-up-list))
@@ -449,7 +448,7 @@
         try-expand-all-abbrevs try-expand-list try-expand-line
         try-complete-lisp-symbol-partially try-complete-lisp-symbol))
 
-(x abbrev/v :config
+(x abbrev/d :config
    (if (file-exists-p abbrev-file-name)
        (quietly-read-abbrev-file)))
 
@@ -464,7 +463,7 @@
    (setq company-lighter-base "")
    (defun -my/insert-blank () (interactive) (company-abort) (insert " ")))
 
-(x yasnippet/ev
+(x yasnippet/ed
    :bind
    (:map yas-keymap ("C-m" . 'yas-next-field-or-maybe-expand))
    :init
@@ -616,63 +615,56 @@
    (global-semantic-idle-scheduler-mode 1)
    (global-semantic-stickyfunc-mode 1))
 
-;;; Lisp/SLIME (The Superior Lisp Interaction Mode for Emacs)
+;;; Slime/Sly
 
-(x slime :init
-   (add-hook-lambda 'lisp-mode-hook (electric-pair-mode 1))
-
+(x lisp-mode
+   "SLIME (The Superior Lisp Interaction Mode for Emacs) maybe the best IDE for lisp.
+   "
+   "Sly is a fork of SLIME, improved a lot. Switched to it in 20190122.
+   "
+   "And Roswell is just like pip/gem, i.e: make it easy to use lisp script and so on.
+   "
    :config
-   (setq inferior-lisp-program (seq-find #'executable-find '("sbcl" "ccl" "clisp")))
-   (slime-setup '(slime-fancy slime-company))
+   (defvar lisp/init-file "~/.notes/x.code.lsp/config/bootstrap.lisp")
+   (add-hook-lambda 'lisp-mode-hook (electric-pair-local-mode 1))
 
-   ;; function
+   (cond
+    ((executable-find "ros")    ;; When roswell installed: ros install sly
+     (load (expand-file-name "~/.roswell/helper.el")))
+    (t (x sly :ensure t :config ;; When no roswell support
+        (setq inferior-lisp-program (seq-find #'executable-find '("sbcl" "ccl")))
+        (add-hook 'sly-connected-hook '%lisp/init-quicklisp))))
 
-   (defun try-expand-slime (old)
-     "Hippie Expand OLD word for slime."
-     (when (not old)
-       (he-init-string (slime-symbol-start-pos) (slime-symbol-end-pos))
-       (setq he-expand-list
-             (or (equal he-search-string "")
-                 (sort (slime-simple-completions he-search-string) #'string-lessp))))
-     (if (null he-expand-list)
-         (progn (if old (he-reset-string)) ())
-       (he-substitute-string (car he-expand-list))
-       (setq he-tried-table (cons (car he-expand-list) (cdr he-tried-table)))
-       (setq he-expand-list (cdr he-expand-list))
-       (message "Slime Expand") t))
+   (add-hook 'sly-connected-hook '%lisp/load-init-file)
+   (add-hook 'sly-transcript-stop-hook '%lisp/after-init)
+   (add-hook 'sly-mrepl-mode-hook 'company-mode)
 
-   ;; hooks
+   (defun %lisp/load-init-file ()
+     "Load lisp init file."
+     (when (file-exists-p lisp/init-file)
+       (with-temp-buffer
+         (insert-file-contents lisp/init-file)
+         (sly-eval-buffer))))
 
-   (add-hook-lambda 'slime-connected-hook
-     ;; [quicklisp] load or initial
-     (let* ((ql-home (file-name-as-directory "~/.quicklisp"))
-            (ql-url "http://beta.quicklisp.org/quicklisp.lisp")
-            (ql-dist (concat ql-home "quicklisp.lisp"))
-            (slime-init "~/.notes/x.code.lsp/misc/slime-init.lisp"))
-       (if (file-exists-p ql-dist)  ;; load slime-init.lisp
-           (when (file-exists-p slime-init)
-             (with-temp-buffer
-               (insert-file-contents slime-init)
-               (slime-eval-buffer)))
-         (make-directory ql-home)   ;; begin to initial
-         (url-copy-file ql-url ql-dist)
+   (defun %lisp/after-init ()
+     "Things to do after init."
+     (switch-to-buffer (seq-find (lambda (b) (string-match-p "sly-mrepl for.*" (buffer-name b))) (buffer-list)))
+     (sly-mrepl--eval-for-repl `(slynk-mrepl:guess-and-set-package 'IMFINE))
+     (remove-hook 'sly-transcript-stop-hook '%lisp/after-init))
+
+   (defun %lisp/init-quicklisp ()
+     "Quicklisp installation and initalization."
+     (let ((remote-url "http://beta.quicklisp.org/quicklisp.lisp")
+           (local-url (expand-file-name "~/.quicklisp/quicklisp.lisp")))
+       (unless (file-exists-p local-url)
+         (files--ensure-directory (file-name-directory local-url))
+         (url-copy-file remote-url local-url)
          (with-temp-buffer
-           (insert-file-contents ql-dist)
+           (insert-file-contents local-url)
            (goto-char (point-max))
-           (insert (format "\n(quicklisp-quickstart:install :path \"%s\")" ql-home))
+           (insert (format "\n(quicklisp-quickstart:install :path \"%s\")" (file-name-directory local-url)))
            (insert "(let ((*do-not-prompt* t)) (ql:add-to-init-file))")
-           (slime-eval-buffer))))
-     ;; enhance hippie expand
-     (set-up-slime-hippie-expand)
-     ;; auto switch to repl buffer
-     (switch-to-buffer (format "*slime-repl %s*" inferior-lisp-program)))
-
-   (add-hook-lambda 'slime-mode-hook
-     (set-up-slime-hippie-expand)
-     (global-set-key "\C-cs" 'slime-selector))
-
-   (add-hook-lambda 'slime-repl-mode-hook
-     (define-key slime-repl-mode-map (kbd "TAB") 'hippie-expand)))
+           (sly-eval-buffer))))))
 
 ;;; Haskell
 
@@ -864,7 +856,7 @@
           ("jsx"            'js2-mode)))))
    (advice-add 'yas--maybe-expand-key-filter :before '-my/yas-expand-extra))
 
-(x emmet-mode/v
+(x emmet-mode/d
    :hook (web-mode rjsx-mode)
    :init (setq emmet-move-cursor-between-quotes t))
 

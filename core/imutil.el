@@ -306,6 +306,21 @@
   (replace-regexp "', name: '\\|', version: '" ":" nil (line-beginning-position) (line-end-position))
   (beginning-of-line))
 
+(defun im/wrap-current ()
+  "Wrap current word with some CHARS."
+  (interactive)
+  (save-excursion
+    (let* ((fill (split-string (read-string "Wrap with: ") "  +"))
+           (left (first fill)) (right (or (second fill) left))
+           beg end)
+      (if (use-region-p)
+          (setq beg (region-beginning) end (region-end))
+        (forward-word) (setq end (point))
+        (backward-word) (setq beg (point)))
+      (goto-char end) (insert right)
+      (goto-char beg) (insert left)
+      (deactivate-mark))))
+
 
 ;;; Miscellaneous
 

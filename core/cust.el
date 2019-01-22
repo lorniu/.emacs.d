@@ -49,7 +49,6 @@
     js2-mode tide htmlize web-beautify company-web rjsx-mode
 
     ;; backends
-    slime hippie-expand-slime slime-company
     php-mode robe elpy c-eldoc lua-mode go-mode
     kotlin-mode clojure-mode groovy-mode scala-mode ensime
     erlang dante hindent powershell csharp-mode
@@ -73,7 +72,7 @@
             (interactive) (describe-function ',fun-name))))
 
 (defmacro x (NAME &rest args)
-  " e:demand w:wait else:defer v:delight x:disabled "
+  " e:demand w:wait else:defer d:delight x:disabled "
   (let* ((name-arr (split-string (symbol-name NAME) "/"))
          (name (intern (car name-arr)))
          (name-without-mode (replace-regexp-in-string "-mode" "" (car name-arr)))
@@ -82,7 +81,7 @@
          (flags (cadr name-arr)) x-options)
     (push (if (seq-contains flags ?e) ':demand ':defer) x-options)
     (if (seq-contains flags ?x) (push ':disabled x-options))
-    (if (seq-contains flags ?v) (push ':delight x-options))
+    (if (seq-contains flags ?d) (push ':delight x-options))
     `(progn
        ,(if doc-strings `(defhelper ,(intern name-without-mode) ,@doc-strings))
        ,(if (seq-contains flags ?w) `(add-to-list 'im/need-idle-loads ',name))
