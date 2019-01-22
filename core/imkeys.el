@@ -267,7 +267,7 @@
   ("W" engine/search-wikipedia "Wikipedia")
   ("L" engine/search-arch-wiki "ArchWiki")
   ("F" engine/search-wolfram-alpha "Wolfram Alpha")
-  ("Y" engine/search-youtube "Youtube")
+  ("w" im/wrap-current "Wrap Word")
 
   ;; mark
   ("m<" mark-beginning-of-buffer "buf-min")
