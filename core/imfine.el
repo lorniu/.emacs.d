@@ -56,6 +56,7 @@
   (require 'imnet)
   (require 'imsilly)
   (require 'imkeys)
+  (require 'imkmacro)
   (env-windows (im/start-server)))
 
 (provide 'imfine)
