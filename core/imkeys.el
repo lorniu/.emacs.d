@@ -30,6 +30,8 @@
 
 (bind-keys
  ( [f1]            . imdra-overview/body  )
+ ( [f2]            . name-last-kbd-macro  )
+ ( [(control f2)]  . name-and-insert-last-kbd-macro )
  ( [f6]            . toggle-truncate-lines)
  ( [f8]            . calendar             )
  ( [f10]           . shrink-window        )

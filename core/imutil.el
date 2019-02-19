@@ -106,6 +106,13 @@
 (defun -my/message-switch (f &rest args) (when messaging-on (apply f args)))
 (advice-add 'message :around '-my/message-switch)
 
+(defmacro save-undo (&rest body)
+  "Disable undo ring temporaryly during execute BODY."
+  `(progn
+     (undo-boundary)
+     (cl-letf (((symbol-function 'undo-boundary) (lambda ()))) ,@body)
+     (undo-boundary)))
+
 
 ;;; Commands
 
@@ -299,12 +306,6 @@
        '(:foreground "red")
      '(:foreground "black")))
   (current-buffer))
-
-(defun iv/normalize-gradle-dependency ()
-  (interactive)
-  (replace-regexp "group: " "" nil (line-beginning-position) (line-end-position))
-  (replace-regexp "', name: '\\|', version: '" ":" nil (line-beginning-position) (line-end-position))
-  (beginning-of-line))
 
 (defun im/wrap-current ()
   "Wrap current word with some CHARS."
