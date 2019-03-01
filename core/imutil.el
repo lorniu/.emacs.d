@@ -1,4 +1,4 @@
-;;; imutil.el --- Functions And Utils
+;;; imutil.el --- Functions And Utils -*- lexical-binding: t -*-
 ;;; Commentary:
 
 ;;; Code:
@@ -24,13 +24,12 @@
   `(add-hook ,hook (lambda () ,@body)))
 
 (defmacro pm (expr)
-  `(pp (macroexpand-1 ',expr)))
+  `(pp (macroexpand-1 ',expr)) t)
 
 (defun ppp (list)
   (dolist (l list t) (princ l) (terpri)))
 
-(defmacro mmm (&rest expr)
-  `(message ,@expr))
+(defmacro mmm (&rest expr) `(message ,@expr))
 
 (defun im/patch () (load "patches" nil nil))
 
@@ -307,11 +306,11 @@
      '(:foreground "black")))
   (current-buffer))
 
-(defun im/wrap-current ()
-  "Wrap current word with some CHARS."
-  (interactive)
+(defun im/wrap-current (chars)
+  "Wrap current word with some CHARS, xx__yy format."
+  (interactive (list (read-string "Wrap with: ")))
   (save-excursion
-    (let* ((fill (split-string (read-string "Wrap with: ") "  +"))
+    (let* ((fill (split-string chars "  +"))
            (left (first fill)) (right (or (second fill) left))
            beg end)
       (if (use-region-p)
@@ -344,6 +343,22 @@
   (mapconcat (lambda (s) (concat (or needle "  ") s))
              (if (listp item) item (split-string item "\n")) "\n"))
 
+(defun defer-til-hook (fun-or-funs hook)
+  "Defer the execution of FUN-OR-FUNS until HOOK triggled."
+  (mapc (lambda (fun) (advice-add fun :around
+				                  (lambda (f &rest args)
+						            (add-hook hook (lambda () (apply f args))))))
+	    (if (consp fun-or-funs) fun-or-funs (list fun-or-funs))))
+
+(defun ensure-file (file-name)
+  "Create file with name FILE-NAME if not exists."
+  (unless (file-exists-p file-name)
+    (with-temp-buffer (write-file file-name))) file-name)
+
+(defmacro im/open-file-view (file &rest args)
+  "Open a file with View-Mode."
+  `(progn (find-file ,file ,@args) (view-mode +1)))
+
 (defun im/read-file-content (file &optional callback)
   "Read the FILE content as string, file can be a url."
   (with-temp-buffer
@@ -365,30 +380,6 @@
     (while (re-search-forward (car needle) nil t)
       (replace-match (cdr needle)))))
 
-(defun im/find-ft (&rest names)
-  "Find the proper font in NAMES."
-  (catch 'ret
-    (if (listp (car names))
-        (setq names (car names)))
-    (let ((fonts (font-family-list)) res-font)
-      (dolist (name names)
-        (setq rs-font (seq-find (lambda (font) (string-match-p (format ".*%s.*" name) font)) fonts))
-        (if rs-font (throw 'ret rs-font))))))
-
-(defun im/mono-font-for-buffer (&optional font-height)
-  "Return the Mono Font can be used."
-  (interactive "sFont Height: ")
-  (let ((face (im/find-ft im/probe-mono-fonts)) face-plist)
-    (if (null face)
-        (message "No proper mono fonts found")
-      (setq face-plist `(:family ,face))
-      (setq font-height (or font-height im/mono-buffer-height))
-      (if (stringp font-height) (setq font-height (string-to-number font-height)))
-      (if (and font-height (> font-height 0))
-          (nconc face-plist `(:height ,font-height)))
-      (setq buffer-face-mode-face face-plist)
-      (buffer-face-mode))))
-
 (defun im/start-server ()
   "Wrapper for Start Emacs server."
   (require 'server)
@@ -396,9 +387,16 @@
   (ignore-errors (delete-file (concat server-auth-dir "server")))
   (server-start))
 
-(defmacro im/open-file-view (file &rest args)
-  "Open a file with View-Mode."
-  `(progn (find-file ,file ,@args) (view-mode +1)))
+(defmacro logit (&rest args)
+  "Output messsage to a buffer."
+  (let ((buffer-name (if (symbolp (car args))
+                         (prog1 (symbol-name (car args))
+                           (setq args (cdr args)))
+                       "*logger*")))
+    `(with-current-buffer (get-buffer-create ,buffer-name)
+       (goto-char (point-max))
+       (insert "\n")
+       (insert (format ,@args)))))
 
 (provide 'imutil)
 
