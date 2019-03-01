@@ -43,9 +43,10 @@
 
 ;;; Hook for special endpoint
 
-  (let ((pri_file (format "~/.emacs.d/init_%s.el" (system-name))))
-    (setq custom-file pri_file)
-    (when (file-exists-p pri_file) (load pri_file t t)))
+  (let ((private-cust-file (format "~/.emacs.d/init_%s.el" system-name)))
+    (setq custom-file (ensure-file private-cust-file))
+    (defer-til-hook '(custom-set-faces custom-set-variables) 'after-init-hook)
+    (load private-cust-file t t))
 
 ;;; Modules
 

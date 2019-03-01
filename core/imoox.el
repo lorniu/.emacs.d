@@ -143,7 +143,7 @@
    (unbind-key "C-," org-mode-map)
 
    ;; Faces
-   (env-g (set-face-attribute 'org-table nil :family (im/find-ft im/probe-mono-fonts)))
+   (env-g (im/make-face-mono 'org-table))
    (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break")
 
    ;; Emphasis
@@ -172,7 +172,7 @@
 
    ;; Miscellaneous
    (x ox :config (add-to-list 'org-export-filter-paragraph-functions '-my/org-clean-space))
-   (require 'ox-spectacle)
+   ;; (require 'ox-spectacle)
    (require 'org-download))
 
 (defun -my/org-clean-space (text backend info)
