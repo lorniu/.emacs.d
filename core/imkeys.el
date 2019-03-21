@@ -53,7 +53,6 @@
  ( "<C-backspace>" . im/backward-kill-word )
  ( "<insertchar>"  . undo                 )
  ( "<select>"      . im/toggle-dedicated  )
- ( "C-c a"         . org-agenda           )
 
  ( "M-h"           . imdra-overview/body  )
  ( "C-,"           . imdra-buffer/body    )
@@ -64,7 +63,6 @@
  ( "C-x 3"         . -my/split-window-right)
  ( "C-x n"         . imdra-narrow/body    )
  ( "C-x C-r"       . imdra-favors/body    )
- ( "C-c c"         . imdra-org/body       )
 
  ( "M-x"           . counsel-M-x          )
  ( "C-r"           . counsel-grep-or-swiper )
@@ -111,7 +109,7 @@
   ("C-r" (im/open-file-view "~/.emacs.d/core/immor.el") "immor.el")
   ("x"   (find-file "~/.notes/x.misc/posix/xmonad.hs") "xmonad.hs")
   ("v"   (find-file "~/vvv/") "vvv")
-  ("n"   (find-file (car note-dir)) ".notes/")
+  ("n"   (find-file (car note-directory)) ".notes/")
   ("c"   (find-file _CACHE_) "cache/emacs   ")
   ("s"   (find-file "/sudo::/etc/systemd/system/multi-user.target.wants/") "systemd/"))
 
@@ -126,39 +124,6 @@
   ("lh" counsel-hydra-heads "Hydras")
   ("la" ascii-table-show "Ascii Table")
   ("ag" counsel-ag "Search with ag"))
-
-;;; Org-Mode
-
-(defhydra imdra-org (:color blue :foreign-keys warn :hint nil)
-  "
-   ^
-   ^Org^             ^Clock^          ^Misc^
-   ^──^──────────────^──^─────────────^─────^────────
-   _c_ Capture       _d_ display      _q_ quit
-   ^^                _i_ in           ^^
-   _l_ Store link    _o_ out          ^^
-   _L_ Stored Link   _j_ jump         ^^
-   ^^                _r_ report       ^^
-   _n_ Publish       _e_ effort       ^^
-   _m_ Publish<f>    _C_ cancel
-   ^^                ^^
-    "
-  ("q" nil)
-  ("a" org-agenda)
-
-  ("d" org-clock-display)
-  ("i" org-clock-in)
-  ("o" org-clock-out)
-  ("j" org-clock-goto)
-  ("r" org-clock-report)
-  ("e" org-clock-modify-effort-estimate)
-  ("C" org-clock-cancel :color pink)
-
-  ("l" org-store-link)
-  ("L" org-insert-link)
-  ("c" org-capture :exit t)
-  ("n" im/org-publish-note :exit t)
-  ("m" im/org-publish-note-force :exit t))
 
 
 ;;;; Super *Window*

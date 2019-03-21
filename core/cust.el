@@ -21,6 +21,7 @@
 
 (im/refresh-package
  '(use-package
+
     ;; basic
     bind-key delight key-chord
 
@@ -72,20 +73,23 @@
             (interactive) (describe-function ',fun-name))))
 
 (defmacro x (NAME &rest args)
-  " e:demand w:wait else:defer d:delight x:disabled "
+  " e:demand  w:wait  d:delight  x:disabled "
   (let* ((name-arr (split-string (symbol-name NAME) "/"))
-         (name (intern (car name-arr)))
-         (name-without-mode (replace-regexp-in-string "-mode" "" (car name-arr)))
+         (name (intern (car name-arr))) (flags (cadr name-arr))
          (doc-strings (cl-loop for i in args until (keywordp i) collect i))
-         (args (cl-set-difference args doc-strings))
-         (flags (cadr name-arr)) x-options)
-    (push (if (seq-contains flags ?e) ':demand ':defer) x-options)
-    (if (seq-contains flags ?x) (push ':disabled x-options))
-    (if (seq-contains flags ?d) (push ':delight x-options))
-    `(progn
-       ,(if doc-strings `(defhelper ,(intern name-without-mode) ,@doc-strings))
-       ,(if (seq-contains flags ?w) `(add-to-list 'im/need-idle-loads ',name))
-       (use-package ,name ,@x-options ,@args))))
+         (x-options
+          (list-nn
+           (if (seq-contains flags ?e) :demand :defer) t
+           (if (seq-contains flags ?d) :delight)
+           (if (seq-contains flags ?x) :disabled)))
+         (options (cl-set-difference args doc-strings)))
+    (list-nn
+     'progn
+     (if (seq-contains flags ?w)
+         `(add-to-list 'im/need-idle-loads ',name))
+     (if doc-strings
+         `(defhelper ,(intern (replace-regexp-in-string "-mode" "" (car name-arr))) ,@doc-strings))
+     `(use-package ,name ,@x-options ,@options))))
 
 
 ;;; Basic Variables
@@ -106,6 +110,7 @@
       visible-bell             nil
       ring-bell-function       'ignore
       confirm-kill-processes   nil
+      ;; inhibit-compacting-font-caches t
 
       auto-save-interval 0
       auto-save-list-file-prefix nil
@@ -148,14 +153,14 @@
 
 ;;; Editable
 
-(defvar mi/sudo-prefix "/sudo::" "How to switch to super mode")
+(defvar ic/sudo-prefix "/sudo::" "How to switch to super mode")
 (defface find-file-root-header-face '((t (:foreground "white" :background "red3"))) "Edit as ROOT")
 
 (defun su ()
   (interactive)
   (let ((pt (point))
         (buf-name (expand-file-name (or buffer-file-name default-directory))))
-    (setq buf-name (or (file-remote-p buf-name 'localname) (concat mi/sudo-prefix buf-name)))
+    (setq buf-name (or (file-remote-p buf-name 'localname) (concat ic/sudo-prefix buf-name)))
     (cl-flet ((server-buffer-done (buffer (&optional for-killing)) nil))
       (find-file buf-name))
     (goto-char pt)))
