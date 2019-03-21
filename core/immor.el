@@ -9,21 +9,10 @@
 ;;; Auto-Mode
 
 (mapc (lambda (s) (add-to-list 'auto-mode-alist s))
-      '(("\\.\\(xml\\|xsl\\)\\'"      . sgml-mode)
-        ("\\.class\\'"                . class-mode)
-        ("\\.scm\\'"                  . scheme-mode)
-        ("\\.\\(ba\\)?sh\\'"          . sh-mode)))
-
-;;; Display-Buffer
-
-(setq display-buffer-alist
-      `(("\\*Youdao Dictionary\\*\\|\\*Help\\*\\|\\*Messages\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom)
-         (window-height . 0.3))
-        ("\\*[cC]ompilation\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom))
-        ("\\*\\(e?shell\\|Python\\)\\*"
-         display-buffer-same-window)))
+      '(("\\.\\(xml\\|xsl\\)\\'" . sgml-mode)
+        ("\\.class\\'"           . class-mode)
+        ("\\.scm\\'"             . scheme-mode)
+        ("\\.\\(ba\\)?sh\\'"     . sh-mode)))
 
 ;;; Common-Hooks
 
@@ -36,7 +25,7 @@
        (buffer-disable-undo)
        (fundamental-mode))
      ;; system file
-     (and (not (string-match-p "^/usr/home" buffer-file-name))
+     (and (not (string-match-p "/usr/home\\|.cache/\\|temp/\\|tmp/\\|vvv/" buffer-file-name))
           (not (string-match-p "\\(autoloads\\|loaddefs\\).el$" buffer-file-name))
           (let ((case-fold-search nil))
             (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/\\|.roswell/lisp/quicklisp" buffer-file-name))
@@ -206,12 +195,15 @@
          projectile-completion-system 'ivy
          projectile-cache-file (concat _CACHE_ "__projectile.cache")
          projectile-known-projects-file (concat _CACHE_ "__projectile-bookmark.eld")
-         counsel-find-file-ignore-regexp "Volume\\|RECYCLE.BIN")
+         projectile-mode-line '(:eval (propertize (format " [%s]" (projectile-project-name)) 'face '(:foreground "darkred"))))
 
    (projectile-mode 1)
    (counsel-projectile-mode 1)
 
    :config
+   (setq counsel-find-file-ignore-regexp "Volume\\|RECYCLE.BIN\\|\\.class$\\|\\.jar$\\|out/.*/classes/\\|build/libs")
+   (setq projectile-globally-ignored-file-suffixes '(".class" ".jar" ".exe" ".dll" ".so"))
+   (add-to-list 'projectile-globally-ignored-directories ".gradle")
    (add-to-list 'projectile-project-root-files ".pro")
    (add-to-list 'projectile-project-root-files "package.json"))
 
@@ -497,33 +489,11 @@
                        (set-window-dedicated-p it wstat)))))))
 
 
-;;;; Programer - LSP
-
-(x lsp-mode)
-
-;; (x dap-mode)
-
-(x lsp-ui
-   :init
-   (setq lsp-ui-sideline-show-symbol nil)
-   (setq lsp-ui-sideline-show-hover nil)
-   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
-   (add-hook 'lsp-after-open-hook (lambda () (lsp-ui-flycheck-enable 1))))
-
-(x company-lsp
-   :config
-   (setq company-lsp-async t)
-   (setq company-lsp-cache-candidates nil)
-   (setq company-lsp-enable-snippet t)
-   (setq company-transformers nil)
-   (push 'company-lsp company-backends))
-
-
 ;;;; Programer - Languages
 
 ;;; SQL-Client
 
-(x sql
+(x sql/w
    "M-x: sql-connect/sql-postgres"
 
    :init
@@ -541,12 +511,27 @@
             (sql-user "root"))))
 
    :config
-   (add-hook 'sql-interactive-mode-hook 'im/mono-font-for-buffer)
+   (add-hook 'sql-interactive-mode-hook 'im/set-buffer-mono-font)
    (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
 
    (env-windows
-    (setq sql-mysql-options '("-C" "-t" "-f" "-n"))
+    (setq sql-mysql-options '("-C" "-f" "-n" "-t"))
     (add-hook 'sql-interactive-mode-hook 'im/cp936-encoding)))
+
+(x sqlplus
+   "M-x: sqlplus
+   "
+   "SQLi for Oracle is not enough, for example, bad output format.
+   "
+   "Use this instead for oracle, util some days, merge its features to SQLi.
+   "
+   :commands sqlplus
+   :init
+   (if (env-windows) (setq sqlplus-process-encoding 'gbk) (setenv "NLS_LANG" "AMERICAN_AMERICA.UTF8"))
+   (add-to-list 'auto-mode-alist '("\\.spl\\'" . sqlplus-mode))
+   (setq sqlplus-session-cache-dir (concat _CACHE_ "sqlplus/"))
+   :config
+   (im/make-face-mono 'sqlplus-table-head-face 'sqlplus-table-odd-rows-face 'sqlplus-table-even-rows-face))
 
 ;;; CC-Mode
 
@@ -632,8 +617,8 @@
     ((executable-find "ros")    ;; When roswell installed: ros install sly
      (load (expand-file-name "~/.roswell/helper.el")))
     (t (x sly :ensure t :config ;; When no roswell support
-        (setq inferior-lisp-program (seq-find #'executable-find '("sbcl" "ccl")))
-        (add-hook 'sly-connected-hook '%lisp/init-quicklisp))))
+          (setq inferior-lisp-program (seq-find #'executable-find '("sbcl" "ccl")))
+          (add-hook 'sly-connected-hook '%lisp/init-quicklisp))))
 
    (add-hook 'sly-connected-hook '%lisp/load-init-file)
    (add-hook 'sly-transcript-stop-hook '%lisp/after-init)
@@ -692,7 +677,7 @@
      (if (executable-find "cabal") (dante-mode))))
 
 (x dante
-   :commands 'dante-mode
+   :commands dante-mode
    :bind (:map hs-minor-mode-map ("C-c '" . dante-eval-block))
    :init (add-hook-lambda 'dante-mode-hook
            (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))
@@ -710,6 +695,9 @@
     - pip install flake8 autopep8"
 
    :interpreter ("python" . python-mode)
+   :init
+   (setq python-indent-guess-indent-offset t)
+   (setq python-indent-guess-indent-offset-verbose nil)
    :config
    (when (executable-find "python")
      (elpy-enable)
@@ -788,7 +776,6 @@
    (x ensime :config
       (setq ensime-startup-notification nil)))
 
-
 ;;;; Programer - Front-End
 ;;
 ;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
@@ -947,6 +934,28 @@
                                    (string= (web-mode-language-at-pos) "jsx"))))))
        (apply f args)))
    (advice-add 'company-tide :around '-my/company-with-tide))
+
+
+;;;; Programer - LSP
+
+(x lsp-mode)
+
+;; (x dap-mode)
+
+(x lsp-ui
+   :init
+   (setq lsp-ui-sideline-show-symbol nil)
+   (setq lsp-ui-sideline-show-hover nil)
+   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
+   (add-hook 'lsp-after-open-hook (lambda () (lsp-ui-flycheck-enable 1))))
+
+(x company-lsp
+   :config
+   (setq company-lsp-async t)
+   (setq company-lsp-cache-candidates nil)
+   (setq company-lsp-enable-snippet t)
+   (setq company-transformers nil)
+   (push 'company-lsp company-backends))
 
 
 (provide 'immor)

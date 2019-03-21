@@ -30,6 +30,20 @@
         (if rs-font (throw 'ret rs-font))))))
 
 
+;;; Display-Buffer
+
+(setq even-window-heights nil
+      display-buffer-reuse-frames t
+      display-buffer-alist
+      `(("\\*Youdao Dictionary\\*\\|\\*Help\\*\\|\\*Messages\\*"
+         (display-buffer-reuse-window display-buffer-at-bottom)
+         (window-height . 0.3))
+        ("\\*[cC]ompilation\\*"
+         (display-buffer-reuse-window display-buffer-at-bottom))
+        ("\\*\\(e?shell\\|Python\\)\\*"
+         display-buffer-same-window)))
+
+
 ;;; Windows
 
 (env-windows
@@ -70,7 +84,9 @@
  ;; font
  (setq default-frame-alist
        `((height . ,(nth 0 im/nix-frame-alist))
-         (alpha  . ,(nth 1 im/nix-frame-alist))))
+         (alpha  . ,(nth 1 im/nix-frame-alist))
+         (scroll-bar . nil)
+         (vertical-scroll-bars . nil)))
  (set-fontset-font "fontset-default" 'unicode im/nix-font-cn)
  ;; key
  (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
@@ -78,7 +94,7 @@
  (global-set-key [C-mouse-5] 'text-scale-decrease))
 
 
-;;; Mac OS
+;;; MacOS
 
 (env-macos
  (menu-bar-mode 1)
@@ -88,7 +104,23 @@
  (global-set-key [C-wheel-down] 'text-scale-decrease))
 
 
-;;; Fix Width
+;;; Fixed Width
+
+(defun im/set-char-widths??? (alist)
+  "Change return of 'string-width', maybe."
+  (while (char-table-parent char-width-table)
+    (setq char-width-table (char-table-parent char-width-table)))
+  (dolist (pair alist)
+    (let ((width (car pair))
+          (chars (cdr pair))
+          (table (make-char-table nil)))
+      (dolist (char chars)
+        (set-char-table-range table char width))
+      (optimize-char-table table)
+      (set-char-table-parent table char-width-table)
+      (setq char-width-table table))))
+
+;; (im/set-char-widths??? `((1 . ((#x00 . #xFFFF)))))
 
 (defun im/make-face-mono (&rest face-or-faces)
   "Modify FACE-OR-FACES to make it use mono font family."
@@ -108,22 +140,6 @@
           (nconc face-plist `(:height ,font-height)))
       (setq buffer-face-mode-face face-plist)
       (buffer-face-mode))))
-
-(defun im/set-char-widths??? (alist)
-  "Change return of 'string-width', maybe."
-  (while (char-table-parent char-width-table)
-    (setq char-width-table (char-table-parent char-width-table)))
-  (dolist (pair alist)
-    (let ((width (car pair))
-          (chars (cdr pair))
-          (table (make-char-table nil)))
-      (dolist (char chars)
-        (set-char-table-range table char width))
-      (optimize-char-table table)
-      (set-char-table-parent table char-width-table)
-      (setq char-width-table table))))
-
-;; (im/set-char-widths??? `((1 . ((#x00 . #xFFFF)))))
 
 
 ;;; Encoding
@@ -146,7 +162,8 @@
 
  (defun im/cp936-encoding ()
    (set-buffer-file-coding-system 'gbk)
-   (set-buffer-process-coding-system 'gbk 'gbk))
+   (ignore-errors
+     (set-buffer-process-coding-system 'gbk 'gbk)))
 
  (add-hook 'shell-mode-hook 'im/cp936-encoding))
 
