@@ -25,7 +25,7 @@
 
 (defun im/git-commit ()
   (interactive)
-  (let* ((buffer-file (buffer-file-name))
+  (let* ((buffer-file (or (buffer-file-name) (buffer-name)))
          (commit-msg (gac/commit-msg buffer-file))
          (default-directory (or (projectile-project-root) (file-name-directory buffer-file))))
     (shell-command "git add .")

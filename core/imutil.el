@@ -23,15 +23,8 @@
   (declare (indent defun))
   `(add-hook ,hook (lambda () ,@body)))
 
-(defmacro pm (expr)
-  `(progn (pp (macroexpand-1 ',expr)) t))
-
-(defun ppp (list)
-  (dolist (l list t) (princ l) (terpri)))
-
-(defmacro mmm (&rest expr) `(message ,@expr))
-
-(defun im/patch () (load "patches" nil nil))
+(defun im/patch ()
+  (load "patches" nil nil))
 
 (defun im/proxy (&optional args)
   (interactive "P")
@@ -40,23 +33,17 @@
     (setq url-gateway-method 'socks)
     (setq socks-server '("Default server" "127.0.0.1" 1080 5))))
 
-(defmacro im/profile (&rest body)
-  "Profiler BODY form."
-  `(progn (profiler-start 'cpu)
-          (ignore-errors ,@body (profiler-report))
-          (profiler-stop)))
-
 (defun insert-here (content)
   (save-excursion (insert (format "\n%s" content))))
+
+(defun list-nn (&rest elements)
+  "Make ELEMENTS to list, ignore nil."
+  (cl-loop for e in elements when (not (null e)) collect e))
 
 (defmacro append-local (where &rest what)
   `(progn
      (make-variable-buffer-local ,where)
      ,@(mapcar (lambda (w) `(add-to-list ,where ,w)) what)))
-
-(defun list-nn (&rest elements)
-  "Make ELEMENTS to list, ignore nil."
-  (cl-loop for e in elements when (not (null e)) collect e))
 
 (defmacro without-msg (&rest form)
   `(let ((inhibit-message t)) ,@form))
@@ -65,53 +52,6 @@
   `(unwind-protect
        (progn (without-msg (recentf-mode -1)) ,@form)
      (without-msg (recentf-mode +1))))
-
-
-;;; Hack
-
-(defun im/yank-more ()
-  "Copy-Current-Line-Or-Region."
-  (interactive)
-  (if (use-region-p)
-      (progn
-        (call-interactively 'kill-ring-save)
-        (message "Region Yanked."))
-    (copy-region-as-kill (line-beginning-position) (line-end-position))
-    (message "No Region, Whole Line Yanked.")))
-
-(defun im/open-line ()
-  (interactive)
-  (cond
-   ((looking-at-p "[ \t]*$")
-    (newline-and-indent))
-   ((looking-back "^[ \t]*")
-    (beginning-of-line)
-    (open-line 1)
-    (indent-for-tab-command))
-   (t
-    (newline-and-indent)
-    (newline-and-indent)
-    (forward-line -1)
-    (indent-for-tab-command))))
-
-(defun im/backward-kill-word ()
-  (interactive)
-  (let ((init-pos (point))
-        (back-pos (let ((csb (char-syntax (char-before))))
-                    (if (or (= csb 34) (= csb 46)) (backward-char))
-                    (forward-same-syntax (if (= csb 32) -2 -1))
-                    (point))))
-    (delete-region back-pos init-pos)))
-
-(defun im/isearch-regexp ()
-  "Isearch+, default with region word, enable regexp."
-  (interactive)
-  (if (use-region-p)
-      (progn
-        (let ((string (buffer-substring-no-properties (region-beginning) (region-end))))
-          (deactivate-mark)
-          (isearch-resume string nil nil t string nil)))
-    (call-interactively 'isearch-forward-regexp)))
 
 (defmacro save-undo (&rest body)
   "Disable undo ring temporaryly during execute BODY."
@@ -330,6 +270,80 @@
       (deactivate-mark))))
 
 
+;;; Hack
+
+(defun im/yank-more ()
+  "Copy-Current-Line-Or-Region."
+  (interactive)
+  (if (use-region-p)
+      (progn
+        (call-interactively 'kill-ring-save)
+        (message "Region Yanked."))
+    (copy-region-as-kill (line-beginning-position) (line-end-position))
+    (message "No Region, Whole Line Yanked.")))
+
+(defun im/open-line ()
+  (interactive)
+  (cond
+   ((looking-at-p "[ \t]*$")
+    (newline-and-indent))
+   ((looking-back "^[ \t]*")
+    (beginning-of-line)
+    (open-line 1)
+    (indent-for-tab-command))
+   (t
+    (newline-and-indent)
+    (newline-and-indent)
+    (forward-line -1)
+    (indent-for-tab-command))))
+
+(defun im/backward-kill-word ()
+  (interactive)
+  (let ((init-pos (point))
+        (back-pos (let ((csb (char-syntax (char-before))))
+                    (if (or (= csb 34) (= csb 46)) (backward-char))
+                    (forward-same-syntax (if (= csb 32) -2 -1))
+                    (point))))
+    (delete-region back-pos init-pos)))
+
+(defun im/isearch-regexp ()
+  "Isearch+, default with region word, enable regexp."
+  (interactive)
+  (if (use-region-p)
+      (progn
+        (let ((string (buffer-substring-no-properties (region-beginning) (region-end))))
+          (deactivate-mark)
+          (isearch-resume string nil nil t string nil)))
+    (call-interactively 'isearch-forward-regexp)))
+
+
+;;; Debug and Trace
+
+(defmacro pm (expr)
+  `(progn (pp (macroexpand-1 ',expr)) t))
+
+(defun ppp (list)
+  (dolist (l list t) (princ l) (terpri)))
+
+(defun logit (&rest args)
+  "Output messsage to a buffer. Usage: (logit [buffer-name] fmtString variable)."
+  (let ((buffer-name (if (symbolp (car args))
+                         (prog1 (symbol-name (car args))
+                           (setq args (cdr args)))
+                       "*logger*")))
+    (with-current-buffer (get-buffer-create buffer-name)
+      (local-set-key (kbd "q") 'bury-buffer)
+      (goto-char (point-max))
+      (insert "\n")
+      (insert (apply 'format args)))))
+
+(defmacro im/profile (&rest body)
+  "Profiler BODY form."
+  `(progn (profiler-start 'cpu)
+          (ignore-errors ,@body (profiler-report))
+          (profiler-stop)))
+
+
 ;;; Miscellaneous
 
 (defun time (&optional time nano)
@@ -363,10 +377,6 @@
   (unless (file-exists-p file-name)
     (with-temp-buffer (write-file file-name))) file-name)
 
-(defmacro im/open-file-view (file &rest args)
-  "Open a file with View-Mode."
-  `(progn (find-file ,file ,@args) (view-mode +1)))
-
 (defun im/read-file-content (file &optional callback)
   "Read the FILE content as string, file can be a url."
   (with-temp-buffer
@@ -378,6 +388,10 @@
       (if callback
           (funcall callback buffer-string)
         (buffer-string)))))
+
+(defmacro im/open-file-view (file &rest args)
+  "Open a FILE with View-Mode."
+  `(progn (find-file ,file ,@args) (view-mode +1)))
 
 (defun im/replace-all-in-buffer (list &optional pre-hook)
   "Replace all occurs in current buffer. eg:\n
@@ -395,17 +409,6 @@
   (ignore-errors (delete-file (concat server-auth-dir "server")))
   (server-start))
 
-(defun logit (&rest args)
-  "Output messsage to a buffer. Usage: (logit [buffer-name] fmtString variable)."
-  (let ((buffer-name (if (symbolp (car args))
-                         (prog1 (symbol-name (car args))
-                           (setq args (cdr args)))
-                       "*logger*")))
-    (with-current-buffer (get-buffer-create buffer-name)
-      (local-set-key (kbd "q") 'bury-buffer)
-      (goto-char (point-max))
-      (insert "\n")
-      (insert (apply 'format args)))))
 
 (provide 'imutil)
 

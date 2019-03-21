@@ -28,6 +28,7 @@
            (message (fmt &rest args) (apply 'logit (append (list log-buffer fmt) args))))
       (without-rencentf (org-publish "nnn" force)))
     (logit log-buffer "\n=== %s ===\n\n\n" (time))
+    (run-hooks 'post-publish-note-hook)
     (message "Publish Finished in %.2f seconds!" (time-subtract-seconds (current-time) start))))
 
 (defun im/org-publish-note-manual (&optional force)
