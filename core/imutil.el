@@ -24,7 +24,7 @@
   `(add-hook ,hook (lambda () ,@body)))
 
 (defmacro pm (expr)
-  `(pp (macroexpand-1 ',expr)) t)
+  `(progn (pp (macroexpand-1 ',expr)) t))
 
 (defun ppp (list)
   (dolist (l list t) (princ l) (terpri)))
@@ -53,6 +53,18 @@
   `(progn
      (make-variable-buffer-local ,where)
      ,@(mapcar (lambda (w) `(add-to-list ,where ,w)) what)))
+
+(defun list-nn (&rest elements)
+  "Make ELEMENTS to list, ignore nil."
+  (cl-loop for e in elements when (not (null e)) collect e))
+
+(defmacro without-msg (&rest form)
+  `(let ((inhibit-message t)) ,@form))
+
+(defmacro without-rencentf (&rest form)
+  `(unwind-protect
+       (progn (without-msg (recentf-mode -1)) ,@form)
+     (without-msg (recentf-mode +1))))
 
 
 ;;; Hack
@@ -100,10 +112,6 @@
           (deactivate-mark)
           (isearch-resume string nil nil t string nil)))
     (call-interactively 'isearch-forward-regexp)))
-
-(defvar messaging-on t "Control whether to print message to minibuffer")
-(defun -my/message-switch (f &rest args) (when messaging-on (apply f args)))
-(advice-add 'message :around '-my/message-switch)
 
 (defmacro save-undo (&rest body)
   "Disable undo ring temporaryly during execute BODY."
@@ -219,7 +227,7 @@
       (switch-to-buffer "*ASCII table*")
     (setq buffer-read-only nil)
     (erase-buffer)
-    (let ((i 0) (tmp 0))
+    (let ((i 0))
       (insert (propertize
                "                         [ASCII table]\n\n"
                'face font-lock-comment-face))
@@ -387,16 +395,17 @@
   (ignore-errors (delete-file (concat server-auth-dir "server")))
   (server-start))
 
-(defmacro logit (&rest args)
-  "Output messsage to a buffer."
+(defun logit (&rest args)
+  "Output messsage to a buffer. Usage: (logit [buffer-name] fmtString variable)."
   (let ((buffer-name (if (symbolp (car args))
                          (prog1 (symbol-name (car args))
                            (setq args (cdr args)))
                        "*logger*")))
-    `(with-current-buffer (get-buffer-create ,buffer-name)
-       (goto-char (point-max))
-       (insert "\n")
-       (insert (format ,@args)))))
+    (with-current-buffer (get-buffer-create buffer-name)
+      (local-set-key (kbd "q") 'bury-buffer)
+      (goto-char (point-max))
+      (insert "\n")
+      (insert (apply 'format args)))))
 
 (provide 'imutil)
 

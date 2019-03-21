@@ -12,11 +12,12 @@
 
 (setq debug-on-error nil)
 
-(let ((messaging-on nil)
+(let ((inhibit-message t)
       (file-name-handler-alist nil)
       (gc-cons-threshold (* 64 1024 1024)))
 
   (require 'bm)
+  (require 'subr-x)
   (require 'imutil)
 
 ;;; Environments
@@ -43,7 +44,7 @@
 
 ;;; Hook for special endpoint
 
-  (let ((private-cust-file (format "~/.emacs.d/init_%s.el" system-name)))
+  (let ((private-cust-file (format "~/.emacs.d/init_%s.el" (system-name))))
     (setq custom-file (ensure-file private-cust-file))
     (defer-til-hook '(custom-set-faces custom-set-variables) 'after-init-hook)
     (load private-cust-file t t))
