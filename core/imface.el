@@ -1,6 +1,5 @@
-﻿;;; imface.el --- Faces And Encoding, ETC.
+;;; imface.el --- Faces and locale -*- lexical-binding: t -*-
 ;;; Commentary:
-
 ;;; Code:
 
 (defvar im/mono-buffer-height 108)
@@ -13,10 +12,13 @@
 (defvar im/nix-font-cn "Source Han Sans CN")
 (defvar im/nix-frame-alist '(110 100) "(Height Alpha")
 
+(defcustom ic/my-theme nil "private theme to load" :group 'imfine :type 'string)
+
 (menu-bar-mode 0)
 (tool-bar-mode 0)
 
 
+
 ;;; Helpers
 
 (defun im/find-ft (&rest names)
@@ -24,26 +26,13 @@
   (catch 'ret
     (if (listp (car names))
         (setq names (car names)))
-    (let ((fonts (font-family-list)) res-font)
+    (let ((fonts (font-family-list)) rs-font)
       (dolist (name names)
         (setq rs-font (seq-find (lambda (font) (string-match-p (format ".*%s.*" name) font)) fonts))
         (if rs-font (throw 'ret rs-font))))))
 
 
-;;; Display-Buffer
 
-(setq even-window-heights nil
-      display-buffer-reuse-frames t
-      display-buffer-alist
-      `(("\\*Youdao Dictionary\\*\\|\\*Help\\*\\|\\*Messages\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom)
-         (window-height . 0.3))
-        ("\\*[cC]ompilation\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom))
-        ("\\*\\(e?shell\\|Python\\)\\*"
-         display-buffer-same-window)))
-
-
 ;;; Windows
 
 (env-windows
@@ -71,10 +60,11 @@
  (global-set-key [C-wheel-down] 'text-scale-decrease))
 
 
+
 ;;; Linux
 
 (env-ng
- (load-theme 'origin t)
+ (unless ic/my-theme (setq ic/my-theme 'origin))
  (xterm-mouse-mode)
  (global-set-key [mouse-4] (lambdai (scroll-down 1)))
  (global-set-key [mouse-5] (lambdai (scroll-up 1))))
@@ -94,6 +84,7 @@
  (global-set-key [C-mouse-5] 'text-scale-decrease))
 
 
+
 ;;; MacOS
 
 (env-macos
@@ -104,6 +95,7 @@
  (global-set-key [C-wheel-down] 'text-scale-decrease))
 
 
+
 ;;; Fixed Width
 
 (defun im/set-char-widths??? (alist)
@@ -130,18 +122,20 @@
 (defun im/set-buffer-mono-font (&optional font-height)
   "Set current buffer to use mono font."
   (interactive "sFont Height: ")
-  (let ((face (im/find-ft im/probe-mono-fonts)) face-plist)
-    (if (null face)
-        (message "No proper mono fonts found")
-      (setq face-plist `(:family ,face))
-      (setq font-height (or font-height im/mono-buffer-height))
-      (if (stringp font-height) (setq font-height (string-to-number font-height)))
-      (if (and font-height (> font-height 0))
-          (nconc face-plist `(:height ,font-height)))
-      (setq buffer-face-mode-face face-plist)
-      (buffer-face-mode))))
+  (when (display-graphic-p) ;; only graphic system
+    (let ((face (im/find-ft im/probe-mono-fonts)) face-plist)
+      (if (null face)
+          (message "No proper mono fonts found")
+        (setq face-plist `(:family ,face))
+        (setq font-height (or font-height im/mono-buffer-height))
+        (if (stringp font-height) (setq font-height (string-to-number font-height)))
+        (if (and font-height (> font-height 0))
+            (nconc face-plist `(:height ,font-height)))
+        (setq buffer-face-mode-face face-plist)
+        (buffer-face-mode)))))
 
 
+
 ;;; Encoding
 
 (set-locale-environment   "utf-8")
@@ -150,6 +144,17 @@
 (prefer-coding-system     'utf-16)
 (prefer-coding-system     'utf-8-unix)
 
+(defun im/local-encoding (&optional encoding)
+  "Reset local system encoding, default is CP936."
+  (interactive)
+  (let ((encoding (or encoding 'cp936)))
+    (when (called-interactively-p 'any)
+      (setq encoding (read-coding-system "Choose charset: " 'utf-8)))
+    (set-buffer-file-coding-system encoding)
+    (ignore-errors
+      (set-buffer-process-coding-system encoding encoding))
+    (message "Changed local coding to %s." encoding)))
+
 (env-windows
  ;; generic encoding
  (set-language-environment "chinese-gbk")
@@ -157,18 +162,13 @@
 
  ;; specified encoding
  (setq file-name-coding-system 'gbk)
- (set-terminal-coding-system 'gbk)
- (modify-coding-system-alist 'process "*" 'gbk)
-
- (defun im/cp936-encoding ()
-   (set-buffer-file-coding-system 'gbk)
-   (ignore-errors
-     (set-buffer-process-coding-system 'gbk 'gbk)))
-
- (add-hook 'shell-mode-hook 'im/cp936-encoding))
+ (set-terminal-coding-system 'gbk))
 
 
+
 ;;; Miscellaneous
+
+(if ic/my-theme (load-theme ic/my-theme t))
 
 (setq-default
  mode-line-format
@@ -181,8 +181,8 @@
 
 (setq sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*")
 
-(mapc (lambda (c) (modify-syntax-entry c "." (standard-syntax-table)))
-      '( ?， ?。 ?！ ?； ?？ ?： ?/ ))
+(mapc (lambda (c) (modify-syntax-entry c "." (standard-syntax-table))) '( ?， ?。 ?！ ?； ?？ ?： ?/ ))
+
 
 (provide 'imface)
 

@@ -1039,7 +1039,8 @@ create output buffer but dont show it, DONT-CREATE-OUTPUT-BUFFER
     ;; And then 'fetch too much' can get to work.
     ;; I don't know weather there is a better solution.
     (when (and (eq system-type 'windows-nt)
-               (string-match-p "^interrupt" event)
+               (or (string-match-p "^interrupt" event)
+                   (string-match-p "with code 130" event))
                sqlplus-connect-string)
       (sqlplus sqlplus-connect-string (sqlplus-get-input-buffer-name sqlplus-connect-string)))
     ;; event output if neccessary
