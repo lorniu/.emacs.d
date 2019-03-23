@@ -1,65 +1,49 @@
-;;; imfine.el --- This is my personal emacs configuration.
+;;; imfine.el --- This is my personal emacs configuration. -*- lexical-binding: t -*-
 
 ;; Copyright 2008 by imfine. All rights reserved.
 
 ;; Author: lorniu@gmail.com
-;; Version: 0.02
-;; License: GPLv3
+;; Version: 0.2
+;; License: BSD
 
 ;;; Commentary:
 
 ;;; Code:
 
+(defgroup imfine nil "Private Variables" :group 'emacs)
+
 (setq debug-on-error nil)
+
+
 
 (let ((inhibit-message t)
       (file-name-handler-alist nil)
       (gc-cons-threshold (* 64 1024 1024)))
 
+  ;; modules
   (require 'bm)
-  (require 'subr-x)
   (require 'imutil)
-
-;;; Environments
-
-  (defmacro define-environments (envs)
-    `(progn ,@(mapcar (lambda (e) `(defmacro ,(car e) (&rest body) `(when ,',(cdr e) ,@body ,',(cdr e)))) envs)))
-
-  (define-environments
-    ((env-windows       . (eq system-type 'windows-nt))
-     (env-g             . (display-graphic-p))
-     (env-ng            . (not (display-graphic-p)))
-     (env-linux         . (eq system-type 'gnu/linux))
-     (env-linux-g       . (and (env-linux) (env-g)))
-     (env-linux-ng      . (and (env-linux) (env-ng)))
-     (env-linux-vps     . (string= (system-name) "remote"))
-     (env-macos         . (eq system-type 'darwin))))
-
-;;; Load-Path/Theme-Path
-
-  (dolist (dir (directory-files "~/.emacs.d/extra" t))
-    (if (and (not (eq (file-name-extension dir) "")) (file-directory-p dir))
-        (add-to-list 'load-path dir)))
-  (add-to-list 'custom-theme-load-path "~/.emacs.d/extra/themes")
-
-;;; Hook for special endpoint
-
-  (let ((private-cust-file (format "~/.emacs.d/init_%s.el" (system-name))))
-    (setq custom-file (ensure-file private-cust-file))
-    (defer-til-hook '(custom-set-faces custom-set-variables) 'after-init-hook)
-    (load private-cust-file t t))
-
-;;; Modules
-
+  (require 'cist)
   (require 'cust)
+  (require 'patches)
+  (require 'imfavor)
   (require 'imface)
-  (require 'imoox)
   (require 'immor)
-  (require 'imnet)
+  (require 'imoox)
+  (require 'imkeyc)
+  (require 'imhydra)
+  (require 'imsmaco)
   (require 'imsilly)
-  (require 'imkeys)
-  (require 'imkmacro)
-  (env-windows (im/start-server)))
+  (require 'implay)
+  (require 'idebug)
+
+  ;; daemon server
+  (require 'server)
+  (setq server-auth-dir "~/.emacs.d/.cache/server/")
+  (ignore-errors
+    (delete-file (concat server-auth-dir "server"))
+    (unless (server-running-p) (server-start))))
+
 
 (provide 'imfine)
 

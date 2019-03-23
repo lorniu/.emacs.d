@@ -1,8 +1,6 @@
-;;; imkmacro.el --- Keybinds
+;;; imsmaco.el --- Keymacros -*- lexical-binding: t -*-
 ;;; Commentary:
-
 ;;; Code:
-
 
 (defmacro xm (name keys)
   (declare (indent 1))
@@ -22,21 +20,13 @@
 (defmacro read-insert (&rest args) `(insert (read-string ,@args)))
 
 
+
 ;;; keymacros
 
-(xm km/normaize-gradle
+(xm k/normaize-gradle
   "M-m C-s ' C-b <C-backspace> <C-backspace> C-s ' C-s C-s <C-backspace> <C-backspace> <C-backspace> <C-backspace> : C-s ' C-s RET <C-backspace> <C-backspace> <C-backspace> <C-backspace> : M-m")
 
-;;; fake commands
 
-(defun km/generate-nat-traverse (name vps inner)
-  (interactive (list (read-string "Please input [SERVICE_NAME]: ")
-                     (read-string "Please Input [PUBLIC:PORT]: ")
-                     (read-string "Please Input [INNER:PORT]: ")))
-  (let ((vps-arr (split-string vps ":")))
-    (insert (format "cygrunsrv -I ah_%s -p /usr/bin/autossh -a \"-M 0 -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -i ~/.ssh/id_rsa -NR %s:%s root@%s\" -y tcpip"
-                    name (second vps-arr) inner (first vps-arr)))))
+(provide 'imsmaco)
 
-(provide 'imkmacro)
-
-;;; imkmacro.el ends here.
+;;; imsmaco.el ends here

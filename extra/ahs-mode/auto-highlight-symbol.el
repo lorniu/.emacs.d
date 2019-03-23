@@ -66,6 +66,8 @@
 
      js2-mode
      rjsx-mode
+
+     lisp-mode
      )
   "Major modes `auto-highlight-symbol-mode' can run on."
   :group 'auto-highlight-symbol
@@ -729,13 +731,13 @@ This variable can be set in three different types.
 
         when (and beg end fontified)
         do (progn
-             (jit-lock-fontify-now beg end)
+             (ignore-errors (jit-lock-fontify-now beg end))
              (setq beg nil
                    end nil))
 
         finally
         do (when (and beg end)
-             (jit-lock-fontify-now beg end))))
+             (ignore-errors (jit-lock-fontify-now beg end)))))
 
 (defun ahs-light-up ()
   "Light up symbols."

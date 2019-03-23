@@ -1,4 +1,4 @@
-;;; bm.el --- BenchMarking
+;;; bm.el --- Benchmark -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;; Code:
 
@@ -12,15 +12,6 @@
 (defun time-subtract-millis (b a)
   (* 1000.0 (time-subtract-seconds b a)))
 
-(defadvice require (around bm/build-time (feature &optional filename noerror) activate)
-  (let* ((already-loaded (memq feature features))
-         (require-start-time (and (not already-loaded) (current-time))))
-    (prog1
-        ad-do-it
-      (when (and (not already-loaded) (memq feature features))
-        (let ((time (time-subtract-millis (current-time) require-start-time)))
-          (add-to-list 'bm/time (cons feature time) t))))))
-
 (defun bm/show-time (&optional sortp)
   (ppp (if sortp
            (let ((time (copy-tree bm/time)))
@@ -32,6 +23,17 @@
    (sort (seq-difference bm/time bm/last-time)
          (lambda (a b) (> (cdr a) (cdr b)))))
   (setq bm/last-time (copy-tree bm/time)) t)
+
+(defun bm/require-statics-advice (oldfun feature &optional filename noerror)
+  (let* ((already-loaded (memq feature features))
+         (start-time (and (not already-loaded) (current-time))))
+    (prog1
+        (funcall oldfun feature filename noerror)
+      (when (and (not already-loaded) (memq feature features))
+        (let ((time (time-subtract-millis (current-time) start-time)))
+          (add-to-list 'bm/time (cons feature time) t))))))
+
+(add-function :around (symbol-function 'require) 'bm/require-statics-advice)
 
 (defun display-startup-echo-area-message ()
   (message ">> Loaded success with %.2f Seconds."
