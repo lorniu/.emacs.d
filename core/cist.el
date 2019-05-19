@@ -2,6 +2,10 @@
 ;;; Commentary:
 ;;; Code:
 
+(defcustom *vps* "imxx.top"
+  "The remote host. In the most top."
+  :type 'string :group 'imfine)
+
 (defcustom ic/private-custom-file (format "~/.emacs.d/init_%s.el" (system-name))
   "Private custom file, which contains configs for different endpoints."
   :type 'string :group 'imfine)

@@ -2,7 +2,7 @@
 ;;; Commentary:
 ;;; Code:
 
-(defcustom ic/my-postgres '("postgres" "postgres")
+(defcustom ic/my-postgres '("imdev" "vip")
   "Postgres connection info, (db user [password] [host] [port]) format."
   :type 'list
   :group 'imfine)
@@ -84,12 +84,13 @@ Custom `ic/my-postgres' to specify the db used by `with-my-pg'.
      `(progn
         (or ic/my-postgres
             (error "Please config `ic/my-postgres' first."))
-        (with-pg-connection (conn ,@ic/my-postgres)
-          ,(if (stringp (car sql-or-stmts))
-               `(pg:exec conn ,@sql-or-stmts)
-             `(cl-flet ((exec (apply-partially 'pg:exec conn))
-                        (query (apply-partially 'pg:for-each conn)))
-                ,@sql-or-stmts))))))
+        (multiple-value-bind (db user password host port) ic/my-postgres
+          (with-pg-connection (conn db user password host port)
+            ,(if (stringp (car sql-or-stmts))
+                 `(pg:exec conn ,@sql-or-stmts)
+               `(cl-flet ((exec (apply-partially 'pg:exec conn))
+                          (query (apply-partially 'pg:for-each conn)))
+                  ,@sql-or-stmts)))))))
 
 
 (provide 'imdb)

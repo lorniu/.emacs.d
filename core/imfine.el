@@ -22,7 +22,7 @@
 
   ;; modules
   (require 'bm)
-  (require 'imutil)
+  (require 'util)
   (require 'cist)
   (require 'cust)
   (require 'patches)
@@ -39,8 +39,8 @@
 
   ;; daemon server
   (require 'server)
-  (setq server-auth-dir "~/.emacs.d/.cache/server/")
   (ignore-errors
+    (setq server-auth-dir "~/.emacs.d/.cache/server/")
     (delete-file (concat server-auth-dir "server"))
     (unless (server-running-p) (server-start))))
 
