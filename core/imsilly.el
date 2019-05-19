@@ -2,27 +2,48 @@
 ;;; Commentary:
 ;;; Code:
 
-(defcustom ic/external-script-dir (expand-file-name "~/.emacs.d/scripts/bin")
+(defcustom ic/external-script-dirs
+  (list (expand-file-name "~/.emacs.d/scripts/bin")
+        (expand-file-name "~/.notes/x.bin"))
   "Where are the scripts files."
-  :type 'string :group 'imfine)
+  :type '(repeat string) :group 'imfine)
 
 ;; path
-(setenv "PATH" (concat ic/external-script-dir (if (eq system-type 'windows-nt) ";" ":") (getenv "PATH")))
-(add-to-list 'exec-path ic/external-script-dir)
+(loop for d in ic/external-script-dirs
+      when (file-exists-p d)
+      do
+      (setenv "PATH" (concat d (if (eq system-type 'windows-nt) ";" ":") (getenv "PATH")))
+      (add-to-list 'exec-path d))
 
 ;; silly run
 (defun im/silly (&optional arg)
   "Silly run scripts, default in emacs.d dir, or if ARG t, in current dir."
   (interactive "P")
   (let* ((dir (if arg default-directory "~/.emacs.d/scripts/"))
-         (script (read-file-name "Choose script:" dir)))
+         (script (read-file-name "Choose script:" dir))
+         args script-with-args)
     (if (and (file-exists-p script) (not (directory-name-p script)))
-        (cond ((string-match-p "\\.sh$" script)
-               (async-shell-command (concat "bash -c " script)))
-              ((string-match-p "\\(\\.bat\\|\\.cmd\\)$" script)
-               (if (eq system-type 'windows-nt) (async-shell-command script)
-                 (error "Batch file should be executed on windows.")))
-              (t (async-shell-command script)))
+        (progn
+          ;; search elisp line '#.(foo bar)',
+          ;; eval and pass result to script
+          (with-temp-buffer
+            (insert-file-contents-literally script)
+            (goto-char (point-min))
+            (when (search-forward "#." nil t)
+              (let* ((sexp (buffer-substring-no-properties
+                            (match-end 0) (line-end-position)))
+                     (res (eval (read sexp))))
+                (setq args (loop for i in (if (listp res) res (list res))
+                                 concat (format " %s" (replace-regexp-in-string " +" "\\\\ " i)))))))
+          (setq script-with-args (concat script args))
+          ;; different platform
+          (cond ((string-match-p "\\.sh$" script)
+                 (async-shell-command (concat "bash -c '" script-with-args "'")))
+                ((string-match-p "\\(\\.bat\\|\\.cmd\\)$" script)
+                 (if (eq system-type 'windows-nt)
+                     (async-shell-command script-with-args)
+                   (error "Batch file should be executed on windows.")))
+                (t (async-shell-command script-with-args))))
       (error "Please choose a script file first."))))
 
 

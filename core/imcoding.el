@@ -435,14 +435,19 @@
          haskell-process-type 'auto
          haskell-process-suggest-remove-import-lines nil)
 
+   :config
    (add-hook-lambda 'haskell-mode-hook
      (interactive-haskell-mode)
      (flycheck-mode -1)
-     (if (executable-find "cabal") (dante-mode))))
+     (if (executable-find "cabal") (dante-mode)))
+
+   (define-key haskell-interactive-mode-map (kbd "C-c M-o") 'haskell-interactive-mode-clear)
+   (define-key haskell-interactive-mode-map (kbd "C-a") 'haskell-interactive-mode-beginning))
 
 (x dante
    :commands dante-mode
-   :bind (:map hs-minor-mode-map ("C-c '" . dante-eval-block))
+   :bind
+   (:map hs-minor-mode-map ("C-c '" . dante-eval-block))
    :init (add-hook-lambda 'dante-mode-hook
            (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))
    :config (patch/haskell))

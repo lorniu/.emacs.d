@@ -2,11 +2,18 @@
 
 # Take hole on the NAT, from SCHOOL to OUTSIDE.
 
-island=45.63.55.2
+#. (if (string= *vps* "not-set-yet") "" *vps*)
+
+if [ -z $1 ]; then
+    echo Should given a proper ip address as argument.
+    echo
+    echo or you should config \*vps\* in emacs first.
+    exit
+fi
 
 connects=(
     '*:20022:127.0.0.1:22'
-    '*:1521:192.168.0.168:1521'
+    '*:21521:192.168.0.168:1521'
     '*:28028:192.168.0.168:8028'
 )
 
@@ -19,9 +26,8 @@ if [[ -n `ps |grep autossh` ]]; then
     echo
     echo "Go... then go back."
 else
-
     randport=55551
-    remote=root@$island
+    remote=root@$1
 
     for conn in ${connects[@]}; do
         randport=$[$randport+2]
@@ -30,7 +36,7 @@ else
 
     echo "Hole on the wall !"
     echo
-    echo ">> $island <<"
+    echo ">> $1 <<"
     echo
     echo ${connects[*]}
 fi;

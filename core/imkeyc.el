@@ -13,6 +13,7 @@
  ( [(control f2)]  . name-and-insert-last-kbd-macro )
  ( [f6]            . toggle-truncate-lines)
  ( [f8]            . calendar             )
+ ( [f10]           . im/silly             )
  ( [f11]           . ivy-push-view        )
  ( [C-f11]         . ivy-switch-view      )
  ( [f12]           . im/popup-eshell      )
