@@ -33,7 +33,7 @@
   (interactive)
   (require 'ox-publish)
   (with-current-buffer (find-file-read-only note-directory) ; for .dir-local
-    (sit-for 0.1)
+    (sit-for 0.3)
     (message "Begin to publish [%s] → [%s]..." note-directory note-publish-directory)
     (let ((start (current-time))
           (log-buffer '*org-publish-log*)
@@ -45,7 +45,7 @@
       (cl-letf (((symbol-function 'run-hooks) (lambda (&rest _) nil))
                 ((symbol-function 'run-hook-with-args) (lambda (&rest _) nil))
                 ((symbol-function 'message) (lambda (fmt &rest args) (apply 'logit (append (list log-buffer fmt) args)))))
-        (without-rencentf (org-publish "nnn" force)))
+        (without-recentf (org-publish "nnn" force)))
       (logit log-buffer "\n=== %s ===\n\n\n" (time))
       (run-hooks 'post-publish-note-hook)
       (message "Publish Finished in %.2f seconds!" (time-subtract-seconds (current-time) start)))

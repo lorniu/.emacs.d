@@ -39,7 +39,8 @@
 (defmacro without-msg (&rest form)
   `(let ((inhibit-message t)) ,@form))
 
-(defmacro without-rencentf (&rest form)
+(defmacro without-recentf (&rest form)
+  "Disable recentf temporaryly."
   `(unwind-protect
        (progn (without-msg (recentf-mode -1)) ,@form)
      (without-msg (recentf-mode +1))))
@@ -124,6 +125,6 @@
     (xml-parse-string)))
 
 
-(provide 'imutil)
+(provide 'util)
 
 ;;; imutil.el ends here

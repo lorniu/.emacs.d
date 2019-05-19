@@ -2,10 +2,6 @@
 ;;; Commentary:
 ;;; Code:
 
-(defcustom *vps* "not-set-yet"
-  "The remote host."
-  :type 'string :group 'imfine)
-
 (setq user-full-name "imfine")
 (setq user-mail-address "lorniu@gmail.com")
 (setq default-directory "~/")
@@ -52,8 +48,9 @@
       kill-ring-max 200
       mark-ring-max 10
       select-enable-clipboard t
-      select-enable-primary t
+      select-enable-primary nil
       delete-by-moving-to-trash t
+      mouse-autoselect-window t
 
       help-window-select t
       man-notify-method 'pushy

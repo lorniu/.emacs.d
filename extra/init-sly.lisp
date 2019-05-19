@@ -1,14 +1,14 @@
 (in-package :cl-user)
 
+(export '(*vps* qload curl sload))
 
 (defconstant *quicklisp-home*
   #+ros.init (merge-pathnames "lisp/quicklisp/" (roswell.util:homedir))
   "~/.quicklisp/")
 
+(defparameter *vps* "imxx.top" "Private Host")
 
-(defparameter *vps* "127.0.0.1" "Private Host")
-
-(defvar local-custom-directory "~/.notes/x.code.lsp/")
+(defvar local-custom-directory "~/.notes/x.code.lisp/")
 
 
 ;;; Asdf
