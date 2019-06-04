@@ -10,30 +10,35 @@
   "Private custom file, which contains configs for different endpoints."
   :type 'string :group 'imfine)
 
+(defcustom ic/elpa-use-mirror t
+  "ELPA use mirror or not."
+  :type 'boolean :group 'imfine)
+
 (defmacro p/refresh (&rest packages-required)
-  "Use :mirror to switch repo, use :ensure to check and install packages."
-  (let ((ensure? (car (memq :ensure packages-required)))
-        (mirror? (car (memq :mirror packages-required)))
-        (packages (delete :ensure (delete :mirror packages-required))))
-    `(let ((repo-origin
-            `(("melpa" . "http://melpa.org/packages/")
-              ("gnu"   . "http://elpa.gnu.org/packages/")))
-           (repo-mirror
-            `(("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")
-              ("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/"))))
-       (defun p/install ()
-         (interactive)
-         (package-refresh-contents)
-         (cl-loop for p in ',packages unless (package-installed-p p) do (package-install p))
-         (message "Install Finished."))
-       (defun p/archive-origin () (interactive) (message "%s" (setq package-archives repo-origin)))
-       (defun p/archive-mirror () (interactive) (message "%s" (setq package-archives repo-mirror)))
+  `(let ((repo-origin
+          `(("melpa" . "http://melpa.org/packages/")
+            ("gnu"   . "http://elpa.gnu.org/packages/")))
+         (repo-mirror
+          `(("melpa" . "http://elpa.emacs-china.org/melpa/")
+            ("gnu"   . "http://elpa.emacs-china.org/gnu/")))
+         (tencent-mirror
+          `(("melpa" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
+            ("gnu"   . "http://mirrors.cloud.tencent.com/elpa/gnu/"))))
 
-       (setq package-user-dir "~/.emacs.d/packages")
-       (package-initialize)
+     (defun p/install ()
+       (interactive)
+       (package-refresh-contents)
+       (cl-loop for p in ',packages-required unless (package-installed-p p) do (package-install p))
+       (message "Install Finished."))
+     (defun p/elpa-use-origin () (interactive) (message "%s" (setq package-archives repo-origin)))
+     (defun p/elpa-use-mirror () (interactive) (message "%s" (setq package-archives repo-mirror)))
 
-       ,(if mirror? `(p/archive-mirror) `(p/archive-origin))
-       (if (or (not (file-exists-p package-user-dir)) ,ensure?) (p/install)) 'ok)))
+     (setq package-user-dir "~/.emacs.d/packages")
+     (package-initialize)
+     (if ic/elpa-use-mirror (p/elpa-use-mirror) (p/elpa-use-origin))
+
+     (when (cl-find-if (lambda (p) (not (package-installed-p p))) ',packages-required)
+       (push "* Some packages missing, run `p/install' to install." loaded-messages))))
 
 
 
@@ -44,15 +49,20 @@
  use-package bind-key delight key-chord
 
  ;; looking
- spacegray-theme rainbow-delimiters beacon page-break-lines
+ spacegray-theme
+ rainbow-delimiters beacon page-break-lines
  rcirc-styles xterm-color
 
  ;; edit and utils
- expand-region dired-du session attrap syntax-subword neotree alert ztree
- dired-dups magit git-timemachine engine-mode youdao-dictionary
+ alert session attrap
+ syntax-subword expand-region
+ dired-dups ztree neotree
+ magit git-timemachine
+ engine-mode youdao-dictionary
 
  ;; search and nav
- ag wgrep-ag anzu smex ivy hydra ace-window ivy-pages
+ ag wgrep-ag anzu smex
+ ivy hydra ace-window ivy-pages
 
  ;; org-mode
  org-download ob-restclient ox-pandoc graphviz-dot-mode gnuplot
@@ -61,17 +71,22 @@
  counsel-projectile yasnippet company websocket
 
  ;; lsp
- lsp-mode lsp-ui company-lsp cquery
+ lsp-mode lsp-ui company-lsp
 
  ;; frontend
  web-mode emmet-mode yaml-mode sass-mode json-mode
  js2-mode tide htmlize web-beautify company-web rjsx-mode
 
  ;; backends
- php-mode robe elpy c-eldoc lua-mode go-mode erlang dante hindent powershell csharp-mode
+ c-eldoc cquery
+ php-mode elpy lua-mode go-mode
+ robe erlang alchemist
+ dante hindent
+ powershell
+ csharp-mode
  kotlin-mode clojure-mode groovy-mode scala-mode ensime lsp-java
 
- ;; other language related
+ ;; other language specified
  company-ghc company-php company-go
 
  ;; miscellaneous
@@ -143,6 +158,14 @@
   (if (and (not (eq (file-name-extension dir) "")) (file-directory-p dir))
       (add-to-list 'load-path dir)))
 (add-to-list 'custom-theme-load-path "~/.emacs.d/extra/themes")
+
+;;; Tips for the first time
+
+(unless (file-exists-p ic/private-custom-file)
+  (push (concat "\nFirst time launch emacs? Maybe you should:\n"
+                "- Add cygwin/msys2 to PATH variable;\n"
+                "- Add private custom to `ic/private-custom-file' file.\n")
+        loaded-messages))
 
 ;;; Hook for special endpoint
 

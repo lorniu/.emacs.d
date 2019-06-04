@@ -192,7 +192,8 @@
      (setq explicit-bash.exe-args '("--login" "-i")))
 
    (add-hook-lambda 'shell-mode-hook
-     (when (and (env-windows) (not (string-match-p "bash" explicit-shell-file-name)))
+     (when (and (env-windows) ;; cmd/powershell on windows, should be gbk encoding
+                (not (string-match-p "bash" (or explicit-shell-file-name ""))))
        (im/local-encoding 'cp936))
      (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil)))
 
@@ -260,16 +261,14 @@
 
 ;;; Generic Modes
 
-(x autorevert
-   :init
-   (setq auto-revert-mode-text "")
-   (global-auto-revert-mode 1))
+(setq auto-revert-mode-text "")
+(global-auto-revert-mode 1)
 
-(x recentf
-   :init
-   (setq recentf-max-saved-items 40)
-   (setq recentf-save-file (concat _CACHE_ "_recentf"))
-   (recentf-mode 1))
+(setq recentf-max-saved-items 40)
+(setq recentf-save-file (concat _CACHE_ "_recentf"))
+(recentf-mode 1)
+
+(add-hook 'edebug-mode-hook (lambda () (view-mode -1)))
 
 (x beacon/d
    :init (beacon-mode 1))
@@ -341,38 +340,24 @@
    :bind
    (:map dired-mode-map
          ( "6" . dired-up-directory )
-         ( "z" . dired-du-mode )
          ( "r" . wdired-change-to-wdired-mode )
          ( "." . imdra-dired/body )
-         ( "Y" . im/dired-rsync))
+         ( "s" . hydra-dired-quick-sort/body )
+         ( "z" . idp/dired-du-size )
+         ( "Y" . idp/dired-rsync))
    :config
+   ;; ls style
+   (require 'ls-lisp)
+   (setq ls-lisp-use-insert-directory-program nil
+         dired-listing-switches "-alh"
+         ls-lisp-use-localized-time-format t
+         ls-lisp-format-time-list '("%Y/%m/%d %H:%M" "%Y/%m/%d %H:%M")
+         ls-lisp-dirs-first t
+         ls-lisp-UCA-like-collation nil)
 
+   ;; others
    (setq dired-dwim-target t)
-   (setq dired-du-size-format 'comma)
-
-   ;; sort style
-   (if (env-linux)
-       (setq dired-listing-switches "-alh --group-directories-first")
-     (setq ls-lisp-dirs-first t)
-     (setq ls-lisp-UCA-like-collation nil)
-     (setq ls-lisp-use-insert-directory-program nil)
-     (require 'ls-lisp))
-
-   (defun im/dired-rsync (dest)
-     "Send marked files with rsync."
-     (interactive
-      (list (progn
-              (require 'dired-aux)
-              (expand-file-name
-               (read-file-name "Rsync to:" (dired-dwim-target-directory))))))
-     (let ((files (dired-get-marked-files nil current-prefix-arg))
-           (rsync-command "rsync -arvz --progress "))
-       (dolist (file files)
-         (setq rsync-command
-               (concat rsync-command (shell-quote-argument file) " ")))
-       (setq rsync-command (concat rsync-command (shell-quote-argument dest)))
-       (async-shell-command rsync-command "*rsync*")
-       (other-window 1))))
+   (require 'im-dired-plus))
 
 (x wgrep/e
    :init

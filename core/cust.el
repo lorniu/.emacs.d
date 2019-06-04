@@ -50,7 +50,7 @@
       select-enable-clipboard t
       select-enable-primary nil
       delete-by-moving-to-trash t
-      mouse-autoselect-window t
+      mouse-autoselect-window -0.05
 
       help-window-select t
       man-notify-method 'pushy

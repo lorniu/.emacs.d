@@ -35,7 +35,6 @@
   (require 'imsmaco)
   (require 'imsilly)
   (require 'implay)
-  (require 'idebug)
 
   ;; daemon server
   (require 'server)

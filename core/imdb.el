@@ -72,7 +72,7 @@ Can use `with-pg-connection' or wrapped `with-my-pg' to access postgres.
     (with-my-pg (pg:exec ...))    ; statement
     (with-my-pg (exec/query ...)) ; alias
 
-    (logdb ..) ; util function use this to log
+    (log/db ..) ; util function use this to log
 
 Custom `ic/my-postgres' to specify the db used by `with-my-pg'.
    "
@@ -91,6 +91,30 @@ Custom `ic/my-postgres' to specify the db used by `with-my-pg'.
                `(cl-flet ((exec (apply-partially 'pg:exec conn))
                           (query (apply-partially 'pg:for-each conn)))
                   ,@sql-or-stmts)))))))
+
+
+
+;;; Utils
+
+(defun log/db (&optional msg cat ext table)
+  "Log message to postgres. Should table 'elog' and macro `with-my-pg' exist."
+  (with-my-pg
+   "insert into %s (cat, msg, ext) values (%s, %s, %s)"
+   (list (or table "elog")
+         (if cat (format "'%s'" cat) "null")
+         (if msg (format "'%s'" msg) "null")
+         (if ext (format "'%s'" ext) "null"))))
+
+(defun log/current-to-db (&optional arg)
+  "Send current selection or buffer to private postgres db."
+  (interactive "P")
+  (let ((send-string
+         (if (and arg (y-or-n-p "Log current buffer to db?"))
+             (buffer-string)
+           (if (use-region-p)
+               (buffer-substring-no-properties (region-beginning) (region-end))
+             (read-string "String to log: ")))))
+    (message "%s" (log/db send-string))))
 
 
 (provide 'imdb)

@@ -3,8 +3,8 @@
 ;;; Code:
 
 (defvar bm/time nil)
-
 (defvar bm/last-time nil)
+(defvar loaded-messages nil)
 
 (defun time-subtract-seconds (b a)
   (float-time (time-subtract b a)))
@@ -36,7 +36,9 @@
 (add-function :around (symbol-function 'require) 'bm/require-statics-advice)
 
 (defun display-startup-echo-area-message ()
-  (message ">> Loaded success with %.2f Seconds."
+  (message "%s%s>> Loaded successfully in %.2f seconds."
+           (mapconcat 'identity (reverse loaded-messages) "\n")
+           (if loaded-messages "\n" "")
            (time-subtract-seconds after-init-time before-init-time)))
 
 

@@ -2,7 +2,7 @@
 ;;; Commentary:
 ;;; Code:
 
-(defcustom lisp/init-file "~/.emacs.d/extra/init-sly.lisp"
+(defcustom lisp/init-file "~/.emacs.d/scripts/conf/sly.lisp"
   "Common Lisp init file."
   :type 'file :group 'imfine)
 
@@ -132,7 +132,7 @@
    (advice-add 'yas--maybe-expand-key-filter :before 'my-yas-expand-extra))
 
 (x emmet-mode/d
-   :hook (web-mode rjsx-mode)
+   :hook (web-mode rjsx-mode mhtml-mode)
    :init (setq emmet-move-cursor-between-quotes t))
 
 (x js2-mode
@@ -446,15 +446,25 @@
 
 (x dante
    :commands dante-mode
+   :after haskell-mode
    :bind
    (:map hs-minor-mode-map ("C-c '" . dante-eval-block))
-   :init (add-hook-lambda 'dante-mode-hook
-           (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))
-   :config (patch/haskell))
+   :init
+   (setq dante-repl-command-line  '("cabal" "new-repl"))
+   (add-hook-lambda 'dante-mode-hook
+     (flycheck-add-next-checker 'haskell-dante '(warning . haskell-hlint)))
+   :config
+   (patch/haskell))
 
 ;; Erlang
 ;; - Distel is said a good IDE. try some day.
 ;; - other setups later too.
+
+;; Elixir
+(x alchemist
+   :config
+   (setq alchemist-hooks-test-on-save nil)
+   (setq alchemist-hooks-compile-on-save nil))
 
 ;; Python-Elpy
 
