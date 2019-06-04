@@ -44,9 +44,9 @@
           (org-publish-project-alist (im/org-generate-project-alist note-directory note-publish-directory)))
       (cl-letf (((symbol-function 'run-hooks) (lambda (&rest _) nil))
                 ((symbol-function 'run-hook-with-args) (lambda (&rest _) nil))
-                ((symbol-function 'message) (lambda (fmt &rest args) (apply 'logit (append (list log-buffer fmt) args)))))
+                ((symbol-function 'message) (lambda (fmt &rest args) (apply 'log/it (append (list log-buffer fmt) args)))))
         (without-recentf (org-publish "nnn" force)))
-      (logit log-buffer "\n=== %s ===\n\n\n" (time))
+      (log/it log-buffer "\n=== %s ===\n\n\n" (time))
       (run-hooks 'post-publish-note-hook)
       (message "Publish Finished in %.2f seconds!" (time-subtract-seconds (current-time) start)))
     (kill-buffer)))
@@ -243,7 +243,7 @@
 
   ;; Src-Block
   (pushnew (cons "xml" 'sgml) org-src-lang-modes)
-  (pushnew (cons "html" 'web) org-src-lang-modes)
+  ;;(pushnew (cons "html" 'web) org-src-lang-modes)
 
   ;; Babel
   (org-babel-do-load-languages
@@ -363,27 +363,74 @@
    :init (setq gnuplot-program "gnuplot"))
 
 (x org-download
+   :init
+   (setq org-download-backend (if (executable-find "wget") "wget \"%s\" -O \"%s\"" t))
+   (setq org-download-screenshot-file (concat temporary-file-directory "scrot.png"))
+
    :config
-   (setq org-download-backend (if (executable-find "wget") "wget \"%s\" -O \"%s\"" t)
-         org-download-screenshot-file (concat temporary-file-directory "clip.png"))
+   (defvar org-download-last-save-dir nil)
 
-   (fset 'org-download-clipboard 'org-download-screenshot)
+   (defun org-download-clipboard-method ()
+     (cond
+      ((executable-find "xclip") "xclip -selection clipboard -t image/png -o > %s")
+      ((env-windows) "powershell -Command (Get-Clipboard -Format Image).save('%s')")
+      (t (error "no proper tool, please install xclip or powershell"))))
 
-   (defun my-org-download-choose-dir (&rest _)
-     (let ((dest-dir (read-directory-name "Save in directory: ")))
-       (when (not (file-exists-p dest-dir))
-         (make-directory dest-dir t))
-       dest-dir))
-   (advice-add 'org-download--dir :around 'my-org-download-choose-dir)
+   (defun org-download-clipboard ()
+     (interactive)
+     (let ((default-directory "~"))
+       (shell-command (format (org-download-clipboard-method) org-download-screenshot-file)))
+     (org-download-image org-download-screenshot-file))
 
-   (defun my-org-download-set-scrot-method (&rest _)
-     (setq org-download-screenshot-method ;; linux: pacman -S xclip
-           (cond
-            ((executable-find "xclip") "xclip -selection clipboard -t image/png -o > %s")
-            ((env-windows) "powershell -Command (Get-Clipboard -Format Image).save('%s')")
-            (t (error "no proper tool, eg, xclip/powershell")))))
-   (advice-add 'org-download-clipboard :before 'my-org-download-set-scrot-method)
-   (advice-add 'org-download-screenshot :before 'my-org-download-set-scrot-method))
+   (defun org-download--fullname (link &optional ext)
+     (let* ((filename (file-name-nondirectory
+                       (car (url-path-and-query
+                             (url-generic-parse-url link)))))
+            (base (if (and org-download-last-save-dir
+                           (search (expand-file-name default-directory) org-download-last-save-dir))
+                      org-download-last-save-dir
+                    default-directory))
+            (path (read-file-name "File save as: " base base))
+            (dir (file-name-directory path))
+            (name (file-name-nondirectory path)))
+       (if (not (file-exists-p dir)) (make-directory dir t))
+       (setq org-download-last-save-dir (expand-file-name dir))
+       (if (not (string-blank-p name))
+           (format "%s.%s" path (or ext (file-name-extension filename)))
+         (when (string-match ".*?\\.\\(?:png\\|jpg\\)\\(.*\\)$" filename)
+           (setq filename (replace-match "" nil nil filename 1)))
+         (abbreviate-file-name
+          (expand-file-name
+           (org-download--fullname-format filename ext)
+           dir)))))
+
+   (defun org-download-rename-at-point ()
+     (interactive)
+     (let* ((link-name (org-element-property :path (org-element-context)))
+            (rela-path (file-name-directory link-name))
+            (file-name (file-name-nondirectory link-name))
+            (dir-path (concat default-directory rela-path))
+            (current-path (concat dir-path "/" file-name))
+            (ext (file-name-extension file-name))
+            (new-name (read-string "Rename file at point to: " (file-name-sans-extension file-name)))
+            (new-path (concat dir-path "/" new-name "." ext)))
+       (rename-file current-path new-path)
+       (message "File successfully renamed to '%s'." new-name)
+       (org-download-replace-all link-name (concat rela-path new-name "." ext))
+       (org-display-inline-images)))
+
+   (defun org-download-rename-last-file ()
+     (interactive)
+     (let* ((dir-path (file-name-directory org-download-path-last-file))
+            (newname (read-string "Rename last file to: " (file-name-base org-download-path-last-file)))
+            (ext (file-name-extension org-download-path-last-file))
+            (newpath (concat dir-path newname "." ext)))
+       (when org-download-path-last-file
+         (rename-file org-download-path-last-file newpath 1)
+         (message "Last file renamed to '%s'." newname)
+         (org-download-replace-all (file-name-nondirectory org-download-path-last-file) (concat newname "." ext))
+         (setq org-download-path-last-file newpath)
+         (org-display-inline-images)))))
 
 
 

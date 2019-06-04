@@ -124,6 +124,34 @@
     (save-excursion (insert html))
     (xml-parse-string)))
 
+
+
+;;; Miscellaneous
+
+(defmacro pm (expr)
+  `(progn (pp (macroexpand-1 ',expr)) t))
+
+(defun ppp (list)
+  (dolist (l list t) (princ l) (terpri)))
+
+(defun log/it (&rest args)
+  "Output messsage to a buffer. Usage: (log/it [buffer-name] fmtString variable)."
+  (let ((buffer-name (if (symbolp (car args))
+                         (prog1 (symbol-name (car args))
+                           (setq args (cdr args)))
+                       "*logger*")))
+    (with-current-buffer (get-buffer-create buffer-name)
+      (local-set-key (kbd "q") 'bury-buffer)
+      (goto-char (point-max))
+      (insert "\n")
+      (insert (apply 'format args)))))
+
+(defmacro im/profile (&rest body)
+  "Profiler BODY form."
+  `(progn (profiler-start 'cpu)
+          (ignore-errors ,@body (profiler-report))
+          (profiler-stop)))
+
 
 (provide 'util)
 
