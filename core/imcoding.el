@@ -2,7 +2,7 @@
 ;;; Commentary:
 ;;; Code:
 
-(defcustom lisp/init-file "~/.emacs.d/scripts/conf/sly.lisp"
+(defcustom lisp/init-file "~/.emacs.d/scripts/lisp/sly.lisp"
   "Common Lisp init file."
   :type 'file :group 'imfine)
 
@@ -17,7 +17,7 @@
                ("<SPC>" . my-insert-blank))
    :config
    (setq company-minimum-prefix-length 1)
-   (setq company-idle-delay 0.1)
+   (setq company-idle-delay 0.2)
    (setq company-lighter-base "")
    (defun my-insert-blank () (interactive) (company-abort) (insert " ")))
 
@@ -248,7 +248,8 @@
    :config
    (setq-default
     c-basic-offset 4
-    gdb-many-windows t gdb-show-main t)
+    gdb-many-windows t
+    gdb-show-main t)
 
    (defun im/lsp-cquery-enable-prob ()
      (if (executable-find "cquery")
@@ -259,14 +260,15 @@
              (lsp-ui-doc-mode 1)))
        nil))
 
-   (defun my-ccc-hook ()
+   (defun my-c-hook ()
      (c-turn-on-eldoc-mode)
      (flycheck-mode 1)
      (unless (im/lsp-cquery-enable-prob)
-       (semantic-mode)
+       ;; (semantic-mode)
        (cscope-minor-mode))
      (set (make-local-variable 'compile-command)
-          (if (file-exists-p "Makefile") "make"
+          (if (file-exists-p "Makefile")
+              "make"
             (format "cc %s -g %s -o %s"
                     (buffer-name)
                     (or (getenv "CFLAGS") "-std=c99 -Wall")
@@ -276,14 +278,9 @@
      (setq compile-command (if (file-exists-p "Makefile")
                                "make" "clang++ -Wall -Wextra -std=c++14")))
 
-   (add-hook 'c-mode-hook 'my-ccc-hook)
-   (add-hook 'c++-mode-hook 'my-ccc-hook)
-   (add-hook 'c++-mode-hook 'my-cpp-hook)
-
-   (define-key c-mode-map (kbd "C-c C-c") 'compile)
-   (define-key c-mode-map (kbd "C-c C-k") 'kill-compilation)
-   (define-key c++-mode-map (kbd "C-c C-c") 'compile)
-   (define-key c++-mode-map (kbd "C-c C-k") 'kill-compilation))
+   (add-hook 'c-mode-hook 'my-c-hook)
+   (add-hook 'c++-mode-hook 'my-c-hook)
+   (add-hook 'c++-mode-hook 'my-cpp-hook))
 
 (x cquery
    "If use lsp, need cquery support

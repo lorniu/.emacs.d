@@ -8,28 +8,20 @@
   #+ros.init (merge-pathnames "lisp/quicklisp/" (roswell.util:homedir))
   "~/.quicklisp/")
 
-;;; quicklisp
 
+;;; quicklisp
 #-quicklisp (load (merge-pathnames "setup.lisp" *ql-home*) :verbose t)
 (pushnew imlisp-local ql:*local-project-directories*)
 
-;;; common utils
+;;; some hacks for cl package
+(load (merge-pathnames "util.lisp" *load-truename*))
+(load (merge-pathnames "plus.lisp" *load-truename*))
 
-(ql:quickload :dexador)
-(in-package :dexador)
-(shadow 'trace) (export 'trace)
-(defun trace (url) (let ((*verbose* t)) (get url)) (values))
-
-(in-package :cl-user)
-(setf (fdefinition 'curl) #'dex:get)
-(setf (fdefinition 'qload) #'ql:quickload)
-
-;;; private settings
-
+;;; external settings if possible
 (load (merge-pathnames "bootstrap.lisp" imlisp-home) :if-does-not-exist nil)
 
-;;; miscellaneous
 
-(export '(*vps* qload curl))
-(declaim (optimize (debug 3)))
+;;; miscellaneous
+(export '(*vps*))
 (pushnew :im-loaded *features*)
+(declaim (optimize (debug 3)))

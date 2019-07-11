@@ -2,7 +2,7 @@
 
 (defvar gac/ask-for-summary-p t)
 
-(defun gac/process-filter (proc string)
+(defun gac/prompt-password (proc string)
   "Provide password if neccessary."
   (save-current-buffer
     (set-buffer (process-buffer proc))
@@ -12,11 +12,11 @@
             (string-match "^\\(.*\\)'s password:" string))
         (setq ask (format "Password for '%s': " (match-string 1 string))))
        ((string-match "^[pP]assword.*:" string)
-        (setq ask "Password :")))
+        (setq ask "Password: ")))
       (when ask
         (process-send-string proc (concat (read-passwd ask nil) "\n"))))))
 
-(defun gac/commit-msg (filename)
+(defun gac/get-commit-message (filename)
   "Get a commit message. Default to FILENAME."
   (let ((relative-filename (file-name-nondirectory filename)))
     (if (not gac/ask-for-summary-p)
@@ -26,7 +26,7 @@
 (defun im/git-commit ()
   (interactive)
   (let* ((buffer-file (or (buffer-file-name) (buffer-name)))
-         (commit-msg (gac/commit-msg buffer-file))
+         (commit-msg (gac/get-commit-message buffer-file))
          (default-directory (or (projectile-project-root) (file-name-directory buffer-file))))
     (shell-command "git add .")
     (shell-command (format "git commit -m %s" (shell-quote-argument commit-msg)))))
@@ -35,7 +35,7 @@
   (interactive)
   (im/git-commit)
   (let ((proc (start-process "git" "*git-auto-push*" "git" "push")))
-    (set-process-filter proc 'gac/process-filter)
-    (set-process-sentinel proc (lambda (proc status) (message "Git push %s !" (substring status 0 -1))))))
+    (set-process-filter proc 'gac/prompt-password)
+    (set-process-sentinel proc (lambda (proc status) (message "Git *PUSH* %s !" (substring status 0 -1))))))
 
 (provide 'git-auto-commit)
