@@ -17,10 +17,6 @@
   "What to ignore when publish."
   :type 'string :group 'imfine)
 
-(defcustom note-publish-sitemap-function #'org-publish-sitemap-default
-  "How to generete sitemap."
-  :type 'symbol :group 'imfine)
-
 (defcustom note-publish-post-script nil
   "Script to execute after note publish if present."
   :type 'string :group 'imfine)
@@ -29,12 +25,30 @@
 
 ;;; Commands
 
+(defun im/org-wrap-src ()
+  (interactive)
+  (let ((beg "#+BEGIN_SRC") (end "#+END_SRC") (lang (read-from-minibuffer "Please input your type: ")))
+    (if (use-region-p)
+        (let ((regin-beg (region-beginning)) (regin-end (region-end)))
+          (save-excursion
+            (goto-char regin-end) (end-of-line)
+            (insert (format "\n%s\n" end))
+            (goto-char regin-beg) (beginning-of-line) (open-line 1)
+            (insert (concat beg " " lang))
+            (ignore-errors (org-edit-special) (org-edit-src-exit) (deactivate-mark))))
+      (insert (format "%s %s\n\n%s\n" beg lang end))
+      (forward-line -2))))
+
+(defun im/org-align-all-tables ()
+  (interactive)
+  (org-table-map-tables 'org-table-align 'quietly))
+
 (defun im/org-publish-note (&optional force)
   (interactive)
   (require 'ox-publish)
-  (with-current-buffer (find-file-read-only note-directory) ; for .dir-local
+  (with-current-buffer (find-file-read-only note-directory) ; for .dir-locals
     (sit-for 0.3)
-    (message "Begin to publish [%s] → [%s]..." note-directory note-publish-directory)
+    (message "Begin to publish [%s] → [%s] ..." note-directory note-publish-directory)
     (let ((start (current-time))
           (log-buffer '*org-publish-log*)
           (vc-handled-backends nil)
@@ -47,8 +61,8 @@
                 ((symbol-function 'message) (lambda (fmt &rest args) (apply 'log/it (append (list log-buffer fmt) args)))))
         (without-recentf (org-publish "nnn" force)))
       (log/it log-buffer "\n=== %s ===\n\n\n" (time))
-      (run-hooks 'post-publish-note-hook)
-      (message "Publish Finished in %.2f seconds!" (time-subtract-seconds (current-time) start)))
+      (run-hooks 'note-post-publish-hook)
+      (message "Note published in %.2f seconds." (time-subtract-seconds (current-time) start)))
     (kill-buffer)))
 
 (defun im/org-publish-note-interactively (&optional force)
@@ -82,26 +96,9 @@
         (with-current-buffer (find-file-noselect file)
           (goto-char (point-min))
           (call-interactively 'flush-lines)
-          (save-buffer))
+          (save-buffer)
+          (kill-buffer))
       (message "Cache file not available."))))
-
-(defun im/org-align-all-tables ()
-  (interactive)
-  (org-table-map-tables 'org-table-align 'quietly))
-
-(defun im/org-wrap-src ()
-  (interactive)
-  (let ((beg "#+BEGIN_SRC") (end "#+END_SRC") (lang (read-from-minibuffer "Please input your type: ")))
-    (if (use-region-p)
-        (let ((regin-beg (region-beginning)) (regin-end (region-end)))
-          (save-excursion
-            (goto-char regin-end) (end-of-line)
-            (insert (format "\n%s\n" end))
-            (goto-char regin-beg) (beginning-of-line) (open-line 1)
-            (insert (concat beg " " lang))
-            (ignore-errors (org-edit-special) (org-edit-src-exit) (deactivate-mark))))
-      (insert (format "%s %s\n\n%s\n" beg lang end))
-      (forward-line -2))))
 
 
 
@@ -136,12 +133,6 @@
            (insert (format "\n======= %s ========\n\n\n" (time)))
            (view-mode 1)))))))
 
-(defun org-publish-sitemap-order-by-file-name (title list)
-  (cl-loop for i in (cdr list)
-           when (cdr (cadr i))
-           do (setf (cdr (cadr i)) (seq-sort-by #'car #'string< (cdr (cadr i)))))
-  (concat "#+TITLE: " title "\n\n" (org-list-to-org list)))
-
 (defun im/org-generate-html-head ()
   (setq org-html-head
         (string-join-newline
@@ -157,7 +148,7 @@
                         (format "pre.src { position:static; overflow:auto; background:%s; color:%s; } " (my-face-color 'bg) (my-face-color 'fg))
                         (format "pre.src:before { color:%s; } " (my-face-color 'bg))))))))
 
-(defun im/org-generate-project-alist (note-dir note-pub-dir &optional exclude sitemap-fun)
+(defun im/org-generate-project-alist (note-dir note-pub-dir &optional exclude)
   "Generate `org-publish-project-alist' from NOTE-DIR and NOTE-PUB-DIR."
   (if (or (not (file-exists-p note-dir))
           (not (file-writable-p note-pub-dir)))
@@ -165,8 +156,7 @@
   (let* ((prefix (if (string-match "^.*/\\([^/]+\\)/*$" note-dir) (match-string 1 note-dir)))
          (org-name (concat prefix "-org"))
          (asset-name (concat prefix "-asset"))
-         (exclude (or exclude note-publish-exclude-expr))
-         (sitemap-fun (or sitemap-fun note-publish-sitemap-function)))
+         (exclude (or exclude note-publish-exclude-expr)))
     `((,org-name
        :base-directory       ,note-dir
        :base-extension       "org"
@@ -178,7 +168,6 @@
        :with-toc             3
        :html-preamble        t
        :auto-sitemap         t
-       :sitemap-function     ,sitemap-fun
        :sitemap-filename     ".sitemap.org")
       (,asset-name
        :base-directory       ,note-dir
@@ -191,9 +180,9 @@
 
 
 
-;;; Mode Configuration
+;;; Configurations
 
-(defun im/org-configurations-0 ()
+(defun im/org-configuration-basic ()
   (setq org-directory                    note-directory
         org-startup-indented             t
         org-hide-leading-stars           t
@@ -202,8 +191,6 @@
         org-image-actual-width           nil
         org-cycle-separator-lines        0
         org-pretty-entities              t
-        org-src-fontify-natively         t
-        org-src-tab-acts-natively        nil
         org-url-hexify-p                 nil
         org-list-allow-alphabetical      t
 
@@ -213,16 +200,9 @@
 
         org-use-sub-superscripts         '{}
         org-export-with-sub-superscripts '{}
-        org-export-copy-to-kill-ring     nil
-        org-blank-before-new-entry       '((heading . t) (plain-list-item . nil))
+        org-blank-before-new-entry       '((heading . t) (plain-list-item . nil))))
 
-        org-html-html5-fancy             t
-        org-html-doctype                 "html5"
-        org-html-container-element       "section"
-        org-html-validation-link         "Go ahead, never stop."
-        org-html-htmlize-output-type     'inline-css
-        org-html-head-include-scripts    nil)
-
+(defun im/org-configuration-gtd ()
   (setq org-default-task-file    (concat org-directory "000/task.org")
         org-default-notes-file   (concat org-directory "000/journal.org")
         org-agenda-files         (file-expand-wildcards (concat org-directory "000/*.org"))
@@ -234,18 +214,26 @@
                                    ("d" "Diary"  plain (file+datetree ,org-default-notes-file) "%U\n\n%i%?" :empty-lines 1)
                                    ("n" "草稿箱" entry (file ,(concat org-directory "000/scratch.org")) "* %U\n\n%i%?" :prepend t :empty-lines 1))))
 
-(defun im/org-configurations-1 ()
-  ;; Publish
-  (setq org-publish-list-skipped-files nil)
-  (setq org-publish-timestamp-directory (concat _CACHE_ "org-publish-timestamp/"))
+(defun im/org-configuration-publish ()
+  (setq org-html-html5-fancy             t
+        org-html-doctype                 "html5"
+        org-html-container-element       "section"
+        org-html-validation-link         "Go ahead, never stop."
+        org-html-htmlize-output-type     'inline-css
+        org-html-head-include-scripts    nil
+        org-publish-list-skipped-files   nil
+        org-publish-timestamp-directory (concat _CACHE_ "org-publish-timestamp/"))
   (im/org-generate-html-head)
-  (add-hook 'post-publish-note-hook 'my-execute-script-after-publish)
+  (add-hook 'note-post-publish-hook 'my-execute-script-after-publish))
 
-  ;; Src-Block
+(defun im/org-configuration-babel ()
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-babel-default-header-args
+        (cons '(:noweb . "no") (assq-delete-all :noweb org-babel-default-header-args)))
+
   (pushnew (cons "xml" 'sgml) org-src-lang-modes)
-  ;;(pushnew (cons "html" 'web) org-src-lang-modes)
+  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)
 
-  ;; Babel
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((lisp       . t)
@@ -259,12 +247,9 @@
      (gnuplot    . t)
      (ditaa      . t)
      (dot        . t)
-     (plantuml   . t)))
-  (setq org-confirm-babel-evaluate nil
-        org-babel-default-header-args (cons '(:noweb . "no") (assq-delete-all :noweb org-babel-default-header-args)))
-  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append))
+     (plantuml   . t))))
 
-(defun im/org-configurations-2 ()
+(defun im/org-configuration-style ()
   ;; Emphasis
   (setcar org-emphasis-regexp-components "：，。！、  \t('\"{")     ;; prematch
   (setcar (nthcdr 1 org-emphasis-regexp-components) "- ：，。！、 \t.,:!?;'\")}\\") ;; postmatch
@@ -278,35 +263,33 @@
               :filter-return
               (lambda (ret) (list 'fixed-width (plist-put (cadr ret) :value (string-trim (plist-get (cadr ret) :value))))))
 
-  ;; Faces
-  (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee")))))
-    "for org mode \\ break"
-    :group 'imfine)
-  (defun my-org-add-keywords ()
-    (font-lock-add-keywords
-     nil '(("\\\\\\\\$" 0 'hi-org-break)
-           ("\\<\\(FIXME\\|NOTE\\|AIA\\|TODO\\):" 1 'font-lock-warning-face prepend))))
+  ;; Table Font
   (env-g (im/make-face-mono 'org-table))
+
+  ;; Add Keywords
+  (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee"))))) "for org mode \\ break" :group 'imfine)
+  (defun my-org-add-keywords ()
+    (font-lock-add-keywords nil '(("\\\\\\\\$" 0 'hi-org-break)
+                                  ("\\<\\(FIXME\\|NOTE\\|AIA\\|TODO\\):"
+                                   1 'font-lock-warning-face prepend))))
+  (add-hook 'org-mode-hook 'my-org-add-keywords)
 
   ;; Refresh color for html export
   (advice-add 'load-theme :after (lambda (&rest _) (im/org-generate-html-head)))
   (advice-add 'disable-theme :after (lambda (&rest _) (im/org-generate-html-head))))
 
-(defun im/org-configurations-3 ()
+(defun im/org-configuration-misc ()
+  ;; Keys
   (unbind-key "C-," org-mode-map)
 
   ;; Hooks
   (add-hook-lambda 'org-mode-hook
     (delight 'org-indent-mode)
-    (set (make-local-variable 'system-time-locale) "C")
-    (my-org-add-keywords))
+    (set (make-local-variable 'system-time-locale) "C"))
 
+  ;; plugins
   (require 'org-download)
-  ;; (require 'org-tempo nil t) ; old way src block easy template
-
-  (x ox
-     :config
-     (add-to-list 'org-export-filter-paragraph-functions 'my-org-clean-space)))
+  (x ox :config (add-to-list 'org-export-filter-paragraph-functions 'my-org-clean-space)))
 
 (x org/w
    "Publish Keybinds:
@@ -328,12 +311,64 @@
          ("C-x a a" . im/org-wrap-src))
 
    :init
-   (im/org-configurations-0)
+   (im/org-configuration-basic)
+   (im/org-configuration-gtd)
 
    :config
-   (im/org-configurations-1)
-   (im/org-configurations-2)
-   (im/org-configurations-3))
+   (im/org-configuration-publish)
+   (im/org-configuration-babel)
+   (im/org-configuration-style)
+   (im/org-configuration-misc))
+
+
+
+;;; Hacks
+
+(defun advice-to-org-publish-sitemap (f &rest args)
+  "If you want to use your own sitemap generated function, specific IT to `org-publish-sitemap-custom-function'."
+  (if (and (boundp 'org-publish-sitemap-custom-function)
+           (symbol-value 'org-publish-sitemap-custom-function))
+      (apply (symbol-value 'org-publish-sitemap-custom-function) args)
+    (apply f args)))
+
+(advice-add 'org-publish-sitemap :around 'advice-to-org-publish-sitemap)
+
+(defun org-publish-sitemap-2 (project &optional sitemap-filename)
+  "Predefined sitemap generated function, can be used by `org-publish-sitemap-custom-function' at once."
+  (let* ((root (expand-file-name (file-name-as-directory (org-publish-property :base-directory project))))
+         (sitemap-filename (concat root (or sitemap-filename "sitemap.org")))
+         (title (or (org-publish-property :sitemap-title project) (concat "Sitemap for project " (car project))))
+
+         (sitemap-builder (or (org-publish-property :sitemap-function project) #'org-publish-sitemap-default))
+         (format-entry (or (org-publish-property :sitemap-format-entry project) #'org-publish-sitemap-default-entry))
+         (fullfill-dirs (lambda (dirs until)
+                          (labels ((parent-dir (dir) (file-name-directory (directory-file-name dir)))
+                                   (lookup (dir)
+                                           (if (search until dir)
+                                               (let ((pd (parent-dir dir)))
+                                                 (when (search until pd)
+                                                   (pushnew pd dirs :test 'string=)
+                                                   (lookup pd)))
+                                             (cl-delete dir dirs :test 'string=))))
+                            (loop for d in dirs do (lookup d) finally (return dirs)))))
+         (sort-predicate (lambda (a b)
+                           (if (string-equal (substitute ?! ?/ (file-name-directory a))
+                                             (substitute ?! ?/ (file-name-directory b)))
+                               (string-lessp a b)
+                             (string-lessp (substitute ?! ?/ (file-name-directory a))
+                                           (substitute ?! ?/ (file-name-directory b)))))))
+    (message "Generating sitemap for %s" title)
+    (with-temp-file sitemap-filename
+      (insert
+       (let ((files (remove sitemap-filename (org-publish-get-base-files project))))
+         (setq files (nconc (remove root (org-uniquify
+                                          (funcall fullfill-dirs
+                                                   (mapcar #'file-name-directory files)
+                                                   root)))
+                            files))
+         (setq files (sort files sort-predicate))
+         (setq fff files)
+         (funcall sitemap-builder title (org-publish--sitemap-files-to-lisp files project 'tree format-entry)))))))
 
 
 
