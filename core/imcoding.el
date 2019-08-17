@@ -94,7 +94,7 @@
    :commands (liveview liveload))
 
 (x web-mode/w
-   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|css\\|vue\\)\\'"
+   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|vue\\)\\'"
 
    :config
    (setq web-mode-markup-indent-offset    2
