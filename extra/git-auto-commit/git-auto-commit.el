@@ -36,6 +36,8 @@
   (im/git-commit)
   (let ((proc (start-process "git" "*git-auto-push*" "git" "push")))
     (set-process-filter proc 'gac/prompt-password)
-    (set-process-sentinel proc (lambda (proc status) (message "Git *PUSH* %s !" (substring status 0 -1))))))
+    (set-process-sentinel proc (lambda (proc status)
+                                 (run-hooks 'gac/commit-and-push-hook)
+                                 (message "Git *PUSH* %s !" (substring status 0 -1))))))
 
 (provide 'git-auto-commit)
