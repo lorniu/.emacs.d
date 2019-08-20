@@ -18,25 +18,7 @@
 (pushnew imlisp-local ql:*local-project-directories*)
 
 
-;;; dexador
-
-(ql:quickload :dexador)
-
-(in-package :dexador)
-
-(shadow 'trace) (export 'trace)
-
-(defun trace (uri &rest args
-              &key version headers basic-auth cookie-jar keep-alive use-connection-pool timeout max-redirects
-                force-binary want-stream
-                ssl-key-file ssl-cert-file ssl-key-password stream verbose proxy insecure ca-path)
-  (declare (ignore version headers basic-auth cookie-jar keep-alive use-connection-pool timeout max-redirects force-binary want-stream ssl-key-file ssl-cert-file ssl-key-password stream verbose proxy insecure ca-path))
-  (let ((*verbose* t))
-    (apply #'request uri :method :get args)
-    (values)))
-
-
-;;; for convenience
+;;; cl patcher
 
 (in-package :cl)
 
@@ -91,25 +73,50 @@
 (defun load-relative (filename)
   (load (compile-file (merge-pathnames filename *load-truename*))))
 
-
-;;; load settings from external file
-
-(in-package :cl-user)
-
-(load (merge-pathnames "bootstrap.lisp" imlisp-home) :if-does-not-exist nil)
-
-
-;;; miscellaneous
-
-(export '(*vps*
-          qload
-          qload-and-in
+(export '(qload-and-in
           defpackage-and-in
           dir-symbols
           alias-package
           import-as
-          load-relative
-          ))
+          load-relative))
+
+
+;;; dexador
+
+(ql:quickload :dexador)
+
+(in-package :dexador)
+(shadow 'trace) (export 'trace)
+
+(defun trace (uri &rest args
+              &key version headers basic-auth cookie-jar keep-alive use-connection-pool timeout max-redirects
+                force-binary want-stream
+                ssl-key-file ssl-cert-file ssl-key-password stream verbose proxy insecure ca-path)
+  (declare (ignore version headers basic-auth cookie-jar keep-alive use-connection-pool timeout max-redirects force-binary want-stream ssl-key-file ssl-cert-file ssl-key-password stream verbose proxy insecure ca-path))
+  (let ((*verbose* t))
+    (apply #'request uri :method :get args)
+    (values)))
+
+
+;;; alexandria
+
+(in-package :cl-user)
+
+(asdf:load-system :alexandria)
+(unlock-package :alexandria)
+(rename-package :alexandria :alexandria '(a alexandria.1.0.0))
+
+;;; load settings from external file
+;;; try to load external configuration
+
+(load (merge-pathnames "bootstrap.lisp" imlisp-home)
+      :verbose t
+      :if-does-not-exist nil)
+
+
+;;; miscellaneous
+
+(export '(*vps qload))
 
 (pushnew :im-loaded *features*)
 

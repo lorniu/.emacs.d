@@ -41,7 +41,6 @@
   ("la" ascii-table-show "Ascii Table")
   ("ag" counsel-ag "Search with ag"))
 
-(global-set-key [f1] 'imdra-overview/body)
 (global-set-key (kbd "M-h") 'imdra-overview/body)
 (key-chord-define-global ",c" 'imdra-dash-counsel/body)
 
@@ -66,35 +65,38 @@
    (hydra-timeout 2))
   "\n"
 
-  ("C-j" (enlarge-window -2 nil) "v-" :column "Resize")
-  ("C-k" (enlarge-window  2 nil) "v+")
-  ("C-h" (enlarge-window -2 t)   "h-")
-  ("C-l" (enlarge-window  2 t)   "h+")
-
-  ("0" delete-window "Hide" :column "Action")
-  ("1" delete-other-windows "Maximum")
-  ("2" split-window-below "Split<h>")
-  ("3" split-window-right "Split<v>")
-
-  ("w" ace-window "Ace" :exit t :column "Manage")
+  ("w" ace-window "Ace" :exit t)
   ("C-w" ace-window nil :exit t)
   ("o" other-window nil)
   ("O" ip/other-window+ nil)
-  ("=" balance-windows-area "Balance")
-  ("C-=" balance-windows nil)
-
-  ("<left>" (progn (winner-undo) (setq this-command 'winner-undo)) "Winner Undo")
-  ("<right>" winner-redo "Winner Redo")
-
-  ("X" ip/other-window-skip-regexp "Window Skip Regexp" :exit t :column "Misc")
-  ("x" ip/other-window-skip-this nil :exit t)
-  ("b" ivy-switch-buffer "Switch Buffer" :exit t)
-  ("C-o" imdra-window/body "Show This" :exit nil)
-  ("?" imdra-window/body nil :exit nil)
 
   ("s" window-swap-states nil)
   ("t" im/change-window-split-layout nil)
-  ("e" eshell nil))
+
+  ("b" ivy-switch-buffer "Switch Buffer" :exit t)
+  ("C-o" imdra-window/body "Show This" :exit nil)
+  ("?" imdra-window/body nil :exit nil))
+
+(defhydra imdra-window-extra (:hint nil)
+  ("<f1>" imdra-overview/body nil :exit t)
+
+  ("s" window-swap-states "swap")
+  ("t" im/change-window-split-layout "change")
+  ("o" imdra-window/other-window nil :exit t)
+
+  ("x" ip/other-window-skip-this "skip" :exit t)
+  ("X" ip/other-window-skip-regexp nil :exit t)
+
+  ("=" balance-windows-area "balance")
+  ("C-=" balance-windows nil)
+
+  ("C-j" (enlarge-window -2 nil) "resize")
+  ("C-k" (enlarge-window  2 nil) nil)
+  ("C-h" (enlarge-window -2 t)   nil)
+  ("C-l" (enlarge-window  2 t)   nil)
+
+  ("<left>" (progn (winner-undo) (setq this-command 'winner-undo)) "win-undo")
+  ("<right>" winner-redo nil))
 
 (defvar imdra-show-body nil)
 
@@ -147,6 +149,7 @@
 (global-set-key (kbd "C-x o") 'imdra-window/other-window)
 (global-set-key (kbd "C-x O") 'imdra-window/ip/other-window+)
 (global-set-key (kbd "C-x C-o") (lambda () (interactive) (let ((imdra-show-body t)) (imdra-window/body))))
+(global-set-key [f1] 'imdra-window-extra/body)
 
 
 

@@ -10,17 +10,6 @@
 
 ;;; Tools
 
-(x company/w
-   :hook ((prog-mode   . company-mode))
-   :bind (:map company-active-map
-               ("C-c"   . company-abort)
-               ("<SPC>" . my-insert-blank))
-   :config
-   (setq company-minimum-prefix-length 1)
-   (setq company-idle-delay 0.2)
-   (setq company-lighter-base "")
-   (defun my-insert-blank () (interactive) (company-abort) (insert " ")))
-
 (x yasnippet/ed
    :bind
    (:map yas-keymap ("C-m" . 'yas-next-field-or-maybe-expand))
@@ -29,18 +18,41 @@
          yas-alias-to-yas/prefix-p nil
          yas--basic-extras '(fundamental-mode))
 
+   (setq yas-snippet-dirs
+         (list "~/.notes/x.temp/snippets"
+               (expand-file-name "snippets" user-emacs-directory)))
+
    (defun my-yas--clear-extra-mode ()
      (dolist (mode yas--extra-modes)
        (unless (member mode yas--basic-extras)
          (yas-deactivate-extra-mode mode))))
-
    (defun my-yasnippet-hook ()
      (delight '((yas-minor-mode "" yasnippet)))
      (mapc 'yas-activate-extra-mode yas--basic-extras))
 
    (add-hook 'yas-minor-mode-hook 'my-yasnippet-hook)
-
    (yas-global-mode 1))
+
+(x company/w
+   :hook ((prog-mode    . company-mode))
+   :bind (:map company-active-map
+               ("C-c"   . company-abort)
+               ("<SPC>" . my-insert-blank))
+   :after yasnippet
+   :config
+   (setq company-minimum-prefix-length 1)
+   (setq company-idle-delay 0.2)
+   (setq company-lighter-base "")
+   (defun my-insert-blank () (interactive) (company-abort) (insert " "))
+
+   ;; Show yasnippet candidates in company popup
+   (defun company-mode/backend-with-yas (backend)
+     (if (and (listp backend) (member 'company-yasnippet backend)) backend
+       (append (if (consp backend) backend (list backend))
+               '(:with company-yasnippet))))
+   (add-hook 'after-change-major-mode-hook
+             (lambda ()
+               (setq company-backends (mapcar #'company-mode/backend-with-yas company-backends)))))
 
 (x auto-highlight-symbol
    :bind (:map ahs-mode-map
@@ -386,6 +398,7 @@
    (setq org-babel-lisp-eval-fn 'sly-eval)
    (add-hook 'sly-mrepl-mode-hook '%lisp/init-repl-buffer)
    (add-hook 'sly-connected-hook '%lisp/after-connected)
+   (add-hook 'sly-mode-hook '%sly-custom-company)
 
    (defun %lisp/init-repl-buffer ()
      (company-mode-on)
@@ -410,7 +423,15 @@
            (goto-char (point-max))
            (insert (format "\n(quicklisp-quickstart:install :path \"%s\")" (file-name-directory local-url)))
            (insert "(let ((*do-not-prompt* t)) (ql:add-to-init-file))")
-           (sly-eval-buffer))))))
+           (sly-eval-buffer)))))
+
+   (defun %sly-custom-company ()
+     (make-variable-buffer-local 'company-idle-delay)
+     (make-variable-buffer-local 'company-backends)
+     (make-variable-buffer-local 'company-transformers)
+     (setq company-idle-delay 0.5)
+     (push '(company-yasnippet :separate company-capf) company-backends)
+     (setq company-transformers (list (apply-partially #'cl-remove-if (lambda (c) (string-match-p "[0-9]+" c)))))))
 
 ;; Haskell
 
