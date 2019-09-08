@@ -39,13 +39,14 @@ eg:
   :global t)
 
 ;;;###autoload
-(defun ip/other-window+ ()
+(defun ip/other-window- ()
   "Extend `other-window', make it skip some special buffers."
   (interactive)
   (let* ((window-list (delq (selected-window) (window-list)))
          (filtered-window-list (cl-remove-if
                                 (lambda (w)
                                   (and ip/other-window-skip-regexp
+                                       (not (string-empty-p ip/other-window-skip-regexp))
                                        (string-match-p ip/other-window-skip-regexp (buffer-name (window-buffer w)))))
                                 window-list)))
     (if filtered-window-list
