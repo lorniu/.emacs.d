@@ -17,7 +17,6 @@
 (require 'imcoding)
 
 
-
 ;;; Basic Config
 
 (setq desktop-path `(,_CACHE_ "."))
@@ -90,7 +89,6 @@
 (advice-add 'push-button :around 'my-bury-window-after-push-button)
 
 
-
 ;;; Basic Hooks
 
 (defun my-before-open ()
@@ -124,7 +122,6 @@
 (add-hook 'after-save-hook 'my-after-save)
 
 
-
 ;;; Sudo/Tramp/Eshell
 
 (defface find-file-root-header-face
@@ -258,7 +255,6 @@
         (t (apply 'eshell-exec-visual (cons "ssh" args)))))))
 
 
-
 ;;; Generic Modes
 
 (setq auto-revert-mode-text "")
@@ -423,7 +419,6 @@
       (lambda (arg) (ruby-end-of-block)) nil)))
 
 
-
 ;;; Navigation
 
 (x ivy/d
@@ -463,7 +458,6 @@
    (add-to-list 'ztree-diff-filter-list "^~"))
 
 
-
 ;;; Miscellaneous
 
 (x projectile/w
@@ -565,6 +559,8 @@
    :config
    (defservlet time text/html ()
      (insert (format "<h1>%s</h1>" (time)))))
+
+(x gimp :commands (connect-gimp gimp-mode))
 
 
 (provide 'immor)

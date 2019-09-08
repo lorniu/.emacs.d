@@ -8,7 +8,6 @@
   :group 'imfine)
 
 
-
 ;;; Common
 
 (x sql/w
@@ -36,7 +35,6 @@
     (add-hook 'sql-interactive-mode-hook 'im/local-encoding)))
 
 
-
 ;;; Oracle
 
 (x sqlplus
@@ -55,7 +53,6 @@
    (im/make-face-mono 'sqlplus-table-head-face 'sqlplus-table-odd-rows-face 'sqlplus-table-even-rows-face))
 
 
-
 ;;; Postgres
 
 (x pg
@@ -93,7 +90,6 @@ Custom `ic/my-postgres' to specify the db used by `with-my-pg'.
                   ,@sql-or-stmts)))))))
 
 
-
 ;;; Utils
 
 (defun log/db (&optional msg cat ext table)

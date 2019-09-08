@@ -65,10 +65,22 @@
    (hydra-timeout 2))
   "\n"
 
+  ;; better way?
+  ("1" self-insert-command nil :exit t)
+  ("2" self-insert-command nil :exit t)
+  ("3" self-insert-command nil :exit t)
+  ("4" self-insert-command nil :exit t)
+  ("5" self-insert-command nil :exit t)
+  ("6" self-insert-command nil :exit t)
+  ("7" self-insert-command nil :exit t)
+  ("8" self-insert-command nil :exit t)
+  ("9" self-insert-command nil :exit t)
+  ("0" self-insert-command nil :exit t)
+
   ("w" ace-window "Ace" :exit t)
   ("C-w" ace-window nil :exit t)
-  ("o" other-window nil)
-  ("O" ip/other-window+ nil)
+  ("o" ip/other-window- nil)
+  ("O" other-window nil)
 
   ("s" window-swap-states nil)
   ("t" im/change-window-split-layout nil)
@@ -82,7 +94,7 @@
 
   ("s" window-swap-states "swap")
   ("t" im/change-window-split-layout "change")
-  ("o" imdra-window/other-window nil :exit t)
+  ("o" imdra-window/ip/other-window- nil :exit t)
 
   ("x" ip/other-window-skip-this "skip" :exit t)
   ("X" ip/other-window-skip-regexp nil :exit t)

@@ -7,7 +7,6 @@
   :type 'file :group 'imfine)
 
 
-
 ;;; Tools
 
 (x yasnippet/ed
@@ -69,8 +68,7 @@
    (global-ahs-mode 1))
 
 
-
-;;; Lsp-Mode
+;;; Language Server Protocol
 
 (x lsp-mode
    :config
@@ -95,7 +93,6 @@
    (push 'company-lsp company-backends))
 
 
-
 ;;; Front-End
 ;;
 ;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
@@ -236,7 +233,6 @@
    (advice-add 'company-tide :around 'my-company-with-tide))
 
 
-
 ;;; C Family
 
 (x prog-mode
@@ -320,56 +316,9 @@
    (global-semantic-stickyfunc-mode 1))
 
 
+;;; Lisp Family
 
-;; Java/Scala
-
-;; use Ensime to support both Java and Scala Dev.
-;; choose one build tool, ie. maven/gradle/sbt.
-
-;; use Meghanada to support Java Dev, maybe a better choice.
-;; or use Lsp-Java?
-
-(x scala-mode
-   "Can use `ensime' to support Scala.
-   "
-   "M-x `ensime' to connect current project.
-   "
-   "You should init your build tool, and generate .ensime file anyway:
-   "
-   "   // Download the build tool, eg, sbt:  "
-   "   eww https://www.scala-sbt.org/download.html
-   "
-   "   // Create project via sbt/gradle...  "
-   "   sbt new scala/scala-seed.g8   \n   cd hello
-   "
-   "   // Generate .ensime with ensimePlugin/gradlePlugin "
-   "   echo 'addSbtPlugin(\"org.ensime\" % \"sbt-ensime\" % \"2.5.1\")' > ~/.sbt/1.0/plugins/plugins.sbt   \n   sbt ensimeConfig
-   "
-   )
-
-(x ensime
-   :config
-   (setq ensime-company-minimum-prefix-length 0)
-   (setq ensime-graphical-tooltips t)
-   (setq ensime-eldoc-hints 'all)
-   (setq ensime-startup-notification nil))
-
-(x lsp-java
-   :init
-   (setq lsp-java-server-install-dir (concat _CACHE_ "lsp-server-java"))
-
-   (add-hook-lambda 'java-mode-hook
-     (require 'lsp-java)
-     ;; arglist indent
-     (c-set-offset 'arglist-intro '+)))
-
-
-
-;;; Language World
-
-;; Slime/Sly
-
-(x lisp-mode
+(x lisp-mode ; Slime/Sly
    "Choose one plan before you begin:
    "
    " 1. Install ros, then exec 'ros install sly' to initial the env."
@@ -433,6 +382,58 @@
      (push '(company-yasnippet :separate company-capf) company-backends)
      (setq company-transformers (list (apply-partially #'cl-remove-if (lambda (c) (string-match-p "[0-9]+" c)))))))
 
+;; Geiser is the slime of Scheme, but too heavy.
+;; so use `run-scheme' function instead, enough for me.
+
+(x cmuscheme
+   "Run scheme with `run-scheme' command directly."
+   :commands run-scheme)
+
+
+;;; JVM
+
+;; use Ensime to support both Java and Scala Dev.
+;; choose one build tool, maven/gradle or sbt
+
+;; use Meghanada to support Java Dev, maybe a better choice?
+;; or use Lsp-Java? Not so good currently.
+
+(x lsp-java
+   :init
+   (setq lsp-java-server-install-dir (concat _CACHE_ "lsp-server-java"))
+
+   (add-hook-lambda 'java-mode-hook
+     (require 'lsp-java)
+     ;; arglist indent
+     (c-set-offset 'arglist-intro '+)))
+
+(x scala-mode
+   "Can use `ensime' to support Scala.
+   "
+   "M-x `ensime' to connect current project.
+   "
+   "You should init your build tool, and generate .ensime file anyway:
+   "
+   "   // Download the build tool, eg, sbt:  "
+   "   eww https://www.scala-sbt.org/download.html
+   "
+   "   // Create project via sbt/gradle...  "
+   "   sbt new scala/scala-seed.g8   \n   cd hello
+   "
+   "   // Generate .ensime with ensimePlugin/gradlePlugin "
+   "   echo 'addSbtPlugin(\"org.ensime\" % \"sbt-ensime\" % \"2.5.1\")' > ~/.sbt/1.0/plugins/plugins.sbt   \n   sbt ensimeConfig
+   "
+   )
+
+(x ensime
+   :config
+   (setq ensime-company-minimum-prefix-length 0)
+   (setq ensime-graphical-tooltips t)
+   (setq ensime-eldoc-hints 'all)
+   (setq ensime-startup-notification nil))
+
+
+
 ;; Haskell
 
 (x haskell
@@ -478,7 +479,10 @@
 ;; - Distel is said a good IDE. try some day.
 ;; - other setups later too.
 
+(x erlang)
+
 ;; Elixir
+
 (x alchemist
    :config
    (setq alchemist-hooks-test-on-save nil)

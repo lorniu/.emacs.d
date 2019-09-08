@@ -74,19 +74,31 @@
  lsp-mode lsp-ui company-lsp
 
  ;; frontend
- web-mode emmet-mode yaml-mode sass-mode json-mode
- js2-mode tide htmlize web-beautify company-web rjsx-mode
+ web-mode
+ js2-mode tide ; js
+ emmet-mode company-web
+ htmlize web-beautify
+ rjsx-mode ; react
+ yaml-mode sass-mode json-mode
 
- ;; backends
- c-eldoc cquery
- php-mode elpy lua-mode go-mode
- robe erlang alchemist
- dante hindent
+ ;; pls
+ c-eldoc
+ cquery
+ php-mode
+ lua-mode
+ go-mode
+ elpy ; python
+ robe ; ruby
+ erlang
+ alchemist ; elixir
+ ;; geiser ; scheme
+ dante hindent ; haskell
  powershell
  csharp-mode
- kotlin-mode clojure-mode groovy-mode scala-mode ensime lsp-java
+ kotlin-mode clojure-mode groovy-mode
+ lsp-java scala-mode ensime ; scala
 
- ;; other language specified
+ ;; pls tools
  company-ghc company-php company-go
 
  ;; miscellaneous
