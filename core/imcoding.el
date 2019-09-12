@@ -103,7 +103,7 @@
    :commands (liveview liveload))
 
 (x web-mode/w
-   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|vue\\)\\'"
+   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|vue\\|tsx\\)\\'"
 
    :config
    (setq web-mode-markup-indent-offset    2
@@ -124,7 +124,11 @@
        ("jsx"
         (im/tide-enable)
         (rjsx-minor-mode 1) (set (make-local-variable 'web-mode-enable-auto-quoting) nil)
-        (electric-pair-local-mode 1))))
+        (electric-pair-local-mode 1))
+       ("tsx"
+        (im/tide-enable)
+        (rjsx-minor-mode 1)
+        (set (make-local-variable 'web-mode-enable-auto-quoting) nil))))
 
    (add-hook 'web-mode-hook 'my-web-mode-hook)
 
