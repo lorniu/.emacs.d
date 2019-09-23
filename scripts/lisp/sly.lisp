@@ -2,9 +2,6 @@
 
 
 (defparameter *vps* "imxx.top" "Private Host")
-
-(defparameter imlisp-home "~/.notes/x.code.lisp/")
-(defparameter imlisp-local "~/vvv/lisp-local/")
 (defparameter *ql-home* #+ros.init (merge-pathnames "lisp/quicklisp/" (roswell.util:homedir)) "~/.quicklisp/")
 
 
@@ -15,7 +12,7 @@
 
 (setf (fdefinition 'qload) #'ql:quickload)
 
-(pushnew imlisp-local ql:*local-project-directories*)
+(pushnew "~/vvv/lisp-local/" ql:*local-project-directories*)
 
 
 ;;; cl patcher
@@ -109,9 +106,14 @@
 ;;; load settings from external file
 ;;; try to load external configuration
 
-(load (merge-pathnames "bootstrap.lisp" imlisp-home)
-      :verbose t
-      :if-does-not-exist nil)
+(defparameter imlisp-share "~/.notes/x.share/lisp/")
+
+(load (merge-pathnames "init.lisp" imlisp-share)
+      :verbose t :if-does-not-exist nil)
+
+(load (merge-pathnames (string-downcase (format nil "~a-~a" (software-type) (uiop:run-program "hostname" :output '(:string :stripped t))))
+                       imlisp-share)
+      :verbose t :if-does-not-exist nil)
 
 
 ;;; miscellaneous
