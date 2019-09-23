@@ -8,8 +8,8 @@ if [ -z "$1" ]; then
 fi
 
 host=$1
-www=$HOME/.notes/x.www
-dest=$HOME/.notes/x.share/ssl-cert
+www=$HOME/.notes/x.http-server/html
+dest=$HOME/.notes/x.http-server/config/ssl-cert
 
 if [ ! -d $dest ]; then
     echo Directory $dest is not exist.
@@ -46,6 +46,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # copy certs
+mkdir $dest/$host
 ~/.acme.sh/acme.sh --installcert -d $host --fullchainpath $dest/$host/server.cer --keypath $dest/$host/server.key
 
 if [ $? -eq 0 ]; then

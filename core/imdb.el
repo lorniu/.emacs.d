@@ -24,7 +24,7 @@
             (sql-server ,*vps*)
             (sql-port 3306)
             (sql-database "test")
-            (sql-user "root"))))
+            (sql-user "vip"))))
 
    :config
    (add-hook 'sql-interactive-mode-hook 'im/set-buffer-mono-font)
