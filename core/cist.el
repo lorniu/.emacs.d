@@ -3,16 +3,13 @@
 ;;; Code:
 
 (defcustom *vps* "imxx.top"
-  "The remote host. In the most top."
-  :type 'string :group 'imfine)
+  "The remote host. In the most top." :type 'string :group 'imfine)
 
 (defcustom ic/private-custom-file (format "~/.emacs.d/init_%s.el" (system-name))
-  "Private custom file, which contains configs for different endpoints."
-  :type 'string :group 'imfine)
+  "Private custom file." :type 'string :group 'imfine)
 
 (defcustom ic/elpa-use-mirror t
-  "ELPA use mirror or not."
-  :type 'boolean :group 'imfine)
+  "ELPA use mirror or not." :type 'boolean :group 'imfine)
 
 (defmacro p/refresh (&rest packages-required)
   `(let ((repo-origin
@@ -54,11 +51,14 @@
  rcirc-styles xterm-color
 
  ;; edit and utils
+ vlf ; view-large-file
  alert session attrap
  syntax-subword expand-region
  dired-dups ztree neotree
- magit git-timemachine
+ magit git-timemachine ; git
  engine-mode youdao-dictionary
+ auctex company-math company-auctex ; latex
+ plantuml-mode
 
  ;; search and nav
  ag wgrep-ag anzu smex

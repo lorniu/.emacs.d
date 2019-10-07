@@ -1,4 +1,4 @@
-;;; imkeyc.el --- Keys and Commands -*- lexical-binding: t -*-
+;;; ic-keys.el --- Keys and Commands -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;; Code:
 
@@ -390,7 +390,15 @@
     (async-shell-command
      (concat "echo `pwd`; echo; " cmd))))
 
+(defun im/yank-current-buffer-name ()
+  (interactive)
+  (let ((filename (buffer-file-name))
+        (buffname (buffer-name)))
+    (if filename (kill-new filename))
+    (kill-new buffname)
+    (message "Yanked: %s" buffname)))
 
-(provide 'imkeyc)
 
-;;; imkeyc.el ends here
+(provide 'ic-keys)
+
+;;; ic-keys.el ends here

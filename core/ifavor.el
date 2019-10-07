@@ -1,4 +1,4 @@
-;;; imfavor.el --- Favorite things -*- lexical-binding: t -*-
+;;; ifavor.el --- Favorite things -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;; Code:
 
@@ -83,6 +83,6 @@
     (message "Favor file added successfully.")))
 
 
-(provide 'imfavor)
+(provide 'ifavor)
 
-;;; imfavor.el ends here
+;;; ifavor.el ends here

@@ -1,6 +1,8 @@
 # -*- mode: snippet -*-
-# name: #+OPTIONS: rest
-# key: po
+# name: property drawer
+# key: dp
 # condition: (= (current-column) 2)
 # --
-#+OPTIONS: ${1:key}:${2:nil}
+:PROPERTIES:
+:$1: $0
+:END:

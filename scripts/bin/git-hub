@@ -1,0 +1,47 @@
+#!/bin/sh
+
+
+GITAPI=https://api.github.com
+
+action=$1
+repo_full=$2
+
+
+if [ "$action" = "create" -o "$action" = "pubcreate" -o "$action" = "delete" ]; then
+    if [[ ! "$repo_full" =~ "/" ]]; then
+        echo "Usage: git hub [action] user/repo" 1>&2
+        exit 1
+    fi
+    repo_user=${repo_full%%/*}
+    repo_name=${repo_full##*/}
+else
+    if [[ -z $repo_full ]]; then
+        echo "Usage: git hub [action] user" 1>&2
+        exit 1
+    fi
+    repo_user=$repo_full
+fi
+
+case "$action" in
+    "list"*)
+        curl -s -X "GET" -u $repo_user $GITAPI/user/repos?sort=created | grep -o 'git@[^"]*'
+        ;;
+    "create"*)
+        echo Create private repository: $repo_full
+        echo
+        curl -u $repo_user $GITAPI/user/repos -d "{\"name\":\"$repo_name\",\"private\":\"true\"}"
+        ;;
+    "pubcreate"*)
+        echo Create public repository: $repo_full
+        echo
+        curl -u $repo_user $GITAPI/user/repos -d "{\"name\":\"$repo_name\"}"
+        ;;
+    "delete"*)
+        echo
+        echo NOTICE: YOU ARE DELETEING $repo_full !!!
+        echo
+        curl -X "DELETE" -u $repo_user $GITAPI/repos/$repo_user/$repo_name
+        ;;
+    *)
+        echo "Action should be list, create, pubcreate or delete."
+esac
