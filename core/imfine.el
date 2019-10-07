@@ -26,15 +26,29 @@
   (require 'cist)
   (require 'cust)
   (require 'patches)
-  (require 'imfavor)
+
+  (require 'ifavor)
   (require 'imface)
-  (require 'immor)
+
+  ;; org-mode/etc
   (require 'imoox)
-  (require 'imkeyc)
-  (require 'imhydra)
-  (require 'imsmaco)
-  (require 'imsilly)
+  (require 'imooy)
+  (require 'imtex)
+
+  ;; modes/etc
+  (require 'immor)
+  (require 'imcoding)
+  (require 'imnet)
+  (require 'imdb)
   (require 'implay)
+
+  ;; commands/keys
+  (require 'ic-keys)
+  (require 'ic-hydra)
+  (require 'ic-kmacro)
+
+  ;; others
+  (require 'imsilly)
   (require 'misc)
 
   ;; daemon server

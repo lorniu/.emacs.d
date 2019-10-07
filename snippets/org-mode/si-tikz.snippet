@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: TikZ
+# key: si
+# condition: (= (current-column) 2)
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region 'nil))
+# --
+#+BEGIN_SRC tikz :file ${1:xxx}.svg
+  \begin{tikzpicture}
+  $0
+  \end{tikzpicture}
+#+END_SRC

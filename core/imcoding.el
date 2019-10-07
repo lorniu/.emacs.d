@@ -182,6 +182,7 @@
    :if (executable-find "js-beautify"))
 
 (x tide
+   "Make sure jsconfig.json or tsconfig.json under root of project."
    :delight " ť"
    :if (executable-find "node")
    :init
@@ -193,6 +194,7 @@
      (when (executable-find "node")
        (tide-setup)
        (eldoc-mode 1)
+       (tide-hl-identifier-mode 1)
        (set (make-local-variable 'company-tooltip-align-annotations) t) t))
 
    (defun im/tide-generate-config ()
@@ -216,17 +218,6 @@
          (message "File %s Generated!" dest))))
 
    :config
-   (defun tide-project-root ()
-     "Project root folder determined based on the presence of tsconfig.json."
-     (or tide-project-root
-         (let ((root (or (locate-dominating-file default-directory "tsconfig.json")
-                         (locate-dominating-file default-directory "jsconfig.json"))))
-           (unless root
-             (message "Using current %s as project root." (propertize default-directory 'face '(:foreground "ForestGreen")))
-             (setq root default-directory))
-           (let ((full-path (expand-file-name root)))
-             (setq tide-project-root full-path) full-path))))
-
    (defun my-company-with-tide (f &rest args)
      "Complete with tide in SCRIPT block."
      (let ((tide-mode (or (derived-mode-p 'js2-mode)

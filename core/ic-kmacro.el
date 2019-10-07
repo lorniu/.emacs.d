@@ -1,4 +1,4 @@
-;;; imsmaco.el --- Keymacros -*- lexical-binding: t -*-
+;;; ic-kmacro.el --- Keymacros -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;; Code:
 
@@ -27,6 +27,6 @@
   "M-m C-s ' C-b <C-backspace> <C-backspace> C-s ' C-s C-s <C-backspace> <C-backspace> <C-backspace> <C-backspace> : C-s ' C-s RET <C-backspace> <C-backspace> <C-backspace> <C-backspace> : M-m")
 
 
-(provide 'imsmaco)
+(provide 'ic-kmacro)
 
-;;; imsmaco.el ends here
+;;; ic-kmacro.el ends here
