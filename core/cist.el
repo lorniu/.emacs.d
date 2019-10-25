@@ -49,6 +49,7 @@
  spacegray-theme
  rainbow-delimiters beacon page-break-lines
  rcirc-styles xterm-color
+ posframe company-posframe ; childframe style
 
  ;; edit and utils
  vlf ; view-large-file
@@ -56,13 +57,12 @@
  syntax-subword expand-region
  dired-dups ztree neotree
  magit git-timemachine ; git
- engine-mode youdao-dictionary
  auctex company-math company-auctex ; latex
+ engine-mode youdao-dictionary
  plantuml-mode
 
  ;; search and nav
- ag wgrep-ag anzu smex
- ivy hydra ace-window ivy-pages
+ ag wgrep-ag anzu smex ivy hydra ace-window ivy-pages
 
  ;; org-mode
  org-download ob-restclient ox-pandoc graphviz-dot-mode gnuplot
@@ -70,15 +70,13 @@
  ;; projects
  counsel-projectile yasnippet company websocket
 
- ;; lsp
- lsp-mode lsp-ui company-lsp
+ ;; lsp, eglot is another choice
+ lsp-mode company-lsp lsp-treemacs dap-mode
 
  ;; frontend
  web-mode
- js2-mode tide ; js
  emmet-mode company-web
  htmlize web-beautify
- rjsx-mode ; react
  yaml-mode sass-mode json-mode
 
  ;; pls
