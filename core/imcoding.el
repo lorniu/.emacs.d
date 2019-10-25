@@ -32,7 +32,7 @@
    (add-hook 'yas-minor-mode-hook 'my-yasnippet-hook)
    (yas-global-mode 1))
 
-(x company/w
+(x company
    :hook ((prog-mode    . company-mode))
    :bind (:map company-active-map
                ("C-c"   . company-abort)
@@ -67,30 +67,23 @@
    (autoload 'global-ahs-mode "auto-highlight-symbol")
    (global-ahs-mode 1))
 
+(x posframe
+   :init
+   (with-eval-after-load 'company
+     (setq company-posframe-lighter "")
+     (company-posframe-mode 1)))
+
 
 ;;; Language Server Protocol
 
 (x lsp-mode
    :config
    (setq lsp-auto-guess-root t)
+   (setq lsp-eldoc-render-all nil)
+   (setq lsp-signature-render-all nil)
    (setq lsp-session-file (concat _CACHE_ ".lsp-session-v1")))
 
 (x dap-mode/x)
-
-(x lsp-ui
-   :init
-   (setq lsp-ui-sideline-show-symbol nil)
-   (setq lsp-ui-sideline-show-hover nil)
-   (add-hook 'lsp-mode-hook 'lsp-ui-mode)
-   (add-hook 'lsp-after-open-hook (lambda () (lsp-ui-flycheck-enable 1))))
-
-(x company-lsp
-   :config
-   (setq company-lsp-async t)
-   (setq company-lsp-cache-candidates nil)
-   (setq company-lsp-enable-snippet t)
-   (setq company-transformers nil)
-   (push 'company-lsp company-backends))
 
 
 ;;; Front-End
@@ -98,12 +91,13 @@
 ;;  - 20180111, Use Tide-Mode to Autocomplete instead of TERN.
 ;;  - 20181120, Servers as Elnode is more powerful but too old. Simpled-Httpd is simple and enough.
 ;;  - 20181120, Use Livereload replace Impatient! Websocket has a better experience than iframe.
+;;  - 20191026, try lsp, still tooooo slow! remove js2, web-mode is better.
 
 (x livereload
    :commands (liveview liveload))
 
 (x web-mode/w
-   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|vue\\|tsx\\)\\'"
+   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|vue\\|tsx\\|jsx\\)\\'"
 
    :config
    (setq web-mode-markup-indent-offset    2
@@ -117,19 +111,19 @@
    (defun my-web-mode-hook ()
      (hs-minor-mode -1)
      ;; (flycheck-mode +1)
-     (append-local 'company-backends
-                   'company-tide 'company-css 'company-web-html)
+     (append-local 'company-backends 'company-css 'company-web-html)
      (pcase (file-name-extension (or (buffer-file-name) ""))
-       ("js"  (im/tide-enable))
+       ("js" (im/tide-enable))
        ("jsx"
         (im/tide-enable)
-        (rjsx-minor-mode 1) (set (make-local-variable 'web-mode-enable-auto-quoting) nil)
+        (make-variable-buffer-local 'company-backends)
+        (pushnew 'company-files company-backends)
+        (flycheck-mode 1)
         (electric-pair-local-mode 1))
        ("tsx"
         (im/tide-enable)
         (rjsx-minor-mode 1)
         (set (make-local-variable 'web-mode-enable-auto-quoting) nil))))
-
    (add-hook 'web-mode-hook 'my-web-mode-hook)
 
    (defun my-yas-expand-extra (&rest _)
@@ -147,30 +141,6 @@
 (x emmet-mode/d
    :hook (web-mode rjsx-mode mhtml-mode)
    :init (setq emmet-move-cursor-between-quotes t))
-
-(x js2-mode
-   :mode "\\.js\\'"
-   :config
-   (setq js2-basic-offset 2
-         js2-highlight-level 3
-         js2-strict-missing-semi-warning nil
-         js2-strict-inconsistent-return-warning nil)
-
-   (defun my-js2-hook ()
-     (setq mode-name "JS2")
-     (electric-pair-local-mode 1)
-     (flycheck-mode 1)
-     (im/tide-enable))
-
-   (add-hook 'js2-mode-hook 'my-js2-hook))
-
-(x rjsx-mode
-   :config
-   (mapc (lambda (e) (define-key rjsx-mode-map e nil)) `(">" "<" ,(kbd "C-d")))
-   (add-hook-lambda 'rjsx-mode-hook
-     (electric-pair-local-mode 1)
-     (append-local 'company-backends 'company-tide 'company-files)
-     (set (make-local-variable 'emmet-expand-jsx-className?) t)))
 
 (x json-mode
    :config
@@ -196,26 +166,6 @@
        (eldoc-mode 1)
        (tide-hl-identifier-mode 1)
        (set (make-local-variable 'company-tooltip-align-annotations) t) t))
-
-   (defun im/tide-generate-config ()
-     "Generate jsconfig file for tide server."
-     (interactive)
-     (let ((dest (propertize (concat default-directory "jsconfig.json") 'face '(:foreground "ForestGreen"))))
-       (if (file-exists-p dest)
-           (message "File %s already exists." dest)
-         (with-temp-file dest
-           (insert (json-encode
-                    '((include . ["./**/*"])
-                      (exclude . ["node_modules" ".git"])
-                      (compilerOptions
-                       (target . "es2017")
-                       (allowSyntheticDefaultImports . t)
-                       (noEmit . t)
-                       (checkJs . t)
-                       (jsx . "react")
-                       (lib . ["dom" "es2017"])))))
-           (json-pretty-print-buffer))
-         (message "File %s Generated!" dest))))
 
    :config
    (defun my-company-with-tide (f &rest args)
@@ -352,8 +302,8 @@
    (defun %lisp/after-connected ()
      (when (file-exists-p lisp/init-file)
        (sly-eval-async
-           `(cl:unless (cl:member :im-loaded cl:*features*)
-                       (slynk:load-file (cl:merge-pathnames ,lisp/init-file))))))
+        `(cl:unless (cl:member :im-loaded cl:*features*)
+                    (slynk:load-file (cl:merge-pathnames ,lisp/init-file))))))
 
    (defun %lisp/ensure-quicklisp ()
      "Quicklisp installation and initalization."

@@ -5,7 +5,6 @@
 (require 'bind-key)
 
 
-
 ;;; Keybinds
 
 (bind-keys
@@ -51,12 +50,13 @@
  ( "C-h v"         . counsel-describe-variable )
  ( "C-h f"         . counsel-describe-function )
  ( "C-h S"         . counsel-info-lookup-symbol)
- ( "C-x C-r"       . im/file-viewer       ))
+ ( "C-x C-r"       . im/file-viewer       )
+
+ ( "C-c `"         . my-toggle-diagnostics))
 
 (global-unset-key (kbd "C-x C-z"))
 
 
-
 ;;; Key-Chord
 
 (x key-chord
@@ -77,7 +77,6 @@
 (key-chord-define-global ",t" (lambda () (interactive) (im/go-to-char t)))
 
 
-
 ;;; Hack
 
 (defun im/yank-more ()
@@ -125,7 +124,17 @@
     (call-interactively 'isearch-forward-regexp)))
 
 
+;;; For Keys
 
+(defun my-toggle-diagnostics ()
+  (interactive)
+  (if flymake-mode
+      (let ((buf (flymake--diagnostics-buffer-name)))
+        (call-interactively 'flymake-show-diagnostics-buffer)
+        (select-window (get-buffer-window buf)))
+    (message "Nothing to do, maybe flymake-mode need toggled?")))
+
+
 ;;; Popups
 
 (defun im/popup-eshell (&optional arg)
@@ -155,7 +164,6 @@
                           (shell "*-shell-*"))))))
 
 
-
 ;;; Commands
 
 (defun im/view-url-cursor ()

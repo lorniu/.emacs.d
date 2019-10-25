@@ -407,10 +407,6 @@
       "\\(def\\|do\\|{\\)" "\\(end\\|end\\|}\\)" "#"
       (lambda (arg) (ruby-end-of-block)) nil)))
 
-(x vlf
-   "Open huge file, Part by Part."
-   :config (require 'vlf-setup))
-
 (x image-mode
    :config
    (define-key image-mode-map "c" 'im/yank-current-buffer-name))
@@ -556,6 +552,10 @@
    :config
    (defservlet time text/html ()
      (insert (format "<h1>%s</h1>" (time)))))
+
+(x vlf
+   "Open huge file, Part by Part."
+   :config (require 'vlf-setup))
 
 (x gimp :commands (connect-gimp gimp-mode))
 
