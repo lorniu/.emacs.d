@@ -14,7 +14,7 @@ else
         ./.emacs.d/.gitignore
         ./.emacs.d/core
         ./.emacs.d/extra
-        ./.emacs.d/packages
+        ./.emacs.d/elpa
         ./.emacs.d/resource
         ./.emacs.d/scripts
         ./.emacs.d/snippets

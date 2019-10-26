@@ -1,4 +1,4 @@
-;;; ic-keys.el --- Keys and Commands -*- lexical-binding: t -*-
+;;; ickeys.el --- Keys and Commands -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;; Code:
 
@@ -52,7 +52,7 @@
  ( "C-h S"         . counsel-info-lookup-symbol)
  ( "C-x C-r"       . im/file-viewer       )
 
- ( "C-c `"         . my-toggle-diagnostics))
+ ( "C-c `"         . my-toggle-diagnostics-buffer ))
 
 (global-unset-key (kbd "C-x C-z"))
 
@@ -73,8 +73,6 @@
          (define-key keymap (vector 'key-chord key1 key2) command)))))
 
 (key-chord-define-global ",h" 'im/host-viewer)
-(key-chord-define-global ",f" 'im/go-to-char)
-(key-chord-define-global ",t" (lambda () (interactive) (im/go-to-char t)))
 
 
 ;;; Hack
@@ -126,13 +124,17 @@
 
 ;;; For Keys
 
-(defun my-toggle-diagnostics ()
+(defun my-toggle-diagnostics-buffer()
   (interactive)
-  (if flymake-mode
-      (let ((buf (flymake--diagnostics-buffer-name)))
-        (call-interactively 'flymake-show-diagnostics-buffer)
-        (select-window (get-buffer-window buf)))
-    (message "Nothing to do, maybe flymake-mode need toggled?")))
+  (cond (flycheck-mode
+         (let ((buf flycheck-error-list-buffer))
+           (call-interactively 'flycheck-list-errors)
+           (select-window (get-buffer-window buf))))
+        (flymake-mode
+         (let ((buf (flymake--diagnostics-buffer-name)))
+           (call-interactively 'flymake-show-diagnostics-buffer)
+           (select-window (get-buffer-window buf))))
+        (t (message "Nothing to do, check flycheck or flymake toggled?"))))
 
 
 ;;; Popups
@@ -165,6 +167,15 @@
 
 
 ;;; Commands
+
+(defun eww-this ()
+  "Open html file in buffer"
+  (interactive)
+  (let* ((f (buffer-file-name))
+         (e (file-name-extension (or f ""))))
+    (if (member e '("html" "htm"))
+        (eww-open-file f)
+      (call-interactively 'eww-open-file))))
 
 (defun im/view-url-cursor ()
   "Open a new buffer containing the contents of URL."
@@ -407,6 +418,6 @@
     (message "Yanked: %s" buffname)))
 
 
-(provide 'ic-keys)
+(provide 'ickeys)
 
-;;; ic-keys.el ends here
+;;; ickeys.el ends here

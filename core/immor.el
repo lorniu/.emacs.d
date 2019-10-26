@@ -348,11 +348,11 @@
    :init
    (setq wgrep-enable-key "r"))
 
-(x neotree/x
-   :init
-   (setq neo-theme 'arrow
-         neotree-smart-optn t
-         neo-window-fixed-size nil))
+(x treemacs/w
+   :config
+   (setq treemacs-position 'left
+         treemacs-persist-file (concat _CACHE_ "treemacs-persist")
+         treemacs-width 35))
 
 (x view
    :bind

@@ -23,6 +23,7 @@
   ;; modules
   (require 'bm)
   (require 'util)
+  (require 'proxy)
   (require 'cist)
   (require 'cust)
   (require 'patches)
@@ -43,9 +44,9 @@
   (require 'implay)
 
   ;; commands/keys
-  (require 'ic-keys)
-  (require 'ic-hydra)
-  (require 'ic-kmacro)
+  (require 'ickeys)
+  (require 'ichydra)
+  (require 'ickmacro)
 
   ;; others
   (require 'imsilly)

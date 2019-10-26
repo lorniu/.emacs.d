@@ -1,4 +1,4 @@
-;;; ic-hydra.el --- Hydras -*- lexical-binding: t -*-
+;;; ichydra.el --- Hydras -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;; Code:
 
@@ -352,6 +352,6 @@ _._ toggle hydra   _?_ summary
   ("k" previous-error "previous" :bind nil))
 
 
-(provide 'ic-hydra)
+(provide 'ichydra)
 
-;;; ic-hydra.el ends here
+;;; ichydra.el ends here

@@ -77,13 +77,30 @@
 ;;; Language Server Protocol
 
 (x lsp-mode
+   :init
+   (defun lsp-and-future ()
+     (interactive)
+     (lsp)
+     (add-hook (intern (format "%s-hook" (symbol-name major-mode))) 'lsp))
    :config
    (setq lsp-auto-guess-root t)
-   (setq lsp-eldoc-render-all nil)
-   (setq lsp-signature-render-all nil)
+   (setq lsp-prefer-flymake nil)
    (setq lsp-session-file (concat _CACHE_ ".lsp-session-v1")))
 
-(x dap-mode/x)
+(x company-lsp)
+
+(x lsp-ui
+   :after lsp-mode
+   :config
+   (setq lsp-ui-doc-enable nil
+         lsp-ui-sideline-enable nil
+         lsp-ui-flycheck-enable t))
+
+(x dap-mode
+   :after lsp-mode
+   :config
+   (dap-mode t)
+   (dap-ui-mode t))
 
 
 ;;; Front-End
@@ -92,9 +109,6 @@
 ;;  - 20181120, Servers as Elnode is more powerful but too old. Simpled-Httpd is simple and enough.
 ;;  - 20181120, Use Livereload replace Impatient! Websocket has a better experience than iframe.
 ;;  - 20191026, try lsp, still tooooo slow! remove js2, web-mode is better.
-
-(x livereload
-   :commands (liveview liveload))
 
 (x web-mode/w
    :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|vue\\|tsx\\|jsx\\)\\'"
@@ -138,20 +152,7 @@
           ("jsx"            'js2-mode)))))
    (advice-add 'yas--maybe-expand-key-filter :before 'my-yas-expand-extra))
 
-(x emmet-mode/d
-   :hook (web-mode rjsx-mode mhtml-mode)
-   :init (setq emmet-move-cursor-between-quotes t))
-
-(x json-mode
-   :config
-   (add-hook-lambda 'json-mode-hook
-     (make-local-variable 'js-indent-level)
-     (setq js-indent-level 2)))
-
-(x web-beautify
-   :if (executable-find "js-beautify"))
-
-(x tide
+(x tide/w
    "Make sure jsconfig.json or tsconfig.json under root of project."
    :delight " ť"
    :if (executable-find "node")
@@ -176,6 +177,27 @@
                                    (string= (web-mode-language-at-pos) "jsx"))))))
        (apply f args)))
    (advice-add 'company-tide :around 'my-company-with-tide))
+
+(x json-mode
+   :config
+   (add-hook-lambda 'json-mode-hook
+     (make-local-variable 'js-indent-level)
+     (setq js-indent-level 2)))
+
+(x emmet-mode/d
+   :hook (web-mode rjsx-mode mhtml-mode)
+   :init (setq emmet-move-cursor-between-quotes t))
+
+(x web-beautify
+   :if (executable-find "js-beautify"))
+
+(x livereload
+   :commands (liveview liveload))
+
+(x restclient
+   :config
+   (add-hook 'restclient-mode-hook (lambda () (company-mode 1)))
+   (add-to-list 'company-backends 'company-restclient))
 
 
 ;;; C Family
@@ -346,9 +368,13 @@
 (x lsp-java
    :init
    (setq lsp-java-server-install-dir (concat _CACHE_ "lsp-server-java"))
+   (setq lsp-java-save-action-organize-imports nil)
 
    (add-hook-lambda 'java-mode-hook
      (require 'lsp-java)
+     (require 'dap-java)
+     (flycheck-mode 1)
+     (company-mode 1)
      ;; arglist indent
      (c-set-offset 'arglist-intro '+)))
 
