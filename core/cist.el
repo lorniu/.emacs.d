@@ -3,25 +3,19 @@
 ;;; Code:
 
 (defcustom *vps* "imxx.top"
-  "The remote host. In the most top." :type 'string :group 'imfine)
-
+  "My VPS." :type 'string :group 'imfine)
 (defcustom ic/private-custom-file (format "~/.emacs.d/init_%s.el" (system-name))
-  "Private custom file." :type 'string :group 'imfine)
-
+  "Private file." :type 'string :group 'imfine)
 (defcustom ic/elpa-use-mirror t
   "ELPA use mirror or not." :type 'boolean :group 'imfine)
 
-(defmacro p/refresh (&rest packages-required)
-  `(let ((repo-origin
-          `(("melpa" . "http://melpa.org/packages/")
-            ("gnu"   . "http://elpa.gnu.org/packages/")))
-         (repo-mirror
-          `(("melpa" . "http://elpa.emacs-china.org/melpa/")
-            ("gnu"   . "http://elpa.emacs-china.org/gnu/")))
-         (tencent-mirror
-          `(("melpa" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
-            ("gnu"   . "http://mirrors.cloud.tencent.com/elpa/gnu/"))))
+(setq custom-file (ensure-file ic/private-custom-file))
 
+(defmacro p/refresh (&rest packages-required)
+  `(let ((repo-origin `(("melpa" . "http://melpa.org/packages/")
+                        ("gnu"   . "http://elpa.gnu.org/packages/")))
+         (repo-mirror `(("melpa" . "http://elpa.emacs-china.org/melpa/")
+                        ("gnu"   . "http://elpa.emacs-china.org/gnu/"))))
      (defun p/install ()
        (interactive)
        (package-refresh-contents)
@@ -34,76 +28,72 @@
      (package-initialize)
      (if ic/elpa-use-mirror (p/elpa-use-mirror) (p/elpa-use-origin))
 
+     (when (null (cl-remove-if-not (lambda (p) (package-installed-p p)) ',packages-required))
+       (error "Have you installed the packages? Maybe:\n\n(progn\n  (im/proxy (quote SOCK))\n  (p/elpa-use-origin)\n  (p/install))\n"))
      (when (cl-find-if (lambda (p) (not (package-installed-p p))) ',packages-required)
        (push "* Some packages missing, run `p/install' to install." loaded-messages))))
 
 
-
 ;;; Packages
 
-(p/refresh
- ;; basic
- use-package bind-key delight key-chord
+(p/refresh use-package bind-key delight key-chord
 
- ;; looking
- spacegray-theme
- rainbow-delimiters beacon page-break-lines
- rcirc-styles xterm-color
- posframe company-posframe ; childframe style
+           ;; looking
+           spacegray-theme
+           rainbow-delimiters beacon page-break-lines
+           rcirc-styles xterm-color
+           posframe company-posframe ; childframe style
 
- ;; edit and utils
- vlf ; view-large-file
- alert session attrap
- syntax-subword expand-region
- dired-dups ztree neotree
- magit git-timemachine ; git
- auctex company-math company-auctex ; latex
- engine-mode youdao-dictionary
- plantuml-mode
+           ;; edit and utils
+           vlf ; view-large-file
+           alert session attrap
+           syntax-subword expand-region
+           dired-dups ztree neotree
+           magit git-timemachine ; git
+           auctex company-math company-auctex ; latex
+           engine-mode youdao-dictionary
+           plantuml-mode
 
- ;; search and nav
- ag wgrep-ag anzu smex ivy hydra ace-window ivy-pages
+           ;; search and nav
+           ag wgrep-ag anzu smex ivy hydra ace-window ivy-pages
 
- ;; org-mode
- org-download ob-restclient ox-pandoc graphviz-dot-mode gnuplot
+           ;; org-mode
+           org-download ob-restclient ox-pandoc graphviz-dot-mode gnuplot
 
- ;; projects
- counsel-projectile yasnippet company websocket
+           ;; projects
+           counsel-projectile yasnippet company websocket
 
- ;; lsp, eglot is another choice
- lsp-mode company-lsp lsp-treemacs dap-mode
+           ;; lsp, eglot is another choice, slow slow slow
+           lsp-mode dap-mode ; company-lsp lsp-treemacs lsp-ui
 
- ;; frontend
- web-mode
- emmet-mode company-web
- htmlize web-beautify
- yaml-mode sass-mode json-mode
+           ;; frontend
+           web-mode
+           tide ; current the best javascript backends
+           emmet-mode company-web
+           htmlize web-beautify
+           yaml-mode sass-mode json-mode
 
- ;; pls
- c-eldoc
- cquery
- php-mode
- lua-mode
- go-mode
- elpy ; python
- robe ; ruby
- erlang
- alchemist ; elixir
- ;; geiser ; scheme
- dante hindent ; haskell
- powershell
- csharp-mode
- kotlin-mode clojure-mode groovy-mode
- lsp-java scala-mode ensime ; scala
+           ;; program languages
+           c-eldoc cquery
+           php-mode lua-mode go-mode
+           elpy ; python
+           robe ; ruby
+           erlang
+           alchemist ; elixir
+           ;; geiser ; scheme
+           dante hindent ; haskell
+           powershell
+           csharp-mode
+           kotlin-mode clojure-mode groovy-mode
+           lsp-java scala-mode ensime ; scala
 
- ;; pls tools
- company-ghc company-php company-go
+           ;; program tools
+           company-ghc company-php company-go
 
- ;; miscellaneous
- emms elfeed elfeed-org uuidgen)
+           ;; miscellaneous
+           emms elfeed elfeed-org uuidgen)
 
 
-
 ;;; Use-Package
 
 (setq use-package-form-regexp-eval
@@ -143,7 +133,6 @@
              `(use-package ,name ,@x-options ,@options))))
 
 
-
 ;;; Lazy Load Modules
 
 (defvar im/lazy-modules nil)
@@ -151,6 +140,7 @@
 (defun my-lazy-load ()
   (let ((then (current-time)))
     (message "[%s] Lazy loading..." (time then 2))
+    (package-refresh-contents t)
     (cl-loop for mode in im/lazy-modules
              do (unless (featurep mode)
                   (require mode) (message "> %s" mode)))
@@ -161,15 +151,16 @@
 (add-hook 'auto-save-hook 'my-lazy-load)
 
 
+;;; Miscellaneous
 
-;;; Load-Path/Theme-Path
+;; Load-Path/Theme-Path
 
 (dolist (dir (directory-files "~/.emacs.d/extra" t))
   (if (and (not (eq (file-name-extension dir) "")) (file-directory-p dir))
       (add-to-list 'load-path dir)))
 (add-to-list 'custom-theme-load-path "~/.emacs.d/extra/themes")
 
-;;; Tips for the first time
+;; Tips for the first time
 
 (unless (file-exists-p ic/private-custom-file)
   (push (concat "\nFirst time launch emacs? Maybe you should:\n"
@@ -177,9 +168,8 @@
                 "- Add private custom to `ic/private-custom-file' file.\n")
         loaded-messages))
 
-;;; Hook for special endpoint
+;; Hook for special endpoint
 
-(setq custom-file (ensure-file ic/private-custom-file))
 (defmacro -----> (&rest body) `(with-eval-after-load 'imfine ,@body))
 (defer-til-hook '(custom-set-faces) 'after-init-hook) ; high period !
 (load ic/private-custom-file t t) ; always on top !

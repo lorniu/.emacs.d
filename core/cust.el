@@ -92,8 +92,6 @@
 (custom-set-variables)
 (custom-set-faces)
 
-(defun package--save-selected-packages (&rest _) "!" nil)
-
 
 (provide 'cust)
 
