@@ -33,7 +33,7 @@
    (yas-global-mode 1))
 
 (x company
-   :hook ((prog-mode    . company-mode))
+   :hook ((prog-mode . company-mode))
    :bind (:map company-active-map
                ("C-c"   . company-abort)
                ("<SPC>" . my-insert-blank))
@@ -46,7 +46,11 @@
 
    ;; Show yasnippet candidates in company popup
    (defun company-mode/backend-with-yas (backend)
-     (if (and (listp backend) (member 'company-yasnippet backend)) backend
+     (if (or
+          (eql backend 'company-files)
+          (eql backend 'company-capf)
+          (and (listp backend) (member 'company-yasnippet backend)))
+         backend
        (append (if (consp backend) backend (list backend))
                '(:with company-yasnippet))))
    (add-hook 'after-change-major-mode-hook
@@ -123,21 +127,20 @@
                                         ("ruby"   . "\\.html\\.erb\\'")))
 
    (defun my-web-mode-hook ()
-     (hs-minor-mode -1)
-     ;; (flycheck-mode +1)
-     (append-local 'company-backends 'company-css 'company-web-html)
      (pcase (file-name-extension (or (buffer-file-name) ""))
        ("js" (im/tide-enable))
        ("jsx"
         (im/tide-enable)
-        (make-variable-buffer-local 'company-backends)
-        (pushnew 'company-files company-backends)
         (flycheck-mode 1)
-        (electric-pair-local-mode 1))
+        (electric-pair-local-mode 1)
+        (make-variable-buffer-local 'company-backends)
+        (setq company-backends '(company-files (company-tide :separate company-yasnippet) company-capf)))
        ("tsx"
         (im/tide-enable)
-        (rjsx-minor-mode 1)
-        (set (make-local-variable 'web-mode-enable-auto-quoting) nil))))
+        (set (make-local-variable 'web-mode-enable-auto-quoting) nil))
+       (otherwise
+        (append-local 'company-css 'company-web-html)
+        (hs-minor-mode -1))))
    (add-hook 'web-mode-hook 'my-web-mode-hook)
 
    (defun my-yas-expand-extra (&rest _)
@@ -229,8 +232,9 @@
    (defun im/lsp-cquery-enable-prob ()
      (if (executable-find "cquery")
          (progn
+           (require 'cquery)
            (lsp-ui-mode 1)
-           (lsp-cquery-enable)
+           (lsp)
            (when (>= emacs-major-version 26)
              (lsp-ui-doc-mode 1)))
        nil))
@@ -265,13 +269,11 @@
    "CEDET + ECB is a choice, and Irony for C++ is another choice.
    "
    :after (cc-mode)
-   :commands lsp-cquery-enable
    :config
    (setq cquery-cache-dir ".cqindex")
    (setq cquery-extra-args (list (format "--log-file=%scquery.log" temporary-file-directory)))
    (setq cquery-extra-init-params '(:cacheFormat "msgpack" :completion (:detailedLabel t) :xref (:container t)
                                                  :diagnostics (:frequencyMs 5000)))
-   (require 'company-lsp)
    (add-to-list 'projectile-globally-ignored-directories cquery-cache-dir))
 
 (x semantic

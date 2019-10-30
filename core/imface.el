@@ -5,20 +5,12 @@
 (defvar im/mono-buffer-height 108)
 (defvar im/probe-mono-fonts '("Ubuntu Mono" "隶书"))  ;; pacman -S ttf-ubuntu-font-family
 
-(defvar im/win-font "Consolas/106")
-(defvar im/win-font-cn "微软雅黑 light")
-(defvar im/win-frame-alist '(30 640 85 35 100) "(Top Left Width Height Alpha)")
-
-(defvar im/nix-font-cn "Source Han Sans CN")
-(defvar im/nix-frame-alist '(110 100) "(Height Alpha")
-
 (defcustom ic/my-theme nil "private theme to load" :group 'imfine :type 'string)
 
 (menu-bar-mode 0)
 (tool-bar-mode 0)
 
 
-
 ;;; Helpers
 
 (defun im/find-ft (&rest names)
@@ -31,9 +23,16 @@
         (setq rs-font (seq-find (lambda (font) (string-match-p (format ".*%s.*" name) font)) fonts))
         (if rs-font (throw 'ret rs-font))))))
 
-
+(defun im/set-chinse-font (font)
+  (interactive (list (completing-read "Font: " (font-family-list))))
+  (set-fontset-font "fontset-default" 'unicode font))
 
+
 ;;; Windows
+
+(defvar im/win-font "Consolas/106")
+(defvar im/win-font-cn "微软雅黑 light")
+(defvar im/win-frame-alist '(30 640 85 35 100) "(Top Left Width Height Alpha)")
 
 (env-windows
  ;; frame
@@ -49,10 +48,12 @@
          (vertical-scroll-bars . nil)
          (cursor-type  . box)
          (cursor-color . "red")))
- ;; font
+ ;; english
  (cl-multiple-value-bind (font height) (split-string im/win-font "/")
    (set-face-attribute 'default nil :font font :height (if height (string-to-number height) 100)))
- (set-fontset-font "fontset-default" 'unicode im/win-font-cn)
+ ;; chinese
+ (im/set-chinse-font im/win-font-cn)
+ ;; scale
  (setq face-font-rescale-alist '(("simsun" . 1) ("隶书" . 1)))
  ;; key
  (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
@@ -60,8 +61,10 @@
  (global-set-key [C-wheel-down] 'text-scale-decrease))
 
 
-
 ;;; Linux
+
+(defvar im/nix-font-cn "Source Han Sans CN")
+(defvar im/nix-frame-alist '(110 100) "(Height Alpha")
 
 (env-ng
  (unless ic/my-theme (setq ic/my-theme 'origin))
@@ -77,14 +80,14 @@
          (alpha  . ,(nth 1 im/nix-frame-alist))
          (scroll-bar . nil)
          (vertical-scroll-bars . nil)))
- (set-fontset-font "fontset-default" 'unicode im/nix-font-cn)
+ ;; chinese
+ (im/set-chinse-font im/nix-font-cn)
  ;; key
  (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
  (global-set-key [C-mouse-4] 'text-scale-increase)
  (global-set-key [C-mouse-5] 'text-scale-decrease))
 
 
-
 ;;; MacOS
 
 (env-macos
@@ -95,7 +98,6 @@
  (global-set-key [C-wheel-down] 'text-scale-decrease))
 
 
-
 ;;; Fixed Width
 
 (defun im/set-char-widths??? (alist)
@@ -135,7 +137,6 @@
         (buffer-face-mode)))))
 
 
-
 ;;; Encoding
 
 (set-locale-environment   "utf-8")
@@ -165,7 +166,6 @@
  (set-terminal-coding-system 'gbk))
 
 
-
 ;;; Miscellaneous
 
 (if ic/my-theme (load-theme ic/my-theme t))

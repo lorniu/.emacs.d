@@ -417,6 +417,7 @@
 (x ivy/d
    :bind
    (:map ivy-minibuffer-map
+         ("C-q" . ivy-immediate-done)
          ("C-j" . ivy-done)
          ("C-m" . ivy-alt-done))
    :config

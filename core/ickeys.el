@@ -43,7 +43,7 @@
  ( "C-x d"         . counsel-projectile-find-dir )
  ( "C-x C-d"       . dired                )
  ( "C-x f"         . counsel-projectile-find-file )
- ( "C-x C-f"       . counsel-find-file    )
+ ( "C-x C-f"       . im/find-file         )
  ( "C-x i"         . counsel-imenu        )
  ( "C-x p"         . ivy-pages            )
  ( "C-h b"         . counsel-descbinds    )
@@ -120,6 +120,14 @@
           (deactivate-mark)
           (isearch-resume string nil nil t string nil)))
     (call-interactively 'isearch-forward-regexp)))
+
+(defun im/find-file (&optional arg)
+  "With prefix, don't triggle ivy."
+  (interactive "P")
+  (if arg
+      (let ((completing-read-function 'completing-read-default))
+        (call-interactively 'find-file))
+    (call-interactively 'counsel-find-file)))
 
 
 ;;; For Keys

@@ -14,10 +14,10 @@
   :group 'imfine)
 
 (defcustom ic/favorite-files
-  '(("emacs/" "~/.emacs.d/core/" :project)
-    ("notes/" note-directory :project)
-    ("emacs.cache/" _CACHE_ :interactive)
+  '(("notes/" note-directory :project)
+    ("emacs/" "~/.emacs.d/core/" :project)
     ("emacs.private-init.el" custom-file)
+    ("emacs.cache/" _CACHE_ :interactive)
     ("xmonad.hs" "~/.notes/x.share/xmonad/xmonad.hs" (env-linux))
     ("/etc/systemd/" "/sudo::/etc/systemd/system/multi-user.target.wants" (env-linux))
     ("Windows Homepath" (concat (getenv "HOMEDRIVE") (getenv "HOMEPATH")) (env-windows)))

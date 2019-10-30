@@ -2,6 +2,7 @@
 ;;; Commentary:
 ;;; Code:
 
+
 (defmacro xm (name keys)
   (declare (indent 1))
   `(fset ',name (lambda (&optional arg) "keyboard macro" (interactive "p")

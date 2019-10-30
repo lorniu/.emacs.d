@@ -23,7 +23,7 @@
      (when (null (cl-remove-if-not (lambda (p) (package-installed-p p)) ',packages-required))
        (error "Have you installed the packages? Maybe:\n\n(progn\n  (im/proxy (quote SOCK))\n  (p/elpa-use-origin)\n  (p/install))\n"))
      (when (cl-find-if (lambda (p) (not (package-installed-p p))) ',packages-required)
-       (push "* Some packages missing, run `p/install' to install." loaded-messages))))
+       (cl-pushnew "* Some packages missing, run `p/install' to install." loaded-messages :test 'string=))))
 
 
 ;;; Packages
@@ -31,14 +31,21 @@
 (p/refresh use-package bind-key delight key-chord
 
            ;; looking
-           spacegray-theme
-           rainbow-delimiters beacon
+           rainbow-delimiters
+           beacon
            page-break-lines
-           rcirc-styles xterm-color
+           rcirc-styles
+           xterm-color
            posframe company-posframe ; childframe style
 
+           ;; theme
+           inkpot-theme
+           lush-theme
+           atom-one-dark-theme
+
            ;; edit and utils
-           alert session attrap
+           alert
+           session
            syntax-subword
            expand-region
            dired-dups
@@ -62,9 +69,9 @@
 
            ;; projects
            counsel-projectile
-           yasnippet
-           company
            treemacs
+           company
+           yasnippet
            magit git-timemachine ; git
 
            ;; lsp, eglot is another choice, slow slow slow
@@ -77,22 +84,21 @@
            emmet-mode htmlize web-beautify
            yaml-mode sass-mode json-mode
            websocket
-           restclient company-restclient ; restful
            know-your-http-well
+           restclient company-restclient ; restful
 
            ;; program languages
            c-eldoc cquery ; c/c++
-           lua-mode
            php-mode company-php ; php
            go-mode company-go ; go
            elpy ; python
            robe ; ruby
            erlang ; erlang
            alchemist ; elixir
-           dante hindent company-ghc ; haskell
-           powershell csharp-mode
-           kotlin-mode clojure-mode groovy-mode
-           lsp-java ; better now
+           dante hindent company-ghc attrap ; haskell
+           powershell csharp-mode lua-mode
+           kotlin-mode clojure-mode groovy-mode ; jvm
+           lsp-java ; better than ever
            scala-mode ensime ; scala
 
            ;; miscellaneous
