@@ -556,7 +556,7 @@
 
 (x vlf
    "Open huge file, Part by Part."
-   :config (require 'vlf-setup))
+   :init (require 'vlf-setup))
 
 (x gimp :commands (connect-gimp gimp-mode))
 

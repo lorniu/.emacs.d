@@ -15,15 +15,15 @@
        (package-refresh-contents)
        (cl-loop for p in ',packages-required unless (package-installed-p p) do (package-install p))
        (message "Install Finished."))
-     (defun p/elpa-use-origin () (interactive) (message "%s" (setq package-archives repo-origin)))
-     (defun p/elpa-use-mirror () (interactive) (message "%s" (setq package-archives repo-mirror)))
+     (defun p/use-origin () (interactive) (message "%s" (setq package-archives repo-origin)))
+     (defun p/use-mirror () (interactive) (message "%s" (setq package-archives repo-mirror)))
 
-     (if ic/elpa-use-mirror (p/elpa-use-mirror) (p/elpa-use-origin))
+     (if ic/elpa-use-mirror (p/use-mirror) (p/use-origin))
 
-     (when (null (cl-remove-if-not (lambda (p) (package-installed-p p)) ',packages-required))
-       (error "Have you installed the packages? Maybe:\n\n(progn\n  (im/proxy (quote SOCK))\n  (p/elpa-use-origin)\n  (p/install))\n"))
-     (when (cl-find-if (lambda (p) (not (package-installed-p p))) ',packages-required)
-       (cl-pushnew "* Some packages missing, run `p/install' to install." loaded-messages :test 'string=))))
+     (let ((inst-cmd "\n(progn\n  (im/proxy (quote SOCK))\n  (p/use-origin)\n  (p/install)\n)\n")
+           (lacks (cl-remove-if 'package-installed-p ',packages-required)))
+       (if (= (length lacks) (length ',packages-required)) (error "Have you installed any packages? Maybe:\n%s" inst-cmd))
+       (if lacks (error "Some packages missing %s\n\nPlease install first:\n%s\n\n" lacks inst-cmd)))))
 
 
 ;;; Packages
@@ -100,6 +100,7 @@
            kotlin-mode clojure-mode groovy-mode ; jvm
            lsp-java ; better than ever
            scala-mode ensime ; scala
+           jdecomp ; java decompile, use idea's fernflower.jar
 
            ;; miscellaneous
            emms elfeed elfeed-org uuidgen)

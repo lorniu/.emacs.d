@@ -311,7 +311,8 @@
      ;; When no roswell support, use inner sly and local lisp-bin
      (when (setq inferior-lisp-program (seq-find #'executable-find '("sbcl" "ccl" "clisp" "ecl")))
        (unless (package-installed-p 'sly) (package-install 'sly))
-       (x sly :config (add-hook 'sly-mode-hook '%lisp/ensure-quicklisp))))
+       (require 'sly)
+       (add-hook 'sly-mode-hook '%lisp/ensure-quicklisp)))
 
    (setq org-babel-lisp-eval-fn 'sly-eval)
    (add-hook 'sly-mrepl-mode-hook '%lisp/init-repl-buffer)
@@ -367,6 +368,8 @@
 ;; use Meghanada to support Java Dev, maybe a better choice?
 ;; or use Lsp-Java? Not so good currently.
 
+;; use jdecomp-mode and cfr/fernflower to auto decompile/show .class file
+
 (x lsp-java
    :init
    (setq lsp-java-server-install-dir (concat _CACHE_ "lsp-server-java"))
@@ -404,6 +407,13 @@
    (setq ensime-graphical-tooltips t)
    (setq ensime-eldoc-hints 'all)
    (setq ensime-startup-notification nil))
+
+(x jdecomp
+   :init
+   (setq jdecomp-decompiler-type 'fernflower)
+   (setq jdecomp-decompiler-paths (list (cons 'fernflower (locate-user-emacs-file "resource/fernflower.jar"))))
+   (define-derived-mode class-mode fundamental-mode "" "")
+   (jdecomp-mode 1))
 
 
 
