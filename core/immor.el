@@ -243,6 +243,73 @@
          (send-string-to-terminal (format "\033]83;screen %s\007" cmd)))
         (t (apply 'eshell-exec-visual (cons "ssh" args)))))))
 
+(x vterm
+   "Add something like this to .bashrc:
+   "
+   "VtInit=~/.notes/x.share/emacs/vterm-boot.sh"
+   "if [[ \"$INSIDE_EMACS\" = \"vterm\" ]] && [[ -f $VtInit ]]; then source $VtInit; fi
+   "
+   :init
+   (defvar vterm-dir-history (make-ring 10))
+   :config
+   (defun vterm (&optional buffer-name)
+     (interactive)
+     (let ((buf (or buffer-name "*vterm*")))
+       (unless (get-buffer buf)
+         (get-buffer-create buf)
+         (with-current-buffer buf (vterm-mode)))
+       (switch-to-buffer buf)))
+   (defun my/vterm-to-dir (dir)
+     (interactive (list (completing-read "Dir History: " (ring-elements vterm-dir-history) nil t)))
+     (if dir (vterm-send-string (format "cd %s\n" dir))))
+   (define-key vterm-mode-map [f12] 'bury-buffer)
+   (define-key vterm-mode-map (kbd "C-c b") 'my/vterm-to-dir)
+   (define-key vterm-mode-map (kbd "C-c C-b") 'my/vterm-to-dir))
+
+(defun im/popup-shell (&optional _)
+  (interactive "P")
+  (if (eq major-mode 'shell-mode)
+      (bury-buffer)
+    (let ((curr-dir default-directory))
+      (shell "+shell+")
+      (ring-insert comint-input-ring
+                   (concat "cd " (shell-quote-argument curr-dir))))))
+
+(defun im/popup-vterm (&optional _)
+  (interactive "P")
+  (if (eq major-mode 'vterm-mode)
+      (bury-buffer)
+    (let ((curr-dir default-directory)
+          (buf-name "+vterm+")
+          (ring-top (ignore-errors (ring-ref vterm-dir-history 0))))
+      (unless (string= ring-top curr-dir)
+        (ring-insert vterm-dir-history curr-dir))
+      (vterm buf-name))))
+
+(defun im/popup-shell-or-vterm ()
+  (interactive)
+  (cl-flet ((exist (ext) (file-exists-p (format "%s%s.%s" (file-name-directory (file-truename (locate-library "vterm"))) "vterm-module" ext))))
+    (if (or (exist "dll") (exist "so"))
+        (call-interactively 'im/popup-vterm)
+      (call-interactively 'im/popup-shell))))
+
+(defun im/popup-eshell (&optional arg)
+  (interactive "P")
+  (if (eq major-mode 'eshell-mode)
+      (bury-buffer)
+    (let ((last-file (or dired-directory (buffer-file-name))))
+      (eshell arg)
+      (if last-file (eshell-add-to-dir-ring (file-name-directory last-file))))))
+
+(defun im/popup-xshell ()
+  (interactive)
+  (ivy-read "Shell: " '(powershell system-default)
+            :action (lambda (type)
+                      (if (string= type "powershell")
+                          (powershell)
+                        (let ((explicit-shell-file-name (getenv "SHELL")))
+                          (shell "+shell+"))))))
+
 
 ;;; Generic Modes
 

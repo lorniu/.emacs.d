@@ -50,6 +50,7 @@
       select-enable-clipboard t
       select-enable-primary nil
       delete-by-moving-to-trash t
+      trash-directory (concat _CACHE_ "trash")
       mouse-autoselect-window -0.05
 
       help-window-select t

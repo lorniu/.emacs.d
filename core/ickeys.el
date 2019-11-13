@@ -13,20 +13,24 @@
  ( [f6]            . toggle-truncate-lines)
  ( [f8]            . calendar             )
  ( [f10]           . im/silly             )
+
  ( [f11]           . ivy-push-view        )
  ( [C-f11]         . ivy-switch-view      )
- ( [f12]           . im/popup-eshell      )
- ( [C-f12]         . im/popup-shell       )
+
+ ( [f12]           . im/popup-shell-or-vterm )
+ ( [C-f12]         . im/popup-eshell      )
  ( [M-f12]         . im/popup-xshell      )
 
  ( "%"             . his-match-paren      )
  ( "C-#"           . cua-rectangle-mark-mode )
  ( "C-s"           . im/isearch-regexp    )
  ( "C-o"           . im/open-line         )
+ ( "C-c `"         . my-toggle-diagnostics-buffer )
  ( "C-c C-j"       . ffap                 )
  ( "M-w"           . im/yank-more         )
  ( "M-q"           . im/tiny-code         )
  ( "M-Q"           . im/tiny-code-buffer  )
+
  ( "ESC <down>"    . im/copy-lines        )
  ( "ESC <up>"      . (lambda () (interactive) (im/copy-lines 1)))
  ( "ESC <right>"   . im/kill-lines        )
@@ -50,9 +54,7 @@
  ( "C-h v"         . counsel-describe-variable )
  ( "C-h f"         . counsel-describe-function )
  ( "C-h S"         . counsel-info-lookup-symbol)
- ( "C-x C-r"       . im/file-viewer       )
-
- ( "C-c `"         . my-toggle-diagnostics-buffer ))
+ ( "C-x C-r"       . im/file-viewer       ))
 
 (global-unset-key (kbd "C-x C-z"))
 
@@ -143,35 +145,6 @@
            (call-interactively 'flymake-show-diagnostics-buffer)
            (select-window (get-buffer-window buf))))
         (t (message "Nothing to do, check flycheck or flymake toggled?"))))
-
-
-;;; Popups
-
-(defun im/popup-eshell (&optional arg)
-  (interactive "P")
-  (if (eq major-mode 'eshell-mode)
-      (bury-buffer)
-    (let ((last-file (or dired-directory (buffer-file-name))))
-      (eshell arg)
-      (if last-file (eshell-add-to-dir-ring (file-name-directory last-file))))))
-
-(defun im/popup-shell (&optional _)
-  (interactive "P")
-  (if (eq major-mode 'shell-mode)
-      (bury-buffer)
-    (let ((curr-dir default-directory))
-      (shell "*+shell+*")
-      (ring-insert comint-input-ring
-                   (concat "cd " (shell-quote-argument curr-dir))))))
-
-(defun im/popup-xshell ()
-  (interactive)
-  (ivy-read "Shell: " '(powershell system-default)
-            :action (lambda (type)
-                      (if (string= type "powershell")
-                          (powershell)
-                        (let ((explicit-shell-file-name (getenv "SHELL")))
-                          (shell "*-shell-*"))))))
 
 
 ;;; Commands

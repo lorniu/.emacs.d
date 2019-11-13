@@ -38,7 +38,7 @@
            xterm-color
            posframe company-posframe ; childframe style
 
-           ;; theme
+           ;; themes
            inkpot-theme
            lush-theme
            atom-one-dark-theme
@@ -53,6 +53,7 @@
            youdao-dictionary
            vlf ; view-large-file
            ztree ; dir diff
+           vterm
 
            ;; exporting
            graphviz-dot-mode
