@@ -364,6 +364,7 @@
 
 ;; use Ensime to support both Java and Scala Dev.
 ;; choose one build tool, maven/gradle or sbt
+;; 2019-11-18, use lsp/Metals instead.
 
 ;; use Meghanada to support Java Dev, maybe a better choice?
 ;; or use Lsp-Java? Not so good currently.
@@ -384,29 +385,20 @@
      (c-set-offset 'arglist-intro '+)))
 
 (x scala-mode
-   "Can use `ensime' to support Scala.
-   "
-   "M-x `ensime' to connect current project.
-   "
-   "You should init your build tool, and generate .ensime file anyway:
-   "
-   "   // Download the build tool, eg, sbt:  "
-   "   eww https://www.scala-sbt.org/download.html
-   "
-   "   // Create project via sbt/gradle...  "
-   "   sbt new scala/scala-seed.g8   \n   cd hello
-   "
-   "   // Generate .ensime with ensimePlugin/gradlePlugin "
-   "   echo 'addSbtPlugin(\"org.ensime\" % \"sbt-ensime\" % \"2.5.1\")' > ~/.sbt/1.0/plugins/plugins.sbt   \n   sbt ensimeConfig
-   "
-   )
+   "Can use [metals+lsp] to support Scala development:
 
-(x ensime
-   :config
-   (setq ensime-company-minimum-prefix-length 0)
-   (setq ensime-graphical-tooltips t)
-   (setq ensime-eldoc-hints 'all)
-   (setq ensime-startup-notification nil))
+First, build metals (https://scalameta.org/metals/):
+
+  curl -L -o coursier https://git.io/coursier
+  chmod +x coursier
+  ./coursier bootstrap --java-opt -Xss4m --java-opt -Xms100m -130va-opt -Dmetals.client=emacs org.scalameta:metals_2.12:0.7.6 -r bintray:scalacenter/releases -r sonatype:snapshots -o /usr/local/bin/metals-emacs -f
+
+  # or use ~/.emacs.d/scripts/build-metals-for-scala.sh to build.
+
+Then, enable it with 'lsp' command.
+
+note: Ensime is deprecated.
+   ")
 
 (x jdecomp
    :init

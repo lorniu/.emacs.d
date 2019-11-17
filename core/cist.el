@@ -100,7 +100,7 @@
            powershell csharp-mode lua-mode
            kotlin-mode clojure-mode groovy-mode ; jvm
            lsp-java ; better than ever
-           scala-mode ensime ; scala
+           scala-mode ; scala
            jdecomp ; java decompile, use idea's fernflower.jar
 
            ;; miscellaneous
