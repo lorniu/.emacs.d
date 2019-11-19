@@ -7,7 +7,6 @@
 (setq default-directory "~/")
 
 
-
 ;;; System-Variables
 
 (setq inhibit-startup-message t
@@ -45,12 +44,12 @@
       enable-local-eval t
       enable-local-variables :all
 
-      kill-ring-max 200
+      kill-ring-max 250
       mark-ring-max 10
       select-enable-clipboard t
       select-enable-primary nil
       delete-by-moving-to-trash t
-      trash-directory (concat _CACHE_ "trash")
+      trash-directory "~/.trash"
       mouse-autoselect-window -0.05
 
       help-window-select t
@@ -63,11 +62,11 @@
               bidi-display-reordering nil)
 
 (setenv "TZ" "PRC")
+(setenv "LC_COLLATE" "C")
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
 
-
 ;;; Environments
 
 (defmacro define-environments (envs)
@@ -85,7 +84,6 @@
    (env-macos         . (eq system-type 'darwin))))
 
 
-
 ;;; Custom-Config
 
 (setq custom-unlispify-tag-names nil)

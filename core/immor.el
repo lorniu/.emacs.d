@@ -388,7 +388,11 @@
    (add-hook-lambda 'ibuffer-mode-hook
      (ibuffer-switch-to-saved-filter-groups "default")))
 
-(x wdired/e
+(x dired
+   "Maybe should add this to .bashrc:
+   "
+   "  export LC_COLLATE=C
+   "
    :bind
    (:map dired-mode-map
          ( "6" . dired-up-directory )
@@ -397,8 +401,9 @@
          ( "s" . hydra-dired-quick-sort/body )
          ( "z" . idp/dired-du-size )
          ( "Y" . idp/dired-rsync))
+   :init
+   (require 'wdired)
    :config
-   ;; ls style
    (require 'ls-lisp)
    (setq ls-lisp-use-insert-directory-program nil
          dired-listing-switches "-alh"
