@@ -1,13 +1,12 @@
 /*
-!.gitignore
 !README.md
+!.gitignore
 !init.el
-!/resource
+!/bin
 !/core
 !/extra
-!/misc
+!/share
 !/snippets
-!/scripts
 __pycache__/
 _*
 *.html

@@ -166,10 +166,10 @@
 
 ;; Load-Path/Theme-Path
 
-(dolist (dir (directory-files "~/.emacs.d/extra" t))
+(dolist (dir (directory-files (locate-user-emacs-file "extra") t))
   (if (and (not (eq (file-name-extension dir) "")) (file-directory-p dir))
       (add-to-list 'load-path dir)))
-(add-to-list 'custom-theme-load-path "~/.emacs.d/extra/themes")
+(add-to-list 'custom-theme-load-path (locate-user-emacs-file "extra/themes"))
 
 ;; Tips for the first time
 

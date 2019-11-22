@@ -3,8 +3,8 @@
 ;;; Code:
 
 (defcustom ic/feeds-org-file
-  (let ((f (expand-file-name "000/favor.org" note-directory)))
-    (if (file-exists-p f) f "~/.emacs.d/elfeeds.org"))
+  (let ((f (expand-file-name "000/favors.org" note-directory)))
+    (if (file-exists-p f) f (locate-user-emacs-file "elfeeds.org")))
   "Feeds Used for `elfeed', an org file."
   :type 'string :group 'imfine)
 

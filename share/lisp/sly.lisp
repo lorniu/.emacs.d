@@ -70,12 +70,25 @@
 (defun load-relative (filename)
   (load (compile-file (merge-pathnames filename *load-truename*))))
 
+;; custom hashtable output
+(defparameter *print-hashtable* nil "Use custom HASH print method.")
+(defun im/toggle-print-hashtable () (setf *print-hashtable* (not *print-hashtable*)))
+(defmethod print-object :around ((object hash-table) stream)
+  (if *print-hashtable*
+      (format stream "#HashTable {~%    ~{~{~a: ~a~%~}~^    ~}}"
+              (loop for key being the hash-keys of object using (hash-value value)
+                    collect (list key value)))
+    (call-next-method)))
+
+;; exports
 (export '(qload-and-in
           defpackage-and-in
           dir-symbols
           alias-package
           import-as
-          load-relative))
+          load-relative
+          im/toggle-print-hashtable
+          ))
 
 
 ;;; dexador

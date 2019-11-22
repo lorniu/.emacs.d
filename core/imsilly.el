@@ -3,23 +3,23 @@
 ;;; Code:
 
 (defcustom ic/external-script-dirs
-  (list (expand-file-name "~/.emacs.d/scripts/bin")
+  (list (expand-file-name (locate-user-emacs-file "bin/x"))
         (expand-file-name "~/.notes/x.bin"))
   "Where are the scripts files."
   :type '(repeat string) :group 'imfine)
 
-;; path
+;; PATH
 (loop for d in ic/external-script-dirs
       when (file-exists-p d)
       do
       (setenv "PATH" (concat d (if (eq system-type 'windows-nt) ";" ":") (getenv "PATH")))
       (add-to-list 'exec-path d))
 
-;; silly run
+;; Silly Run
 (defun im/silly (&optional arg)
   "Silly run scripts, default in emacs.d dir, or if ARG t, in current dir."
   (interactive "P")
-  (let* ((dir (if arg default-directory "~/.emacs.d/scripts/"))
+  (let* ((dir (if arg default-directory (locate-user-emacs-file "bin/")))
          (script (read-file-name "Choose script:" dir))
          args script-with-args)
     (if (and (file-exists-p script) (not (directory-name-p script)))

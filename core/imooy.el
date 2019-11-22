@@ -8,12 +8,15 @@
 
 (x ob-ditaa
    :if (executable-find "java")
-   :config (setq org-ditaa-jar-path "~/.emacs.d/resource/ditaa.jar"))
+   :config (setq org-ditaa-jar-path (locate-user-emacs-file "share/ditaa.jar")))
 
 (x ob-plantuml
    :if (and (executable-find "java") (executable-find "dot"))
+   :init
+   (setq plantuml-jar-path (locate-user-emacs-file "plantuml.jar")
+         plantuml-default-exec-mode 'jar)
+   (setq org-plantuml-jar-path plantuml-jar-path)
    :config
-   (setq org-plantuml-jar-path "~/.emacs.d/plantuml.jar")
    (when (and (null (file-exists-p org-plantuml-jar-path))
               (yes-or-no-p "Download plantuml.jar Now?"))
      ;; IF NOT WORK, RUN THIS IN SHELL:

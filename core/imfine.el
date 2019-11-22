@@ -21,9 +21,8 @@
       (gc-cons-threshold (* 64 1024 1024)))
 
   ;; modules
-  (require 'bm)
+  (require 'bpmf)
   (require 'util)
-  (require 'proxy)
   (require 'cist)
   (require 'cust)
   (require 'patches)
@@ -55,7 +54,7 @@
   ;; daemon server
   (require 'server)
   (ignore-errors
-    (setq server-auth-dir "~/.emacs.d/.cache/server/")
+    (setq server-auth-dir (locate-user-emacs-file ".cache/server/"))
     (delete-file (concat server-auth-dir "server"))
     (unless (server-running-p) (server-start))))
 

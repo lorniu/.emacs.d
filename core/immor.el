@@ -19,7 +19,6 @@
 (setq syntax-subword-skip-spaces t)
 
 (savehist-mode 1)
-(winner-mode 1)
 (show-paren-mode 1)
 (size-indication-mode 1)
 
@@ -88,7 +87,7 @@
 
 (defun my-before-open ()
   ;; files should be readonly
-  (and (not (string-match-p "/usr/home\\|.cache/\\|temp/\\|tmp/\\|vvv/" buffer-file-name))
+  (and (not (string-match-p "/usr/home\\|.cache/\\|temp/\\|tmp/\\|vvv/\\|.notes" buffer-file-name))
        (not (string-match-p "\\(autoloads\\|loaddefs\\).el$" buffer-file-name))
        (let ((case-fold-search nil))
          (string-match-p "^/usr/\\|.emacs.d/packages\\|/emacs/\\|.roswell/lisp/quicklisp" buffer-file-name))
@@ -111,7 +110,7 @@
 (add-hook 'after-save-hook 'my-after-save)
 
 
-;;; Sudo/Tramp/Eshell
+;;; Sudo/Tramp/Shell
 
 (defface find-file-root-header-face
   '((t (:foreground "white" :background "red3")))
@@ -156,7 +155,7 @@
    (when (and (env-windows) (executable-find "bash"))
      ;; Cygwin/Msys2 pty support.
      ;; If `Spawning child process: Exec format error` occurred, recompile or change permissions.
-     (add-to-list 'exec-path (expand-file-name "~/.emacs.d/extra/fakecygpty/"))
+     (add-to-list 'exec-path (expand-file-name (locate-user-emacs-file "extra/fakecygpty/")))
      (require 'fakecygpty)
      ;; (add-to-list 'fakecygpty-ignored-program-regexps "httpd")
      (fakecygpty-activate))
@@ -189,7 +188,7 @@
          eshell-hist-ignoredups t
          eshell-destroy-buffer-when-process-dies t
          eshell-directory-name (concat _CACHE_ "eshell")
-         eshell-aliases-file "~/.emacs.d/resource/eshell.alias"
+         eshell-aliases-file (locate-user-emacs-file "share/eshell.alias")
          comint-scroll-show-maximum-output nil
          eshell-scroll-show-maximum-output nil)
 
@@ -350,7 +349,7 @@
 (x page-break-lines
    :init
    (setq page-break-lines-lighter "")
-   (nconc page-break-lines-modes '(web-mode css-mode))
+   (nconc page-break-lines-modes '(web-mode css-mode haskell-mode))
    (global-page-break-lines-mode 1))
 
 (x ediff
@@ -485,6 +484,12 @@
 
 
 ;;; Navigation
+
+(x winner
+   :init (winner-mode 1)
+   :config
+   (define-key winner-mode-map [C-left] 'winner-undo)
+   (define-key winner-mode-map [C-right] 'winner-redo))
 
 (x ivy/d
    :bind
@@ -631,10 +636,6 @@
    :init (require 'vlf-setup))
 
 (x gimp :commands (connect-gimp gimp-mode))
-
-(x plantuml-mode
-   :init
-   (setq plantuml-jar-path "~/.emacs.d/plantuml.jar"))
 
 
 (provide 'immor)

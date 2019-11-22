@@ -21,11 +21,13 @@
 (defmacro read-insert (&rest args) `(insert (read-string ,@args)))
 
 
-
 ;;; keymacros
 
 (xm k/normaize-gradle
   "M-m C-s ' C-b <C-backspace> <C-backspace> C-s ' C-s C-s <C-backspace> <C-backspace> <C-backspace> <C-backspace> : C-s ' C-s RET <C-backspace> <C-backspace> <C-backspace> <C-backspace> : M-m")
+
+(xm k/sqlplus-wrap-rownum
+  "C-a s e l e c t SPC * SPC f r o m SPC ( SPC C-e C-b SPC ) SPC w h e r e SPC r o w n u m SPC < SPC 5")
 
 
 (provide 'ickmacro)

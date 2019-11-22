@@ -2,7 +2,7 @@
 ;;; Commentary:
 ;;; Code:
 
-(defcustom lisp/init-file "~/.emacs.d/scripts/lisp/sly.lisp"
+(defcustom lisp/init-file (locate-user-emacs-file "share/lisp/sly.lisp")
   "Common Lisp init file."
   :type 'file :group 'imfine)
 
@@ -33,7 +33,8 @@
    (yas-global-mode 1))
 
 (x company
-   :hook ((prog-mode . company-mode))
+   :hook ((prog-mode . company-mode)
+          (sqlplus-mode . company-mode))
    :bind (:map company-active-map
                ("C-c"   . company-abort)
                ("<SPC>" . my-insert-blank))
@@ -86,6 +87,10 @@
      (interactive)
      (lsp)
      (add-hook (intern (format "%s-hook" (symbol-name major-mode))) 'lsp))
+   (defun lsp-and-future-cancel ()
+     (interactive)
+     (lsp-mode -1)
+     (remove-hook (intern (format "%s-hook" (symbol-name major-mode))) 'lsp))
    :config
    (setq lsp-auto-guess-root t)
    (setq lsp-prefer-flymake nil)
@@ -133,6 +138,7 @@
         (im/tide-enable)
         (flycheck-mode 1)
         (electric-pair-local-mode 1)
+        (set (make-local-variable 'web-mode-enable-auto-quoting) nil)
         (make-variable-buffer-local 'company-backends)
         (setq company-backends '(company-files (company-tide :separate company-yasnippet) company-capf)))
        ("tsx"
@@ -393,7 +399,7 @@ First, build metals (https://scalameta.org/metals/):
   chmod +x coursier
   ./coursier bootstrap --java-opt -Xss4m --java-opt -Xms100m -130va-opt -Dmetals.client=emacs org.scalameta:metals_2.12:0.7.6 -r bintray:scalacenter/releases -r sonatype:snapshots -o /usr/local/bin/metals-emacs -f
 
-  # or use ~/.emacs.d/scripts/build-metals-for-scala.sh to build.
+  # or use ~/.emacs.d/bin/build-metals-for-scala.sh to build.
 
 Then, enable it with 'lsp' command.
 
@@ -403,7 +409,7 @@ note: Ensime is deprecated.
 (x jdecomp
    :init
    (setq jdecomp-decompiler-type 'fernflower)
-   (setq jdecomp-decompiler-paths (list (cons 'fernflower (locate-user-emacs-file "resource/fernflower.jar"))))
+   (setq jdecomp-decompiler-paths (list (cons 'fernflower (locate-user-emacs-file "share/fernflower.jar"))))
    (define-derived-mode class-mode fundamental-mode "" "")
    (jdecomp-mode 1))
 
