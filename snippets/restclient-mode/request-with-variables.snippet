@@ -1,0 +1,18 @@
+# -*- mode: snippet -*-
+# name: request with variables
+# key: r
+# --
+
+:user-id = 7
+:the-name := (format "%s %s %d" 'Neo (md5 "The Chosen") (+ 100 1))
+:my-auth = 319854857345898457457
+:my-headers = <<
+Authorization: :my-auth
+Content-Type: application/json
+User-Agent: SomeApp/1.0
+
+
+PUT http://localhost:4000/users/:user-id/
+:my-headers
+
+{ "name": ":the-name" }

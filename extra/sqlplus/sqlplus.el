@@ -77,7 +77,6 @@
 (require 'sql)
 (require 'tabify)
 (require 'skeleton)
-(require 'projectile)
 
 (defconst sqlplus-revision "$Revision: 1.7 $")
 
@@ -184,7 +183,7 @@ History file name has format '<connect-string>-history.txt'."
 
 (defvar sqlplus-session-file-extension "spl")
 
-(defcustom sqlplus-session-cache-dir "~/.cache/emacs/sqlplus/"
+(defcustom sqlplus-session-cache-dir (locate-user-emacs-file "sqlplus/")
   "Directory of SQL*Plus input buffer files, or nil (dont save user session).
 Session file name has format '<connect-string>.spl'"
   :group 'sqlplus
@@ -2118,7 +2117,7 @@ Returns (qualified-connect-string refined-connect-string)."
 (defun sqlplus-connection-history-file ()
   (let ((file (expand-file-name (concat sqlplus-session-cache-dir ".connection-history"))))
     (sqlplus-ensure-session-cache-dir)
-    (ensure-file file)))
+    (im-ensure-file file)))
 
 (defun sqlplus-get-history-connections ()
   (condition-case err
@@ -3022,11 +3021,11 @@ buffer."
   (let* ((root-dir (or (and (not object-type)
 			                (eq major-mode 'plsql-mode)
 			                (buffer-file-name)
-			                (projectile-project-root (buffer-file-name)))
+                            (project-current))
 		               (sqlplus-get-root-dir connect-string)
 		               (error "Root dir not set")))
 	     (mode-symbol-list '(plsql-mode sql-mode))
-	     (files-to-grep (sqlplus--directory-files-recursively (projectile-project-root) "\\.\\(sql\\|spl\\)$" "\\.svn\\|\\.git"))
+	     (files-to-grep (sqlplus--directory-files-recursively (project-root (project-current)) "\\.\\(sql\\|spl\\)$" "\\.svn\\|\\.git"))
 	     (temp-file-path (concat (file-name-as-directory temporary-file-directory) (make-temp-name "ide-")))
 	     (search-buffer (get-buffer sqlplus-search-buffer-name))
 	     (regexp (let ((index 0)

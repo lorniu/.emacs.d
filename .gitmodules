@@ -1,0 +1,3 @@
+[submodule "site-lisp/simple-httpd"]
+	path = site-lisp/simple-httpd
+	url = ../simple-httpd.git

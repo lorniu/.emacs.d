@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: #+HTML_HEAD_EXTRA: <head>
-# key: hte
-# condition: (= (current-column) 3)
-# --
-#+HTML_HEAD_EXTRA: ${1:<}

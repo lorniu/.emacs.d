@@ -1,16 +1,79 @@
-;;; init.el
+;;; -*- lexical-binding: t -*-
 
-(package-initialize)
+;; Copyright (C) 2018 lorniu <lorniu@gmail.com>
+;; SPDX-License-Identifier: MIT
 
-(defvar +note+ "~/.notes")
+;;; Code:
 
-(let* ((n (format "init-%s@%s.el" (user-real-login-name) (system-name)))
-       (f (if (file-exists-p +note+)
-              (format "%s/x.share/emacs/%s" +note+ n)
-            (locate-user-emacs-file n))))
-  (unless (file-exists-p f) (with-temp-buffer (write-file f)))
-  (setq custom-file f))
+(defconst IS-G         (display-graphic-p))
+(defconst IS-NG        (not (display-graphic-p)))
+(defconst IS-LINUX-G   (and IS-LINUX (display-graphic-p)))
+(defconst IS-LINUX-NG  (and IS-LINUX (not (display-graphic-p))))
 
-(progn
-  (add-to-list 'load-path (locate-user-emacs-file "core"))
-  (require 'imfine))
+
+
+(progn (imload 'dist)
+       (imload 'face)
+
+       (imload 'iext-favors)
+       (imload 'iext-sudo)
+
+       (imload 'imod-transient)
+       (imload 'imod-general)
+       (imload 'imod-edit+)
+       (imload 'imod-nontext)
+       (imload 'imod-tramp)
+       (imload 'imod-mmm)
+       (imload 'imod-auth)
+       (imload 'imod-dired)
+       (imload 'imod-project)
+       (imload 'imod-evil)
+       (imload 'imod-search+)
+       (imload 'imod-completing)
+       (imload 'imod-snippet)
+       (imload 'imod-folding)
+       (imload 'imod-internet)
+       (imload 'imod-vcs)
+       (imload 'imod-shell)
+       (imload 'imod-translator)
+       (imload 'imod-ime)
+       (imload 'imod-eaf)
+       (imload 'imod-emacs-server)
+
+       (imload 'imod-code)
+       (imload 'icod-lsp)
+       (imload 'icod-tags)
+       (imload 'icod-cc)
+       (imload 'icod-jvm)
+       (imload 'icod-dotnet)
+       (imload 'icod-lisp)
+       (imload 'icod-python)
+       (imload 'icod-ruby)
+       (imload 'icod-erlang)
+       (imload 'icod-elixir)
+       (imload 'icod-haskell)
+       (imload 'icod-golang)
+       (imload 'icod-php)
+       (imload 'icod-sql)
+       (imload 'icod-hexl)
+       (imload 'icod-resx)
+       (imload 'icod-frontend)
+       (imload 'icod-markdown)
+
+       (imload 'iwww-irc)
+       (imload 'iwww-gnus)
+
+       (imload 'ioox-org)
+       (imload 'ioox-gtd)
+       (imload 'ioox-notes)
+       (imload 'ioox+TeX)
+
+       (imload 'ikmd-keys-and-commands)
+       (imload 'ikmd-kmacro)
+
+       (imload 'imsilly)
+       (imload 'implay 'load-from-anywhere-if-it-exists)
+       (imload 'imsketch 'load-from-anywhere-if-it-exists)
+       (imload 'over))
+
+;;; init.el ends here

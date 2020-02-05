@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: #+SPECIAL:
+# key: p
+# condition: (<= (current-column) 1)
+# --
+#+${$$(yas-completing-read "PROPERTIES: " '("ITEM" "FILE" "CATEGORY" "BLOCKED" "TODO" "CLOSED" "TAGS" "ALLTAGS" "EXCLUDE_TAGS" "PRIORITY" "SCHEDULED" "DEADLINE" "CLOCKSUM" "CLOCKSUM_T" "TIMESTAMP" "TIMESTAMP_IA" "COLUMNS" "CATEGORY" "ARCHIVE" "LOGGING" "TBLFM" "STARTUP" "MACRO" "SETUPFILE" "INFOJS_OPT" "OPTION" "CAPTION" "TITLE" "BEAMER_THEME") nil nil nil nil "PROPERTY")}: $0

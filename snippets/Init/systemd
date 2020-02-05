@@ -1,0 +1,10 @@
+[Unit]
+Description=vvv
+After=network-online.target
+
+[Service]
+User=vip
+ExecStart=/home/vip/bin/xxx
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: src/psql
+# key: <sql
+# condition: (<= (current-column) 4)
+# --
+#+begin_src sql :engine postgresql :dbhost localhost :dbuser root :dbpassword root :database vip
+$0
+#+end_src

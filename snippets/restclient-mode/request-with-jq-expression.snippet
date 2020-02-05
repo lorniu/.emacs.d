@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: request with jq-expression
+# key: r
+# --
+:user = jack
+:password = secret
+:test-me := (format "%s:%s" ":user" ":password")
+:auth-token :=  (format "Basic %s" (base64-encode-string (restclient-get-var ":test-me")))
+
+GET http://httpbin.org/basic-auth/jack/secret
+Authorization: :auth-token
+ -> run-hook (message (format "authenticated with '%s'" (restclient-get-var ":auth-token")))
+ -> jq-set-var :my-ip .origin
+ -> on-response (message "dynamic hook called %s %s" (random) (random))
+ -> on-response (message "another hook")

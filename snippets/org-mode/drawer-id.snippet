@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: :id/customer_id:
+# key: :id
+# condition: (<= (current-column) 3)
+# --
+`(if (im-org-in-drawer-p) "" ":PROPERTIES:\n")`:${$$(yas-choose-value '("ID" "CUSTOM_ID"))}: $0`(if (im-org-in-drawer-p) "" "\n:END:")`

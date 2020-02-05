@@ -1,8 +1,8 @@
 # -*- mode: snippet -*-
-# name: plantuml
-# key: si
-# condition: (= (current-column) 2)
+# name: src/plantuml
+# key: <si
+# condition: (and (<= (current-column) 3))
 # --
-#+BEGIN_SRC plantuml :file img/${1:name}.svg :cmdline -charset UTF-8 :exports none
+#+begin_src plantuml :file img/${1:name}.svg :cmdline -charset UTF-8 :exports none
 $0
-#+END_SRC
+#+end_src

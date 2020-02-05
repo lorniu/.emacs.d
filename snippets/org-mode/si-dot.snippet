@@ -1,8 +1,8 @@
 # -*- mode: snippet -*-
-# name: dot
-# key: si
-# condition: (= (current-column) 2)
+# name: src/dot
+# key: <si
+# condition: (and (<= (current-column) 3))
 # --
-#+BEGIN_SRC dot :file img/${1:name}.svg :export results
+#+begin_src dot :file img/${1:name}.svg :export results
 $0
-#+END_SRC
+#+end_src

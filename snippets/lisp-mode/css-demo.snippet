@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: define-page-css-demo
+# key: define-css-demo-page
+# --
+(in-package :imhost)
+
+
+(defpage-css-demo ("/csses/${1:uri}" "${2:title}" :debug t)
+:body ($0
+)
+:style `(,@(lass-standard-box)
+(
+
+)
+))

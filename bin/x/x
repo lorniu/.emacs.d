@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/usr/bin/startx 1>~/.xsession-log 2>~/.xsession-error

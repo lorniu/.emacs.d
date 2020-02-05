@@ -2,12 +2,12 @@
 # name: page template
 # key: t
 # --
-;;; ${1:name}.el --- ${2:description} -*- lexical-binding: t -*-
+;;; `(file-name-nondirectory (buffer-file-name))` --- ${2:description} -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;; Code:
 
 $0
 
-(provide '$1)
+(provide '`(file-name-sans-extension (file-name-nondirectory (buffer-file-name)))`)
 
-;;; $1.el ends here
+;;; `(file-name-nondirectory (buffer-file-name))` ends here

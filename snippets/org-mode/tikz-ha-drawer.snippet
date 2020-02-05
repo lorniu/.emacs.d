@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: header-args:tikz
+# key: :tikz
+# condition: (<= (current-column) 5)
+# --
+`(concat
+   (if (im-org-in-drawer-p) "" ":PROPERTIES:\n")
+   ":header-args+: :header \\usepackage{xcolor}\n"
+   ":header-args+: :before \\usetikzlibrary{calc}"
+   (if (im-org-in-drawer-p) "" "\n:END:"))`

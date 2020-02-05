@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: :header-args:
+# key: :ha
+# condition: (<= (current-column) 3)
+# --
+`(if (im-org-in-drawer-p) "" ":PROPERTIES:\n")`:header-args: :${1:var}$0`(if (im-org-in-drawer-p) "" "\n:END:")`

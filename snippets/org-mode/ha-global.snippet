@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: #+PROPERTY: header-args
-# key: hg
-# condition: (= (current-column) 2)
+# key: #ha
+# condition: (<= (current-column) 3)
 # --
-#+PROPERTY: header-args $0
+#+PROPERTY: header-args :${1:cache yes :noweb yes :results none :mkdirp yes :padline yes :async}

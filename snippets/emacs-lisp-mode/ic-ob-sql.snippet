@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: ic/org-babel:sql
+# key: ic
+# --
+(setq org-babel-default-header-args:sql
+      `((:engine . "mssql")
+        (:dbhost . "localhost")
+        (:dbuser . "sa")
+        (:dbpassword . "sa")
+        (:database . "oa")))

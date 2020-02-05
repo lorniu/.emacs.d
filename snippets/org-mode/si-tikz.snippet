@@ -1,11 +1,11 @@
 # -*- mode: snippet -*-
-# name: TikZ
-# key: si
-# condition: (= (current-column) 2)
+# name: src/TikZ
+# key: <si
+# condition: (and (<= (current-column) 3))
 # expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region 'nil))
 # --
-#+BEGIN_SRC tikz :file ${1:xxx}.svg
+#+begin_src tikz :file ${1:xxx}.svg
   \begin{tikzpicture}
   $0
   \end{tikzpicture}
-#+END_SRC
+#+end_src

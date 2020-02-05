@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: asdf:defsystem
+# key: asdf
+# --
+
+(in-package :cl-user)
+
+(asdf:defsystem :${1:name}
+  :licence "MIT"
+  :author "imfine"
+  :homepage "https://imfine.cc"
+  :serial T
+  :components ((:file "$2"))
+  :depends-on (:alexandria))

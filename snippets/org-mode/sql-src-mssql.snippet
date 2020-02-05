@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: src/mssql
+# key: <sql
+# condition: (<= (current-column) 4)
+# --
+#+begin_src sql :engine mssql :dbhost localhost :dbuser sa :dbpassword sa :database test
+$0
+#+end_src

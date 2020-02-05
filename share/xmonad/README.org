@@ -1,0 +1,49 @@
+
+dynamic:
+#+BEGIN_SRC sh
+  pacman -S xmonad xmonad-contrib xmobar dmenu
+#+END_SRC
+
+static:
+#+BEGIN_SRC sh
+  # export GHCUP_INSTALL_BASE_PREFIX=/opt/haskell # specify location
+  curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
+
+  cabal new-install cabal-install
+  # repository mirrors.tuna.tsinghua.edu.cn
+  #   url: http://mirrors.tuna.tsinghua.edu.cn/hackage
+
+  cabal new-update
+
+  cabal new-install xmonad
+  #cabal new-install xmonad --lib
+  cabal new-install xmonad-contrib --lib
+  cabal new-install xmobar -f with_xft -f with_inotify
+
+  pacman -S dmenu...
+#+END_SRC
+
+config:
+#+BEGIN_SRC sh
+  mkdir -p ~/.xmonad
+  ln -s ~/.emacs.d/share/xmonad/xmonad.hs ~/.xmonad/
+  xmonad --recompile
+#+END_SRC
+
+Drive TrackPoint (.xinitrc):
+#+BEGIN_SRC sh
+  # enable pointing stick scrolling
+  xinput set-prop "TPPS/2 IBM TrackPoint" "Evdev Wheel Emulation" 1
+  xinput set-prop "TPPS/2 IBM TrackPoint" "Evdev Wheel Emulation Button" 2
+  xinput set-prop "TPPS/2 IBM TrackPoint" "Evdev Wheel Emulation Timeout" 200
+  xinput set-prop "TPPS/2 IBM TrackPoint" "Evdev Wheel Emulation Axes" 6 7 4 5
+
+  # disable middle click
+  xinput set-button-map "TPPS/2 IBM TrackPoint" 1 0 3
+
+  # disable touchpad
+  xinput set-prop "SynPS/2 Synaptics TouchPad" "Device Enabled" 0
+
+  # pointer speed
+  xinput set-prop "TPPS/2 IBM TrackPoint" "libinput Accel Speed" 0.70
+#+END_SRC

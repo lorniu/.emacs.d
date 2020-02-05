@@ -1,7 +1,6 @@
 # -*- mode: snippet -*-
-# name: # -*- Magic -*-
+# name: -*- Magic -*-
 # key: magic
-# condition: (and (= (line-number-at-pos) 1) (= (current-column) 5))
+# condition: (and (= (line-number-at-pos) 1) (<= (current-column) 5))
 # --
-# -*- ${magic} -*-
-$0
+`comment-start`-*- ${magic} -*-

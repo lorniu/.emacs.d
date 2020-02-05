@@ -1,0 +1,4 @@
+$0clang
+%c -std=c99
+%cpp -std=c++17
+-Isrc

@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: ic/extra-faces
+# key: ic
+# --
+
+(prog1 :faces
+  (setq-default left-fringe-width 20)
+  (setq-default right-fringe-width 0)
+  (set-face-attribute 'fringe nil :background "#eeeeee")
+  (set-face-attribute 'mode-line nil  :height 120)
+  (set-face-attribute 'mode-line-inactive nil :height 120))

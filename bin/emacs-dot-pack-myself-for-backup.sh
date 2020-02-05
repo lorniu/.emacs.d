@@ -12,15 +12,20 @@ else
     including=(
         ./.emacs.d/.git
         ./.emacs.d/.gitignore
+        ./.emacs.d/.gitmodules
+        ./.emacs.d/bin
         ./.emacs.d/core
         ./.emacs.d/extra
+        ./.emacs.d/themes
         ./.emacs.d/elpa
-        ./.emacs.d/resource
-        ./.emacs.d/scripts
+        ./.emacs.d/share
         ./.emacs.d/snippets
         ./.emacs.d/init.el
-        ./.emacs.d/plantuml.jar
+        ./.emacs.d/mini-init.el
+        ./.emacs.d/early-init.el
         ./.emacs.d/README.md
+        ./.emacs.d/Makefile
+        ./.emacs.d/plantuml.jar
     )
 
     echo "Begin to pack...";

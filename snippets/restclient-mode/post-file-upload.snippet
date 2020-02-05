@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: POST file-upload
+# key: r
+# --
+
+POST ${1:http://httpbin.org/post}
+Content-type: text/plain
+
+< ${2:/etc/passwd}

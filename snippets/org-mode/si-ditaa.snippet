@@ -1,8 +1,8 @@
 # -*- mode: snippet -*-
-# name: ditaa
-# key: si
-# condition: (= (current-column) 2)
+# name: src/ditaa
+# key: <si
+# condition: (and (<= (current-column) 3))
 # --
-#+BEGIN_SRC ditaa :file img/${1:name}.png :cmdline -r -s 0.8 :exports code
+#+begin_src ditaa :file img/${1:name}.png :cmdline -r -s 0.8 :exports code
 $0
-#+END_SRC
+#+end_src

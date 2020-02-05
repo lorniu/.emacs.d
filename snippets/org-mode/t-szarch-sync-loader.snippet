@@ -1,0 +1,15 @@
+# -*- mode: snippet -*-
+# name: szarch sync-boot-loader
+# key: t
+# condition: (<= (current-column) 1)
+# --
+
+#+begin_src sh :dir "/sudo::/home/vip/vvv/" :results pp
+  mkdir ${1:x1}
+  mount /dev/${2:sda1} $1
+  mv $1/{vmlinuz-linux,$(date -I)-vmlinuz-linux}
+  mv $1/{initramfs-linux.img,$(date -I)-initramfs-linux.img}
+  cp /boot/vmlinuz-linux $1/
+  cp /boot/initramfs-linux.img $1/
+  ls -al $1
+#+end_src
