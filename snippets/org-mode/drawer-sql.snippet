@@ -1,10 +1,10 @@
 # -*- mode: snippet -*-
 # name: drawer (sql-mode)
 # key: dha
-# condition: (= (current-column) 3)
+# condition: (<= (current-column) 3)
 # --
 :PROPERTIES:
-:header-args+: :engine mysql
-:header-args+: :dbuser root :dbpassword root
-:header-args+: :dbhost localhost :database ${1:mysql}
+:header-args:sql+: :engine mysql
+:header-args:sql+: :dbuser root :dbpassword root
+:header-args:sql+: :dbhost localhost :database ${1:mysql}
 :END:

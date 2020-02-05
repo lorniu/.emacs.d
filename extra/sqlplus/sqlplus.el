@@ -184,7 +184,7 @@ History file name has format '<connect-string>-history.txt'."
 
 (defvar sqlplus-session-file-extension "spl")
 
-(defcustom sqlplus-session-cache-dir "~/.cache/emacs/sqlplus/"
+(defcustom sqlplus-session-cache-dir (locate-user-emacs-file "sqlplus/")
   "Directory of SQL*Plus input buffer files, or nil (dont save user session).
 Session file name has format '<connect-string>.spl'"
   :group 'sqlplus

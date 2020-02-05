@@ -2,12 +2,15 @@
 !README.md
 !.gitignore
 !init.el
+!init.elc
 !/bin
 !/core
 !/extra
+!/fork
 !/share
 !/snippets
 __pycache__/
 _*
+.git.bk
 *.html
 */**/.gitignore

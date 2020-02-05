@@ -22,13 +22,12 @@
    :after (company)
    :when (executable-find "latex")
    :config
-   (add-to-list 'company-backends
-                '(company-math-symbols-latex
-                  company-auctex-bibs
-                  company-auctex-labels
-                  company-auctex-macros
-                  ;;company-auctex-symbols
-                  company-auctex-environments))
+   (company-local-add '(company-math-symbols-latex
+                        company-auctex-bibs
+                        company-auctex-labels
+                        company-auctex-macros
+                        ;;company-auctex-symbols
+                        company-auctex-environments))
    (add-hook 'LaTeX-mode-hook '-my-latex-setup))
 
 

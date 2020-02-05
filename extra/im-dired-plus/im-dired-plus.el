@@ -12,7 +12,7 @@
        "Size of all %s marked files: %s"
        (length files)
        (progn
-         (re-search-backward "\\(^[ 0-9.,]+[A-Za-z]*\\).*total$")
+         (re-search-backward "^\\([ 0-9.,]+[A-Za-z]*\\).*\\(total\\|总用量\\)$")
          (file-size-human-readable (string-to-number (match-string 1))))))))
 
 (defun idp/dired-rsync (dest)

@@ -12,11 +12,11 @@ else
     including=(
         ./.emacs.d/.git
         ./.emacs.d/.gitignore
+        ./.emacs.d/bin
         ./.emacs.d/core
         ./.emacs.d/extra
         ./.emacs.d/elpa
-        ./.emacs.d/resource
-        ./.emacs.d/scripts
+        ./.emacs.d/share
         ./.emacs.d/snippets
         ./.emacs.d/init.el
         ./.emacs.d/plantuml.jar

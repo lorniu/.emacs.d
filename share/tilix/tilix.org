@@ -1,0 +1,12 @@
+
+Configurations are saved in dconf.
+
+Dump:
+#+BEGIN_SRC sh
+  dconf dump /com/gexperts/Tilix/ > tilix.dconf
+#+END_SRC
+
+Import:
+#+BEGIN_SRC sh
+  dconf load /com/gexperts/Tilix/ < tilix.dconf
+#+END_SRC

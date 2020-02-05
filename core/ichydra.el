@@ -2,51 +2,97 @@
 ;;; Commentary:
 ;;; Code:
 
+;; plist: :pre :post :exit :foerign-keys :timeout :hint :bind :base-map
+
+;; :color for shortcuts
+
+;; red      |
+;; blue     | :exit t
+;; amaranth | :foreign-keys warn
+;; teal     | :foreign-keys warn :exit t
+;; pink     | :foreign-keys run
+
+
 (defmacro -hydra-expr (child parent)
   `(progn (,(intern (concat "imdra-" (symbol-name child) "/body")))
           (hydra-push '(,(intern (concat "imdra-" (symbol-name parent) "/body"))))))
 
 
+;;; Main Dashes
 
-;;; Indexes
-
-(defhydra imdra-overview (:color teal)
+(defhydra imdra-overview (:foreign-keys warn :exit t)
   "\n"
   ("q" nil nil)
-  ("i" info "Info" :column "Documentation")
-  ("d" (-hydra-expr desktop overview) "Desktop Save" :column "Programable")
+  ("I" info "Info" :column "Basic")
+  ("i" (im/open-file-view (or (loco "x.share/emacs/INFO.org" t) (user-error "INFO file not found"))) "INFO.org")
+  ("," (-hydra-expr buffer overview) "Buffer Edit")
+  ("d" (-hydra-expr desktop overview) "Desktop Save")
+  ("h" treemacs "Treemacs" :column "Programable")
   ("p" (-hydra-expr projectile overview) "Projectile")
   ("y" (-hydra-expr yasnippet overview) "Yasnippet")
   ("o" (-hydra-expr org overview) "Org-Mode" :column "Modes")
-  ("c" (-hydra-expr dash-counsel overview) "Dash(Counsel)" :column "Fast Way")
-  ("l" (imdra-favors/body) "Favor Files")
-  ("s" yas-describe-tables "Snippet helper")
-  ("<f1>" nil nil))
+  ("e" elfeed "Elfeed")
+  ("a" ascii-table-show "ASCII Table")
+  ("s" (progn (yas-describe-tables) (pop-to-buffer "*YASnippet Tables*")) "Snippet Table")
+  ("<f1>" nil nil)
+  ("M-h" nil nil))
 
-(defhydra imdra-desktop (:color blue)
+
+;;; Desktop Save
+
+(defvar desktop-save-default-dir (locc ""))
+(defhydra imdra-desktop (:exit t)
   "Desktop"
-  ("l" desktop-change-dir "load")
-  ("s" desktop-save "save")
+  ("l" (let ((default-directory desktop-save-default-dir)) (call-interactively 'desktop-change-dir)) "load")
+  ("s" (let ((default-directory desktop-save-default-dir)) (call-interactively 'desktop-save)) "save")
+  ("d" (desktop-save desktop-save-default-dir) "save default")
   ("r" desktop-revert "revert")
   ("c" desktop-clear "clear")
   ("q" hydra-pop nil))
 
-(defhydra imdra-dash-counsel (:columns 3 :exit t)
-  "\nDash:"
-  ("cw" counsel-colors-web "Color(Web)")
-  ("ce" counsel-colors-emacs "Color(Emacs)")
-  ("cu" counsel-unicode-char "Unicode Char")
-  ("lf" list-faces-display "List Faces")
-  ("lh" counsel-hydra-heads "Hydras")
-  ("la" ascii-table-show "Ascii Table")
-  ("ag" counsel-ag "Search with ag"))
-
-(global-set-key (kbd "M-h") 'imdra-overview/body)
-(key-chord-define-global ",c" 'imdra-dash-counsel/body)
-
 
+;;; Super Window
 
-;;; Super *Window*
+(x super-window/e
+   "Some extension for window operation."
+   :config (ip/sw-mode 1))
+
+(defun my-split-window-below ()
+  (interactive)
+  (call-interactively 'split-window-below)
+  (imdra-window/body))
+
+(defun my-split-window-right ()
+  (interactive)
+  (call-interactively 'split-window-right)
+  (imdra-window/body))
+
+(defun im/change-window-split-layout ()
+  "Switch between vertical and horizontal split. It only works for frames with exactly two windows."
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd (not (and (<= (car this-win-edges)
+                                         (car next-win-edges))
+                                     (<= (cadr this-win-edges)
+                                         (cadr next-win-edges)))))
+             (splitter (if (= (car this-win-edges)
+                              (car (window-edges (next-window))))
+                           'split-window-horizontally
+                         'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
+
+(defvar imdra-show-body nil)
 
 (defhydra imdra-window
   (:body-pre
@@ -85,95 +131,47 @@
   ("s" window-swap-states nil)
   ("t" im/change-window-split-layout nil)
 
-  ("b" ivy-switch-buffer "Switch Buffer" :exit t)
+  ("b" im/switch-buffer+ "Switch Buffer" :exit t)
   ("C-o" imdra-window/body "Show This" :exit nil)
   ("?" imdra-window/body nil :exit nil))
 
-(defhydra imdra-window-extra (:hint nil)
-  ("<f1>" imdra-overview/body nil :exit t)
-
-  ("s" window-swap-states "swap")
-  ("t" im/change-window-split-layout "change")
+(defhydra imdra-window-extra (:hint nil :columns 3)
+  ("s" (if (> (length (window-list)) 2) (ace-swap-window) (window-swap-states)) "Swap Window")
+  ("|" im/change-window-split-layout "Switch Layout")
   ("o" imdra-window/ip/other-window- nil :exit t)
 
-  ("x" ip/other-window-skip-this "skip" :exit t)
+  ("d" desktop-save "desktop save" :exit t)
+
+  ("x" ip/other-window-skip-this "skip this (xX)" :exit t)
   ("X" ip/other-window-skip-regexp nil :exit t)
 
-  ("=" balance-windows-area "balance")
-  ("C-=" balance-windows nil)
+  ("=" balance-windows-area "balance area (=-)")
+  ("-" balance-windows nil)
 
-  ("C-j" (enlarge-window -2 nil) "resize")
-  ("C-k" (enlarge-window  2 nil) nil)
-  ("C-h" (enlarge-window -2 t)   nil)
-  ("C-l" (enlarge-window  2 t)   nil)
+  ("j" (enlarge-window -2 nil) "resize (jkhl)")
+  ("k" (enlarge-window  2 nil) nil)
+  ("h" (enlarge-window -2 t)   nil)
+  ("l" (enlarge-window  2 t)   nil)
 
   ("<left>" (progn (winner-undo) (setq this-command 'winner-undo)) "win-undo")
-  ("<right>" winner-redo nil))
+  ("<right>" winner-redo "win-redo"))
 
-(defvar imdra-show-body nil)
-
-(x super-window/e
-   "Some extension for window operation."
-   :config (ip/sw-mode 1))
-
-;; Split Window+
-
-(defun my-split-window-below ()
-  (interactive)
-  (call-interactively 'split-window-below)
-  (imdra-window/body))
-
-(defun my-split-window-right ()
-  (interactive)
-  (call-interactively 'split-window-right)
-  (imdra-window/body))
-
-;; Change layout
-
-(defun im/change-window-split-layout ()
-  "Switch between vertical and horizontal split. It only works for frames with exactly two windows."
-  (interactive)
-  (if (= (count-windows) 2)
-      (let* ((this-win-buffer (window-buffer))
-             (next-win-buffer (window-buffer (next-window)))
-             (this-win-edges (window-edges (selected-window)))
-             (next-win-edges (window-edges (next-window)))
-             (this-win-2nd (not (and (<= (car this-win-edges)
-                                         (car next-win-edges))
-                                     (<= (cadr this-win-edges)
-                                         (cadr next-win-edges)))))
-             (splitter (if (= (car this-win-edges)
-                              (car (window-edges (next-window))))
-                           'split-window-horizontally
-                         'split-window-vertically)))
-        (delete-other-windows)
-        (let ((first-win (selected-window)))
-          (funcall splitter)
-          (if this-win-2nd (other-window 1))
-          (set-window-buffer (selected-window) this-win-buffer)
-          (set-window-buffer (next-window) next-win-buffer)
-          (select-window first-win)
-          (if this-win-2nd (other-window 1))))))
-
-(global-set-key (kbd "C-,") 'imdra-buffer/body)
 (global-set-key (kbd "C-x 2") 'my-split-window-below)
 (global-set-key (kbd "C-x 3") 'my-split-window-right)
 (global-set-key (kbd "C-x o") 'imdra-window/other-window)
 (global-set-key (kbd "C-x O") 'imdra-window/ip/other-window+)
 (global-set-key (kbd "C-x C-o") (lambda () (interactive) (let ((imdra-show-body t)) (imdra-window/body))))
-(global-set-key [f1] 'imdra-window-extra/body)
 
 
-
-;;; Super *Buffer*
+;;; Super Buffer
 
 (defhydra imdra-buffer (:columns 4 :exit t)
   "\n"
 
   ;; search
-  ("t" youdao-dictionary-search-from-input "Translate")
-  ("T" (if (env-g) (youdao-dictionary-search-at-point-tooltip) (youdao-dictionary-search-at-point+)) nil)
-  ("C-t" youdao-dictionary-search-at-point-tooltip nil)
+  ("t" google-translate-smooth-translate "Google Translate")
+  ("C-t" google-translate-smooth-translate nil)
+  ("T" youdao-dictionary-search-from-input "Youdao Translate")
   ("gt" engine/search-dict-iciba nil)
   ("gg" engine/search-google "Google")
   ("gc" engine/search-google-cn "Google-CN")
@@ -188,8 +186,6 @@
   ("mp" mark-page "page" :exit nil)
   ("mh" mark-paragraph "Paragraph" :exit nil)
   ("ms" mark-sexp "sexp" :exit nil)
-  ("SPC" (progn (set-mark-command nil) (deactivate-mark)) "Mark Here")
-  ("r" counsel-mark-ring "Mark Ring" :exit nil)
 
   ;; expand mark
   ("," er/expand-region "Expand Region" :exit nil)
@@ -197,68 +193,23 @@
   ("C-," er/expand-region nil :exit nil)
   ("C-." er/contract-region nil :exit nil)
 
+  ;; mark nav
+  ("SPC" (progn (set-mark-command nil) (deactivate-mark)) "Mark Here")
+  ("b" im/mark-ring+ "Mark Ring" :exit t)
+
   ;; misc
-  ("n" (if (use-region-p) (call-interactively 'narrow-to-region) (message "No region, no narrow")) "Narrow Region")
-  ("w" im/wrap-current "Wrap word")
-  ("h" im/host-viewer "Favorites")
-  ("*" im/isearch-regexp "Search Next")
-  )
+  ("w" im/wrap-current "Wrap word"))
 
 (defhydra imdra-yank-pop
   (:hint nil :pre (hydra-set-property 'imdra-yank-pop :verbosity 0))
   ("C-y" yank nil)
   ("M-y" yank-pop nil)
-  ("M-l" counsel-yank-pop "list" :color blue))
+  ("M-l" im/yank-pop+ "list" :exit t))
 
-(defhydra imdra-hideshow (:foreign-keys run :hint nil)
-  "
-Hide^^            ^Show^            ^Toggle^
--------------------------------------------------
-_H_ hide all      _S_ show all      _f_ toggle
-_h_ hide block    _s_ show block    _F_ toggle all
-_l_ hide level    _SPC_ cancel
-"
-  ("S" hs-show-all)
-  ("H" hs-hide-all)
-  ("s" hs-show-block)
-  ("h" hs-hide-block)
-  ("f" hs-toggle-hiding)
-  ("F" my-hs-toggle-all)
-  ("l" hs-hide-level)
-  ("q" nil)
-  ("SPC" nil))
-
-(defhydra imdra-narrow (:hint nil :exit t :idle 0.8)
-  "
- narrow  _d_ → defun   _b_ → org-block    _w_ → widen
-         _n_ → region  _e_ → org-element
-         _p_ → page    _s_ → org-subtree
-"
-  ("b" org-narrow-to-block)
-  ("e" org-narrow-to-element)
-  ("s" org-narrow-to-subtree)
-  ("d" narrow-to-defun)
-  ("n" narrow-to-region)
-  ("p" narrow-to-page)
-  ("w" widen))
-
-(global-set-key (kbd "C-y") 'imdra-yank-pop/yank)
-(global-set-key (kbd "M-y") 'imdra-yank-pop/yank-pop)
-(global-set-key (kbd "C-x n") 'imdra-narrow/body)
-(key-chord-define-global ",," 'imdra-buffer/body)
-
-
-
-;;; Miscellaneous
-
-;; Dired
-
-(defhydra imdra-dired (:hint nil :color pink)
+(defhydra imdra-dired (:hint nil :foreign-keys run)
   "
 Mkdir(_+_)/_C_opy/_D_elete/_R_ename/_Z_ip
-
 Ch_M_od/Ch_G_rp/Ch_O_wn/_S_ymlink/RelaSymlink(_Y_)
-
 _m_ark/_t_oggleMark/_u_mark/_U_markAll/RegexpMark(％)
 
 _A_ find regexp   _F_ind marked   _Q_ repl regexp
@@ -266,12 +217,11 @@ _i_ insert-subdir _$_ hide-subdir _w_ kill-subdir
 _s_ sort          _=_ diff        _e_ ediff
 _o_ open other    _l_ redisplay   _g_ revert buf
 _(_ details       _)_ omit-mode
-_6_ updir         _r_ to wdired   _z_ DirUsage
-
-T tag prefix      :e/s/e Encrypt/Sign/Verify
+_6_ updir  _r_ to wdired  _y_ rsync  _z_ size
 
 _._ toggle hydra   _?_ summary
 
+T tag prefix   :e/s/e Encrypt/Sign/Verify
 "
   ("+" dired-create-directory) ("C" dired-do-copy) ("D" dired-do-delete) ("R" dired-do-rename) ("Z" dired-do-compress)
   ("M" dired-do-chmod) ("G" dired-do-chgrp) ("O" dired-do-chown) ("S" dired-do-symlink) ("Y" dired-do-relsymlink) ;; admin
@@ -280,54 +230,8 @@ _._ toggle hydra   _?_ summary
   ("m" dired-mark) ("t" dired-toggle-marks) ("u" dired-unmark) ("U" dired-unmark-all-marks) ("E" dired-mark-extension) ;; mark
   ("i" dired-maybe-insert-subdir) ("w" dired-kill-subdir) ("$" dired-hide-subdir)  ;; subdir
   ("s" dired-sort-toggle-or-edit) ("(" dired-hide-details-mode) (")" dired-omit-mode) ("e" dired-ediff-files) ("=" diredp-ediff) ;; util
-  ("z" dired-du-mode) ("6" dired-up-directory) ("r" wdired-change-to-wdired-mode)
+  ("z" idp/dired-du-size) ( "y" idp/dired-rsync) ("6" dired-up-directory) ("r" wdired-change-to-wdired-mode)
   ("." nil :color blue) ("?" dired-summary) ("q" nil))
-
-;; Projectile
-
-(defhydra imdra-projectile (:color teal :columns 4)
-  "Projectile"
-  ("f"   projectile-find-file                "Find File")
-  ("r"   projectile-recentf                  "Recent Files")
-  ("z"   projectile-cache-current-file       "Cache Current File")
-  ("x"   projectile-remove-known-project     "Remove Known Project")
-
-  ("d"   projectile-find-dir                 "Find Directory")
-  ("b"   projectile-switch-to-buffer         "Switch to Buffer")
-  ("c"   projectile-invalidate-cache         "Clear Cache")
-  ("X"   projectile-cleanup-known-projects   "Cleanup Known Projects")
-
-  ("o"   projectile-multi-occur              "Multi Occur")
-  ("s"   projectile-switch-project           "Switch Project")
-  ("k"   projectile-kill-buffers             "Kill Buffers")
-  ("q"   hydra-pop "Cancel" :color blue))
-
-;; Yasnippet
-
-(defhydra imdra-yasnippet (:color blue :hint nil)
-  "
-              ^YASnippets^
---------------------------------------------
-  Modes:    Load/Visit:    Actions:
-
- _g_lobal  _d_irectory    _i_nsert
- _m_inor   _f_ile         _t_ryout
- _e_xtra   _l_ist         _n_ew
-         _a_ll
-"
-  ("d" yas-load-directory)
-  ("e" yas-activate-extra-mode)
-  ("i" yas-insert-snippet)
-  ("f" yas-visit-snippet-file :color blue)
-  ("n" yas-new-snippet)
-  ("t" yas-tryout-snippet)
-  ("l" yas-describe-tables)
-  ("g" yas/global-mode)
-  ("m" yas/minor-mode)
-  ("a" yas-reload-all)
-  ("q" hydra-pop "exit"))
-
-;; Flycheck
 
 (defhydra imdra-flycheck
   (:pre
@@ -343,13 +247,90 @@ _._ toggle hydra   _?_ summary
   ("G"  (progn (goto-char (point-max)) (flycheck-previous-error)) "Last")
   ("q"  nil))
 
-;; Next-Error
-
 (defhydra imdra-next-error (global-map "C-x")
   "next-error"
   ("`" next-error "next")
   ("j" next-error "next" :bind nil)
   ("k" previous-error "previous" :bind nil))
+
+(key-chord-define-global ",," 'imdra-buffer/body)
+(global-set-key (kbd "C-,") 'imdra-buffer/body)
+(global-set-key (kbd "C-y") 'imdra-yank-pop/yank)
+(global-set-key (kbd "M-y") 'imdra-yank-pop/yank-pop)
+
+
+;;; Reactangle
+
+(defhydra hydra-rectangle (:body-pre (rectangle-mark-mode 1)
+                                     :foerign-keys run
+                                     :hint nil
+                                     :post (deactivate-mark))
+  "
+ _w_ copy         _o_pen       copy-to-_R_egister
+ _k_ kill         s_t_ring     _i_nsert-resister
+ _y_ank           _d_elete     _e_xchange-point
+ _N_umber-lines   _c_lear      _r_eset-region-mark
+"
+  ("k" kill-rectangle)                    ;; C-x r k
+  ("y" yank-rectangle)                    ;; C-x r y
+  ("w" copy-rectangle-as-kill)            ;; C-x r M-w
+  ("o" open-rectangle)                    ;; C-x r o
+  ("t" string-rectangle)                  ;; C-x r t
+  ("c" clear-rectangle)                   ;; C-x r c
+  ("e" rectangle-exchange-point-and-mark) ;; C-x C-x
+  ("N" rectangle-number-lines)            ;; C-x r N
+  ("r" (if (region-active-p)
+           (deactivate-mark)
+         (rectangle-mark-mode 1)))
+  ("d" delete-register)
+  ("R" copy-rectangle-to-register)
+  ("i" insert-register)
+  ("q" nil))
+
+(global-set-key (kbd "C-x SPC") 'hydra-rectangle/body)
+
+
+;;; Miscellaneous
+
+(defhydra imdra-yasnippet (:exit t :hint nil)
+  "
+ ^^           ^YASnippets^   ^^
+---------------------------------------
+ Modes:     Load/Visit:  Actions:
+
+ _g_lobal     _d_irectory    _i_nsert
+ _m_inor      _f_ile         _t_ryout
+ _e_xtra      _l_ist         _n_ew
+ ^^           _a_ll
+"
+  ("d" yas-load-directory)
+  ("e" yas-activate-extra-mode)
+  ("i" yas-insert-snippet)
+  ("f" yas-visit-snippet-file)
+  ("n" yas-new-snippet)
+  ("t" yas-tryout-snippet)
+  ("l" yas-describe-tables)
+  ("g" yas/global-mode)
+  ("m" yas/minor-mode)
+  ("a" yas-reload-all)
+  ("q" hydra-pop "exit"))
+
+(defhydra imdra-projectile (:foreign-keys warn :exit t :columns 4)
+  "Projectile"
+  ("f"   projectile-find-file                "Find File")
+  ("r"   projectile-recentf                  "Recent Files")
+  ("z"   projectile-cache-current-file       "Cache Current File")
+  ("x"   projectile-remove-known-project     "Remove Known Project")
+
+  ("d"   projectile-find-dir                 "Find Directory")
+  ("b"   projectile-switch-to-buffer         "Switch to Buffer")
+  ("c"   projectile-invalidate-cache         "Clear Cache")
+  ("X"   projectile-cleanup-known-projects   "Cleanup Known Projects")
+
+  ("o"   projectile-multi-occur              "Multi Occur")
+  ("s"   projectile-switch-project           "Switch Project")
+  ("k"   projectile-kill-buffers             "Kill Buffers")
+  ("q"   hydra-pop "Cancel" :exit t))
 
 
 (provide 'ichydra)

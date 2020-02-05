@@ -1,16 +1,43 @@
-;;; init.el
+;; -*- lexical-binding: t -*-
 
-(package-initialize)
+(unless (boundp 'pure-load-path) ; for Version < 27
+  (load (locate-user-emacs-file "early-init.el") nil t))
 
-(defvar +note+ "~/.notes")
+(defconst IS-G         (display-graphic-p))
+(defconst IS-NG        (not (display-graphic-p)))
+(defconst IS-LINUX-G   (and IS-LINUX (display-graphic-p)))
+(defconst IS-LINUX-NG  (and IS-LINUX (not (display-graphic-p))))
 
-(let* ((n (format "init-%s@%s.el" (user-real-login-name) (system-name)))
-       (f (if (file-exists-p +note+)
-              (format "%s/x.share/emacs/%s" +note+ n)
-            (locate-user-emacs-file n))))
-  (unless (file-exists-p f) (with-temp-buffer (write-file f)))
-  (setq custom-file f))
+
 
-(progn
-  (add-to-list 'load-path (locate-user-emacs-file "core"))
-  (require 'imfine))
+(imload 'dist)
+(imload 'face)
+(imload 'imccc)
+
+(imload 'imoox)
+(imload 'immor)
+(imload 'imcoding)
+(imload 'imdb)
+(imload 'imtex)
+(imload 'imdraft)
+
+(imload 'ickeys)
+(imload 'ichydra)
+(imload 'ickmacro)
+
+(imload 'imsilly)
+(imload 'imtips)
+
+
+
+(when IS-G
+  (require 'server)
+  (condition-case err
+      (progn
+        (setq server-auth-dir (locc "server/"))
+        (delete-file (concat server-auth-dir "server"))
+        (unless (server-running-p) (server-start)))
+    (error (message "Server starting error: %s" err))))
+
+
+;;; init.el ends here

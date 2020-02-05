@@ -368,7 +368,7 @@ to it in the future.")
 (defvar livereload--httpd-port 5656)
 
 (defun livereload--body-decorator (mime body)
-  (if (string= mime "text/html")
+  (if (string-prefix-p "text/html" mime)
       (format "%s\n\n<script src=\"http://localhost:35729/livereload.js\"></script>" body)
     body))
 
@@ -380,17 +380,29 @@ to it in the future.")
   (httpd-start :root default-directory
                :port livereload--httpd-port
                :cache nil
-               :body-decorator 'livereload--body-decorator))
+               :body-decorator 'livereload--body-decorator)
+  (message "Serving %s in port %s" default-directory livereload--httpd-port))
 
 (defun liveview ()
   (interactive)
   ;; open servers
   (liveload)
   ;; open url and then ws connection made.
-  (browse-url (format "http://localhost:%d/%s"
-                      livereload--httpd-port
-                      (url-hexify-string (buffer-name)))))
+  (let* ((file (buffer-file-name))
+         (ext (or (file-name-extension (or file "")) ""))
+         (rel (cond ((or (string-equal "htm" ext) (string-equal "html" ext))
+                     (file-name-nondirectory file))
+                    ((string-equal "org" ext)
+                     (let ((html-file (replace-regexp-in-string "org$" "html" file)))
+                       (if (file-exists-p html-file)
+                           (file-name-nondirectory html-file)
+                         "")))
+                    (t ""))))
+    (browse-url (format "http://localhost:%d/%s"
+                        livereload--httpd-port
+                        (url-hexify-string rel)))))
 
 
 (provide 'livereload)
+
 ;;; livereload.el ends here

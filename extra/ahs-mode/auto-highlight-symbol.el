@@ -533,7 +533,7 @@ This variable can be set in three different types.
 (ahs-range-regist
     defun
   `((name          . "Function Scope")
-    (lighter       . "ƒ")
+    (lighter       . "√")
     (face          . ahs-range-defun-face)
     (major-mode    . ahs-range-defun-modes)
     (before-search . (lambda (symbol)
@@ -550,7 +550,7 @@ This variable can be set in three different types.
 (ahs-range-regist
     display
   '((name    . "Display Area")
-    (lighter . "ȡ")
+    (lighter . "₪")
     (face    . ahs-range-display-face)
     (start   . window-start)
     (end     . window-end))
@@ -559,7 +559,7 @@ This variable can be set in three different types.
 (ahs-range-regist
     buffer
   '((name    . "Whole Buffer")
-    (lighter . "Æ")
+    (lighter . "₳")
     (face    . ahs-range-buffer-face)
     (start   . point-min)
     (end     . point-max))
@@ -1093,7 +1093,7 @@ This variable can be set in three different types.
 (defun ahs-set-lighter ()
   "Set mode line lighter."
   (propertize
-   (concat " "
+   (concat ""
            (when ahs-edit-mode (car ahs-edit-mode-lighter-pair))
            (if ahs-edit-mode
                (format "(%d)" (length ahs-overlay-list))

@@ -2,25 +2,13 @@
 ;;; Commentary:
 ;;; Code:
 
-(defcustom ic/external-script-dirs
-  (list (expand-file-name (locate-user-emacs-file "bin/x"))
-        (expand-file-name "~/.notes/x.bin"))
-  "Where are the scripts files."
-  :type '(repeat string) :group 'imfine)
-
-;; PATH
-(loop for d in ic/external-script-dirs
-      when (file-exists-p d)
-      do
-      (setenv "PATH" (concat d (if (eq system-type 'windows-nt) ";" ":") (getenv "PATH")))
-      (add-to-list 'exec-path d))
-
-;; Silly Run
 (defun im/silly (&optional arg)
   "Silly run scripts, default in emacs.d dir, or if ARG t, in current dir."
   (interactive "P")
-  (let* ((dir (if arg default-directory (locate-user-emacs-file "bin/")))
-         (script (read-file-name "Choose script:" dir))
+  (let* ((dir (cond ((null arg) (loce "bin/"))
+                    ((= arg 1) (loco "x.script/"))
+                    (t default-directory)))
+         (script (read-file-name "Choose script: " dir))
          args script-with-args)
     (if (and (file-exists-p script) (not (directory-name-p script)))
         (progn
@@ -40,14 +28,33 @@
           (cond ((string-match-p "\\.sh$" script)
                  (async-shell-command (concat "bash -c '" script-with-args "'")))
                 ((string-match-p "\\(\\.bat\\|\\.cmd\\)$" script)
-                 (if (eq system-type 'windows-nt)
+                 (if IS-WIN
                      (async-shell-command script-with-args)
                    (error "Batch file should be executed on windows.")))
                 (t (async-shell-command script-with-args))))
       (error "Please choose a script file first."))))
 
-
+(defun im/interactive-script (&optional script buffer)
+  "Choose some scripts to run. Often used in mode-hook."
+  (interactive (list (read-file-name "Script file: ")))
+  (if (and script (file-executable-p script))
+      (progn
+        (unless buffer (setq buffer "*interactive-script*"))
+        (alert (format "Script %s running..." script) :timeout 3 :severity 'low :title buffer)
+        (set-process-sentinel
+         (start-process-shell-command "interactive-script" buffer script)
+         (lambda (proc event)
+           (alert (format "Script %s executed %s" script event) :timeout 10 :title buffer)
+           (when (string-match-p "finished" event)
+             (with-current-buffer (process-buffer proc)
+               (view-mode -1)
+               (goto-char (point-max))
+               (insert (format "\n======= %s ========\n\n\n" (time-str)))
+               (view-mode 1))))))
+    (when (called-interactively-p 'any)
+      (message "Script %s is not available." script))))
 
+
 ;;; Walk through directory
 
 (defmacro im/walk-with-directory-buffers (dir filter &rest what-to-do)
@@ -74,41 +81,59 @@
       (kill-buffer))))
 
 
+;;; Generate configs for windows
 
-;;; Generate config for emacs on windows
-
-(defun s/start-emacs-for-windows ()
-  "Initialization ContextMenu for Windows:
-1. execute this function, and import the generated `.reg` file to OS
-2. put the symlink of `runemacs.exe` with arg `--daemon` to `shell:start`
-3. put the symlink of `emacsclientw.exe` with arg `-n -c -a ''` to Desktop
-4. if CYGWIN exist, put it to 'PATH' env"
+(defun s/windows-generate-extra-config-for-emacs ()
+  "Invoke this and then (1) import `.reg' file (2) move `eee.cmd' to PATH."
   (interactive)
-  (unless (eq system-type 'windows-nt) (error "This only works on Windows!"))
+  (unless IS-WIN (error "This only works for Windows!"))
 
-  (cl-flet ((win-path (n path) (replace-regexp-in-string "/" (if (> n 1) "\\\\" "\\") (file-truename path) t t)))
-    (let* ((emacs-home (win-path 2 (car (split-string exec-directory "libexec"))))
-           (reg-file    (concat emacs-home "OpenWithEmacs.reg"))
-           (reg-string  "Windows Registry Editor Version 5.00\n
-[HKEY_CLASSES_ROOT\\*\\shell\\emacs]\n@=\"Edit &With GNU Emacs\"\n
-[HKEY_CLASSES_ROOT\\*\\shell\\emacs\\Command]\n@=\"\\\"%s\\\" -n -na \\\"%s\\\" \\\"%%1\\\"\" ")
-           (buffer-file-coding-system 'gbk))
+  (cl-labels ((win-path (path &optional escp)
+                        (replace-regexp-in-string "/" (if escp "\\\\" "\\") (file-truename path) t t))
+              (emacs-file (file &optional escp)
+                          (win-path (concat (car (split-string exec-directory "libexec")) file) escp))
+              (s-bin (&optional escp) (emacs-file "bin/runemacs.exe" escp))
+              (c-bin (&optional escp) (emacs-file "bin/emacsclientw.exe" escp)))
+    ;; SetEnv: emacs-server-file
+    (start-process "a" " for-set-env" "setx" "EMACS_SERVER_FILE" (win-path (concat server-auth-dir "server")))
 
-      ;; SETENV: emacs-server-file
-      (start-process "a" "f" "setx" "EMACS_SERVER_FILE" (win-path 1 (concat server-auth-dir "server")))
+    ;; Need copy this to PATH
+    (with-temp-file (emacs-file "eee.cmd" t)
+      (setq-local buffer-file-coding-system 'gbk)
+      (insert (format "\"%s\" -n -na \"%s\" \"%%1\"" (c-bin) (s-bin))))
 
-      ;; Generate ContextMenu.reg
-      (with-temp-file reg-file
-        (insert (format reg-string
-                        (concat emacs-home "bin\\\\" "emacsclientw.exe")
-                        (concat emacs-home "bin\\\\" "runemacs.exe"))))
+    ;; Need import this to REGEDIT
+    (with-temp-file (emacs-file "Open-With-Emacs.reg" t)
+      (setq-local buffer-file-coding-system 'gbk)
+      (insert (string-join (cons "Windows Registry Editor Version 5.00\n"
+                                 (mapcar (lambda (subpath)
+                                           (format
+                                            (format (concat "[HKEY_CLASSES_ROOT\\%%s\\Shell\\Emacs]\n"
+                                                            "@=\"使用 %sEmacs 编辑\"\n"
+                                                            "\"Icon\"=\"%s\"\n\n"
+                                                            "[HKEY_CLASSES_ROOT\\%%s\\Shell\\Emacs\\Command]\n"
+                                                            "@=\"\\\"%s\\\" -n -na \\\"%s\\\" \\\"%%%%V\\\"\"\n")
+                                                    (if (string-match-p "Background" subpath) "" "&")
+                                                    (c-bin t) (c-bin t) (s-bin t))
+                                            subpath subpath))
+                                         '("*" "Directory" "Directory\\Background")))
+                           "\n\n"))
+      (insert "
+[HKEY_CLASSES_ROOT\\org-protocol]\n@=\"URL:Org Protocol\"\n\"URL Protocol\"=\"\"
+[HKEY_CLASSES_ROOT\\org-protocol\\shell]
+[HKEY_CLASSES_ROOT\\org-protocol\\shell\\open]
+[HKEY_CLASSES_ROOT\\org-protocol\\shell\\open\\command]\n")
+      (insert (format "@=\"\\\"%s\\\" \\\"%%1\\\"\"\n\n" (c-bin t))))
 
-      ;; Import manually please.
-      (when (yes-or-no-p (format "已保存为 %s。跳转？" reg-file))
-        (w32-shell-execute "open" emacs-home)))))
+    ;; Manually Step
+    (when (yes-or-no-p (format "Saved in %s. View ?" (emacs-file "\\")))
+      (w32-shell-execute "open" (emacs-file ".")))))
+
+(defun s/windows-generate-other-configs ()
+  (interactive)
+  (message "%s" "todo, for example, Tag_Folder/Open_CMD_Here and so on."))
 
 
-
 ;;; Convert postgres to mysql
 
 (defun s/sql-pg-to-mysql ()
@@ -136,7 +161,6 @@
       (find-file dest-file))))
 
 
-
 ;;; ssh/nat
 
 (defun s/generate-ssh-config-file ()

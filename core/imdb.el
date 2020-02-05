@@ -2,35 +2,39 @@
 ;;; Commentary:
 ;;; Code:
 
-(defcustom ic/my-postgres '("imdev" "vip")
-  "Postgres connection info, (db user [password] [host] [port]) format."
-  :type 'list
-  :group 'imfine)
-
-
-;;; Common
-
-(x sql/w
+(x sql/i
    "M-x: sql-connect/sql-postgres"
    :init
-   (setq sql-connection-alist
-         `((,(intern (format "postgres/%s" *vps*))
-            (sql-product 'postgres)
-            (sql-server ,*vps*)
-            (sql-database "imdev")
-            (sql-user "vip"))
-           (,(intern (format "mysql/%s" *vps*))
-            (sql-product 'mysql)
-            (sql-server ,*vps*)
-            (sql-port 3306)
-            (sql-database "test")
-            (sql-user "vip"))))
+   (defvar sql-connection-alist
+     `((,(intern (format "postgres/%s" (up-host)))
+        (sql-product 'postgres)
+        (sql-server ,(up-host))
+        (sql-database "imdev")
+        (sql-user (up-user)))
+       (,(intern (format "mysql/%s" (up-host)))
+        (sql-product 'mysql)
+        (sql-server ,(up-host))
+        (sql-port 3306)
+        (sql-database "test")
+        (sql-user ,(up-user)))))
+
+   ;; push to my favorites
+   (cl-loop for conn in sql-connection-alist
+            do (add-to-list 'favorites-default
+                            (list (format "db: %s" (car conn)) conn '(imup))))
 
    :config
-   (add-hook 'sql-interactive-mode-hook 'im/set-buffer-mono-font)
+   (add-hook 'sql-interactive-mode-hook 'f/face-font-buffer-local)
+
+   ;; for SQLServer
+   (when (executable-find "sqlcmd")
+     (setq sql-ms-program "sqlcmd")
+     (setq sql-ms-options '("-w" "300" "-y" "30" "-Y" "30" "-k")))
+
+   ;; for MySQL
    (sql-set-product-feature 'mysql :prompt-regexp "^\\(MariaDB\\|MySQL\\) *\\[[^ ]*\\]> *")
 
-   (env-windows
+   (when IS-WIN
     (setq sql-mysql-options '("-t"))
     (add-hook 'sql-interactive-mode-hook 'im/local-encoding)))
 
@@ -44,13 +48,14 @@
    "
    "Use this instead for oracle, util some days, merge its features to SQLi.
    "
+   :if (executable-find "sqlplus")
    :commands sqlplus
    :init
-   (if (env-windows) (setq sqlplus-process-encoding 'gbk) (setenv "NLS_LANG" "AMERICAN_AMERICA.UTF8"))
+   (if IS-WIN (setq sqlplus-process-encoding 'gbk) (setenv "NLS_LANG" "AMERICAN_AMERICA.UTF8"))
    (add-to-list 'auto-mode-alist '("\\.spl\\'" . sqlplus-mode))
-   (setq sqlplus-session-cache-dir (concat _CACHE_ "sqlplus/"))
    :config
-   (im/make-face-mono 'sqlplus-table-head-face 'sqlplus-table-odd-rows-face 'sqlplus-table-even-rows-face))
+   (ignore-errors
+     (f/face-font 'sqlplus-table-head-face 'sqlplus-table-odd-rows-face 'sqlplus-table-even-rows-face)))
 
 
 ;;; Postgres

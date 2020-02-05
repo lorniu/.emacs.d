@@ -1,7 +1,7 @@
 # -*- mode: snippet -*-
 # name: TikZ
 # key: si
-# condition: (= (current-column) 2)
+# condition: (and (<= (current-column) 2) (company-grab-line "^s.*"))
 # expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region 'nil))
 # --
 #+BEGIN_SRC tikz :file ${1:xxx}.svg

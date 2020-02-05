@@ -1,5 +1,6 @@
 # -*- mode: snippet -*-
 # name: :results
-# key: ha
+# key: :
+# condition: (company-grab-line "^[[:blank:]]*#\\+begin_.*")
 # --
 :results ${$$(yas-choose-value '("output" "table" "value" "vector" "list" "file" "raw" "silence" "append" "replace"))}

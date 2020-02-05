@@ -8,55 +8,63 @@
 ;;; Keybinds
 
 (bind-keys
+ ( [f1]            . imdra-overview/body  )
+ ( "M-h"           . imdra-overview/body  )
+ ( "C-c h"         . imdra-overview/body  )
+
  ( [f2]            . name-last-kbd-macro  )
- ( [(control f2)]  . name-and-insert-last-kbd-macro )
+ ( [(control f2)]  . name-and-insert-last-kbd-macro)
  ( [f6]            . toggle-truncate-lines)
  ( [f8]            . calendar             )
+ ( [f9]            . compile              )
  ( [f10]           . im/silly             )
 
- ( [f11]           . ivy-push-view        )
- ( [C-f11]         . ivy-switch-view      )
+ ( [f11]           . im/popup-eshell      )
+ ( [C-f11]         . im/popup-shell-or-vterm)
+ ( [M-f11]         . im/popup-xshell      )
 
- ( [f12]           . im/popup-shell-or-vterm )
- ( [C-f12]         . im/popup-eshell      )
- ( [M-f12]         . im/popup-xshell      )
+ ( [f12]           . im/views+            )
+ ( [C-f12]         . imdra-window-extra/body)
 
  ( "%"             . his-match-paren      )
- ( "C-#"           . cua-rectangle-mark-mode )
+ ( "C-#"           . cua-rectangle-mark-mode)
  ( "C-s"           . im/isearch-regexp    )
  ( "C-o"           . im/open-line         )
- ( "C-c `"         . my-toggle-diagnostics-buffer )
+ ( "C-c `"         . im/toggle-diagnostics-buffer)
  ( "C-c C-j"       . ffap                 )
  ( "M-w"           . im/yank-more         )
  ( "M-q"           . im/tiny-code         )
  ( "M-Q"           . im/tiny-code-buffer  )
 
+ ( "M-s l"         . swiper               )
+
+ ( "<C-backspace>" . im/backward-delete-word)
  ( "ESC <down>"    . im/copy-lines        )
  ( "ESC <up>"      . (lambda () (interactive) (im/copy-lines 1)))
  ( "ESC <right>"   . im/kill-lines        )
- ( "<C-backspace>" . im/backward-kill-word )
  ( "<insertchar>"  . undo                 )
  ( "<select>"      . im/toggle-dedicated  )
  ( "C-{"           . shrink-window        )
  ( "C-}"           . enlarge-window       )
 
- ( "M-x"           . counsel-M-x          )
- ( "C-r"           . counsel-grep-or-swiper )
- ( "C-x b"         . ivy-switch-buffer    )
+ ( "M-x"           . amx                  )
+ ( "C-x f"         . projectile-find-file )
+ ( "C-x d"         . projectile-find-dir  )
  ( "C-x C-b"       . ibuffer              )
- ( "C-x d"         . counsel-projectile-find-dir )
- ( "C-x C-d"       . dired                )
- ( "C-x f"         . counsel-projectile-find-file )
- ( "C-x C-f"       . im/find-file         )
- ( "C-x i"         . counsel-imenu        )
- ( "C-x p"         . ivy-pages            )
- ( "C-h b"         . counsel-descbinds    )
- ( "C-h v"         . counsel-describe-variable )
- ( "C-h f"         . counsel-describe-function )
- ( "C-h S"         . counsel-info-lookup-symbol)
- ( "C-x C-r"       . im/file-viewer       ))
+ ( "C-x b"         . im/switch-buffer+    )
+ ( "C-x i"         . im/imenu+            )
+ ( "C-x p"         . im/pages+            )
+
+ ( "C-c /"         . im/search-rg+        )
+ ( "C-x C-r"       . im/view-favorites    )
+
+ ( "C-h e"         . im/toggle-view-messages-buffer)
+ ( "C-h C-e"       . im/toggle-view-messages-buffer)
+ ( "C-h s"         . im/toggle-view-scratch-buffer)
+ ( "C-h C-s"       . im/toggle-view-scratch-buffer))
 
 (global-unset-key (kbd "C-x C-z"))
+(global-unset-key (kbd "<mouse-2>"))
 
 
 ;;; Key-Chord
@@ -67,27 +75,33 @@
    (key-chord-mode 1)
    (defun key-chord-define (keymap keys command)
      "Override, make keys sequencely."
-     (if (/= 2 (length keys)) (error "Key-chord keys must have two elements"))
+     (if (/= 2 (length keys)) (user-error "Key-chord keys must have two elements"))
      (let ((key1 (logand 255 (aref keys 0)))
 	       (key2 (logand 255 (aref keys 1))))
        (if (eq key1 key2)
 	       (define-key keymap (vector 'key-chord key1 key2) command)
          (define-key keymap (vector 'key-chord key1 key2) command)))))
 
-(key-chord-define-global ",h" 'im/host-viewer)
-
 
-;;; Hack
+;;; Hack or Enhanced
 
 (defun im/yank-more ()
   "Copy-Current-Line-Or-Region."
   (interactive)
-  (if (use-region-p)
-      (progn
-        (call-interactively 'kill-ring-save)
-        (message "Region Yanked."))
-    (copy-region-as-kill (line-beginning-position) (line-end-position))
-    (message "No Region, Whole Line Yanked.")))
+  (cond ((use-region-p)
+         (call-interactively 'kill-ring-save)
+         (message "Region Yanked."))
+        ((and (eq major-mode 'org-mode)
+              (char-equal (char-after (line-beginning-position)) ?#)
+              (equal (org-element-type (org-element-at-point)) 'src-block))
+         (save-mark-and-excursion
+           (org-edit-special)
+           (copy-region-as-kill (point-min) (point-max))
+           (org-edit-src-exit)
+           (message "Src-Block Yanked.")))
+        (t
+         (copy-region-as-kill (line-beginning-position) (line-end-position))
+         (message "No Region, Whole Line Yanked."))))
 
 (defun im/open-line ()
   (interactive)
@@ -104,14 +118,11 @@
     (forward-line -1)
     (indent-for-tab-command))))
 
-(defun im/backward-kill-word ()
-  (interactive)
-  (let ((init-pos (point))
-        (back-pos (let ((csb (char-syntax (char-before))))
-                    (if (or (= csb 34) (= csb 46)) (backward-char))
-                    (forward-same-syntax (if (= csb 32) -2 -1))
-                    (point))))
-    (delete-region back-pos init-pos)))
+(defun im/backward-delete-word ()
+  (interactive "*")
+  (push-mark)
+  (backward-word)
+  (delete-region (point) (mark)))
 
 (defun im/isearch-regexp ()
   "Isearch+, default with region word, enable regexp."
@@ -123,24 +134,63 @@
           (isearch-resume string nil nil t string nil)))
     (call-interactively 'isearch-forward-regexp)))
 
-(defun im/find-file (&optional arg)
-  "With prefix, don't triggle ivy."
-  (interactive "P")
-  (if arg
-      (let ((completing-read-function 'completing-read-default))
-        (call-interactively 'find-file))
-    (call-interactively 'counsel-find-file)))
-
-
-;;; For Keys
-
-(defun my-toggle-diagnostics-buffer()
+(defun open-it-externally (&optional @fname)
+  "Open file in OS way."
   (interactive)
-  (cond (flycheck-mode
+  (let (($file-list
+         (if @fname (list @fname)
+           (cond ((string-equal major-mode "dired-mode")
+                  (dired-get-marked-files))
+                 ((string-equal major-mode "eshell-mode")
+                  (list (eshell/pwd)))
+                 ((string-equal major-mode "shell-mode")
+                  (list default-directory))
+                 (t (list (or (buffer-file-name)
+                              (if (y-or-n-p "No location, goto default dir or QUIT?" )
+                                  default-directory
+                                (message "Do Nothing.")))))))))
+    (when (or (<= (length $file-list) 5) (y-or-n-p "Open more than 5 files? "))
+      (cond
+        (IS-WIN
+         (mapc (lambda ($fpath) (w32-shell-execute "open" $fpath)) $file-list))
+        (IS-MAC
+         (mapc (lambda ($fpath) (shell-command (concat "open " (shell-quote-argument $fpath))))  $file-list))
+        (IS-G
+         (mapc (lambda ($fpath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" $fpath))) $file-list))))))
+
+(defun im/toggle-view-messages-buffer ()
+  "Toggle show the *Messages* buffer."
+  (interactive)
+  (let ((name "*Messages*")
+        (ws (window-list)))
+    (if (cl-find name (mapcar (lambda (w) (buffer-name (window-buffer w))) ws) :test 'string-equal)
+        (save-excursion
+          (dolist (w ws)
+            (if (string-equal (buffer-name (window-buffer w)) name)
+                (ignore-errors (delete-window w)))))
+      (call-interactively 'view-echo-area-messages))))
+
+(defun im/toggle-view-scratch-buffer ()
+  "Toggle show the *Scratch* buffer."
+  (interactive)
+  (let ((name "*scratch*")
+        (ws (window-list)))
+    (if (cl-find name (mapcar (lambda (w) (buffer-name (window-buffer w))) ws) :test 'string-equal)
+        (save-excursion
+          (dolist (w ws)
+            (if (string-equal (buffer-name (window-buffer w)) name)
+                (ignore-errors (delete-window w)))))
+      (let ((display-buffer-alist '(("*" (display-buffer-reuse-window display-buffer-at-bottom)))))
+        (resume-scratch)))))
+
+(defun im/toggle-diagnostics-buffer()
+  "Show the error messages for flycheck or flymake."
+  (interactive)
+  (cond ((and (boundp 'flycheck-mode) flycheck-mode)
          (let ((buf flycheck-error-list-buffer))
            (call-interactively 'flycheck-list-errors)
            (select-window (get-buffer-window buf))))
-        (flymake-mode
+        ((and (boundp 'flymake-mode) flymake-mode)
          (let ((buf (flymake--diagnostics-buffer-name)))
            (call-interactively 'flymake-show-diagnostics-buffer)
            (select-window (get-buffer-window buf))))
@@ -163,7 +213,7 @@
   (interactive)
   (let* ((default (thing-at-point-url-at-point))
          (url (read-from-minibuffer "URL: " default)))
-    (switch-to-buffer (url-retrieve-synchronously url))
+    (switch-to-buffer (url-retrieve-synchronously url) 'norecord)
     (rename-buffer url t)
     (goto-char (point-min))
     (re-search-forward "^$")
@@ -199,6 +249,12 @@
            (backward-sexp 1)
            (indent-region (point) point-ori)
            (forward-sexp 1)))
+        ((and (eq major-mode 'org-mode)
+              (eq (org-element-type (org-element-context)) 'src-block))
+         (org-edit-special)
+         (save-mark-and-excursion
+           (indent-region (point-min) (point-max)))
+         (org-edit-src-exit))
         (t (indent-according-to-mode))))
 
 (defun im/tiny-code-buffer ()
@@ -245,7 +301,7 @@
   "Print ASCII table."
   (interactive)
   (with-current-buffer
-      (switch-to-buffer "*ASCII table*")
+      (switch-to-buffer "*ASCII table*" 'norecord)
     (setq buffer-read-only nil)
     (erase-buffer)
     (let ((i 0))
@@ -274,9 +330,14 @@
 (defun resume-scratch ()
   "This sends you to the *Scratch* buffer."
   (interactive)
-  (let ((eme-scratch-buffer (get-buffer-create "*scratch*")))
-    (switch-to-buffer eme-scratch-buffer)
-    (funcall initial-major-mode)))
+  (let ((name "*scratch*"))
+    (unless (get-buffer name)
+      (progn
+        (get-buffer-create name)
+        (with-current-buffer name
+          (insert ";; scratch buffer\n\n")
+          (funcall initial-major-mode))))
+    (pop-to-buffer name '(display-buffer-pop-up-window) t)))
 
 (defun im/copy-lines (&optional direction)
   "Copy lines down/up, like in Eclipse."
@@ -397,6 +458,19 @@
     (if filename (kill-new filename))
     (kill-new buffname)
     (message "Yanked: %s" buffname)))
+
+(defun im/set-lisp-indent-function-buffer-local ()
+  "Toggle the current indent-function."
+  (interactive)
+  (unless (eq major-mode 'emacs-lisp-mode)
+    (user-error "Should be invoked in emacs-lisp-mode."))
+  (cl-loop for item in '("common-lisp-indent-function" "lisp-indent-function")
+           unless (string= item (symbol-name lisp-indent-function))
+           collect item into cs
+           finally do
+           (let ((exp (completing-read "Change to: " cs nil t)))
+             (setq-local lisp-indent-function (intern exp))
+             (message "Changed to `%s' locally." lisp-indent-function))))
 
 
 (provide 'ickeys)
