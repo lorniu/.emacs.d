@@ -198,7 +198,7 @@
           ("javascript"     'js2-mode)
           ("jsx"            'js2-mode))))))
 
-(x tide/i
+(x tide
    "Make sure jsconfig.json or tsconfig.json under root of project."
    :delight " ť"
    :if (executable-find "node")

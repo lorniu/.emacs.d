@@ -107,14 +107,11 @@
          (x-options (list-nn (if (seq-contains flags ?e) :demand :defer) t
                              (if (seq-contains flags ?d) :delight)
                              (if (seq-contains flags ?x) :disabled)))
-         (active-p (if (or (seq-contains flags ?-)
-                           (seq-contains flags ?+))
-                       nil t))
+         (active-p (if (seq-contains flags ?-) nil t))
          (options (cl-set-difference args doc-strings))
          (refs (plist-get options :ref))
-         (options* (progn
-                     (cl-remf options :ref)
-                     (use-package-normalize-keywords name options))))
+         (options* (progn (cl-remf options :ref)
+                          (use-package-normalize-keywords name options))))
     (list-nn 'progn
              (if (seq-contains flags ?i)
                  (let ((c (plist-get options* :if)))
@@ -131,13 +128,31 @@
 
 ;;; Lazy/Incremental Load
 
+(defcustom ic/incremental-delay 10
+  "Idle time to triggle incremental loading.")
+
+(defcustom ic/incremental-packages '(dash f s timer
+                                          calendar find-func format-spec org-macs org-compat org-faces
+                                          org-entities org-list org-pcomplete org-src org-footnote org-macro ob
+                                          org org-agenda org-capture ox-publish
+                                          easymenu tree-widget with-editor lv
+                                          (git-commit . git)
+                                          (transient . git)
+                                          (magit . git)
+                                          (tide . node))
+  "Packages to load incrementally."
+  :type 'list)
+
 (defun load-packages-incrementally (packages &optional now)
   "Registers PACKAGES to be loaded incrementally."
   (if (not now)
       (setq ic/incremental-packages (append ic/incremental-packages packages))
     (while packages
-      (let ((req (pop packages)))
-        (unless (featurep req)
+      (let ((req (pop packages)) (existp t))
+        (when (consp req)
+          (setq existp (executable-find (symbol-name (cdr req))))
+          (setq req (car req)))
+        (unless (or (featurep req) (not existp))
           (message "[loading] %s" req)
           (condition-case e
               (or (while-no-input
@@ -146,14 +161,14 @@
                     t)
                   (push req packages))
             ((error debug)
-             (message "Failed to load %S package incrementally, because: %s" req e)))
-          (if (not packages)
-              (progn (message "Incremental loading Done !")
-                     (message ""))
-            (run-with-idle-timer 0.75
-                                 nil #'load-packages-incrementally
-                                 packages t)
-            (setq packages nil)))))))
+             (message "Failed to load %S package incrementally, because: %s" req e))))
+        (if (not packages)
+            (progn (message "Incremental loading Done !")
+                   (message ""))
+          (run-with-idle-timer 0.75
+                               nil #'load-packages-incrementally
+                               packages t)
+          (setq packages nil))))))
 
 (add-hook-fun emacs-startup-hook/incrementally-load ()
   (run-with-timer 10 nil (lambda ()

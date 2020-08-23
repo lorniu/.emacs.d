@@ -439,6 +439,17 @@ will search current project, if begin with 'o ' then will search org-directory.
           (recenter))
       (message "Bad candidate?"))))
 
+
+
+(x embark/+
+   "Now not in mepa. Update from git. 20200801. v0.6."
+   :ref ("oantolin/embark"
+         "embark source: https://raw.githubusercontent.com/oantolin/embark/master/embark.el"))
+
+;; (with-eval-after-load 'selectrum
+;;   (add-to-list 'selectrum-minibuffer-bindings '("M-o" . (lambda () (interactive) (embark-act) (embark-keymap-help))))
+;;   (add-to-list 'selectrum-minibuffer-bindings '("C-c C-o" . embark-occur)))
+
 
 (provide 'imccc)
 

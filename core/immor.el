@@ -365,7 +365,7 @@
          treemacs-width 35
          treemacs-indentation 2
          treemacs-no-png-images nil)
-   (treemacs-resize-icons 16)
+   (treemacs-without-messages (treemacs-resize-icons 16))
    (treemacs-follow-mode t)
    (treemacs-filewatch-mode t)
    (treemacs-fringe-indicator-mode t))
@@ -831,7 +831,7 @@
    (setq eww-search-prefix "https://duckduckgo.com/html/?q=") ; https://www.google.com/search?q=
    (if IS-NG (setq browse-url-browser-function 'eww-browse-url)))
 
-(x simple-httpd
+(x simple-httpd/+
    "Start local server with port 5555:
    "
    " - M-x im/http-here
@@ -934,7 +934,8 @@
                   (head-line (lambda (title)
                                (propertize (format "\n[%s]\n" title) 'face 'font-lock-function-name-face)))
                   (after-hook (lambda ()
-                                (setq-local cursor-type 'hbar buffer-read-only t)
+                                (setq-local cursor-type 'hbar)
+                                (setq-local buffer-read-only t)
                                 (local-set-key "y" 'youdao-dictionary-play-voice-at-point)
                                 (local-set-key (kbd "M-n") (lambda ()
                                                              (interactive)
@@ -1159,7 +1160,7 @@
    (defun rcirc-handler-372 (&rest _) "/welcome handler."))
 
 
-;;; Misc
+;;; Utils
 
 (x markdown-mode
    :ref "https://jblevins.org/projects/markdown-mode/"
@@ -1247,6 +1248,17 @@
                                    ((executable-find "powershell") 'powershell)
                                    ((executable-find "growlnotify") 'growl)
                                    ((executable-find "terminal-notifier") 'notifier))))
+
+
+;;; Multiple Modes
+
+;; MMM-Mode
+;; Poly-Mode
+;; edit-indirect
+
+(x edit-indirect/+
+   :commands (edit-indirect-region)
+   :ref "Fanael/edit-indirect")
 
 
 (provide 'immor)

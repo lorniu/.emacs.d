@@ -1,0 +1,9 @@
+[submodule "fork/simple-httpd"]
+	path = fork/simple-httpd
+	url = ../simple-httpd.git
+[submodule "fork/edit-indirect"]
+	path = fork/edit-indirect
+	url = ../edit-indirect.git
+[submodule "fork/embark"]
+	path = fork/embark
+	url = https://github.com/oantolin/embark.git

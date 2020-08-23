@@ -60,8 +60,8 @@
 
  ( "C-h e"         . im/toggle-view-messages-buffer)
  ( "C-h C-e"       . im/toggle-view-messages-buffer)
- ( "C-h s"         . im/toggle-view-scratch-buffer)
- ( "C-h C-s"       . im/toggle-view-scratch-buffer))
+ ( "C-h s"         . im/toggle-scratch-or-ielm)
+ ( "C-h C-s"       . im/toggle-scratch-or-ielm))
 
 (global-unset-key (kbd "C-x C-z"))
 (global-unset-key (kbd "<mouse-2>"))
@@ -134,6 +134,47 @@
           (isearch-resume string nil nil t string nil)))
     (call-interactively 'isearch-forward-regexp)))
 
+(defun im/toggle-view-messages-buffer ()
+  "Toggle show the *Messages* buffer."
+  (interactive)
+  (let ((name "*Messages*")
+        (ws (window-list)))
+    (if (cl-find name (mapcar (lambda (w) (buffer-name (window-buffer w))) ws) :test 'string-equal)
+        (save-excursion
+          (dolist (w ws)
+            (if (string-equal (buffer-name (window-buffer w)) name)
+                (ignore-errors (delete-window w)))))
+      (call-interactively 'view-echo-area-messages))))
+
+(defun im/toggle-scratch-or-ielm (&optional ielmp)
+  "Toggle show the *Scratch* buffer or ielm."
+  (interactive "P")
+  (let ((name (if ielmp "*ielm*" "*scratch*"))
+        (ws (window-list)))
+    (cond ((member (buffer-name) '("*ielm*" "*scratch*"))
+           (ignore-errors (delete-window)))
+          ((cl-find name (mapcar (lambda (w) (buffer-name (window-buffer w))) ws) :test 'string-equal)
+           (save-excursion
+             (dolist (w ws)
+               (if (string-equal (buffer-name (window-buffer w)) name)
+                   (ignore-errors (delete-window w))))))
+          (t (let ((display-buffer-alist '(("*" (display-buffer-reuse-window display-buffer-at-bottom)))))
+               (if ielmp (ielm)
+                 (resume-scratch)))))))
+
+(defun im/toggle-diagnostics-buffer()
+  "Show the error messages for flycheck or flymake."
+  (interactive)
+  (cond ((and (boundp 'flycheck-mode) flycheck-mode)
+         (let ((buf flycheck-error-list-buffer))
+           (call-interactively 'flycheck-list-errors)
+           (select-window (get-buffer-window buf))))
+        ((and (boundp 'flymake-mode) flymake-mode)
+         (let ((buf (flymake--diagnostics-buffer-name)))
+           (call-interactively 'flymake-show-diagnostics-buffer)
+           (select-window (get-buffer-window buf))))
+        (t (message "Nothing to do, check flycheck or flymake toggled?"))))
+
 (defun open-it-externally (&optional @fname)
   "Open file in OS way."
   (interactive)
@@ -157,44 +198,6 @@
          (mapc (lambda ($fpath) (shell-command (concat "open " (shell-quote-argument $fpath))))  $file-list))
         (IS-G
          (mapc (lambda ($fpath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" $fpath))) $file-list))))))
-
-(defun im/toggle-view-messages-buffer ()
-  "Toggle show the *Messages* buffer."
-  (interactive)
-  (let ((name "*Messages*")
-        (ws (window-list)))
-    (if (cl-find name (mapcar (lambda (w) (buffer-name (window-buffer w))) ws) :test 'string-equal)
-        (save-excursion
-          (dolist (w ws)
-            (if (string-equal (buffer-name (window-buffer w)) name)
-                (ignore-errors (delete-window w)))))
-      (call-interactively 'view-echo-area-messages))))
-
-(defun im/toggle-view-scratch-buffer ()
-  "Toggle show the *Scratch* buffer."
-  (interactive)
-  (let ((name "*scratch*")
-        (ws (window-list)))
-    (if (cl-find name (mapcar (lambda (w) (buffer-name (window-buffer w))) ws) :test 'string-equal)
-        (save-excursion
-          (dolist (w ws)
-            (if (string-equal (buffer-name (window-buffer w)) name)
-                (ignore-errors (delete-window w)))))
-      (let ((display-buffer-alist '(("*" (display-buffer-reuse-window display-buffer-at-bottom)))))
-        (resume-scratch)))))
-
-(defun im/toggle-diagnostics-buffer()
-  "Show the error messages for flycheck or flymake."
-  (interactive)
-  (cond ((and (boundp 'flycheck-mode) flycheck-mode)
-         (let ((buf flycheck-error-list-buffer))
-           (call-interactively 'flycheck-list-errors)
-           (select-window (get-buffer-window buf))))
-        ((and (boundp 'flymake-mode) flymake-mode)
-         (let ((buf (flymake--diagnostics-buffer-name)))
-           (call-interactively 'flymake-show-diagnostics-buffer)
-           (select-window (get-buffer-window buf))))
-        (t (message "Nothing to do, check flycheck or flymake toggled?"))))
 
 
 ;;; Commands
@@ -222,6 +225,20 @@
     (replace-match ">\n<")
     (delete-blank-lines)
     (set-auto-mode)))
+
+(defun im/youtube-dl-url (&optional url)
+  "Run 'youtube-dl' over the URL. If URL is nil, use URL at point."
+  (interactive)
+  (setq url (or url (thing-at-point-url-at-point)))
+  (let ((eshell-buffer-name "*youtube-dl*")
+        (directory (seq-find (lambda (dir)
+                               (and (file-directory-p dir) (expand-file-name dir)))
+                             '("~/temp") ".")))
+    (eshell)
+    (when (eshell-interactive-process) (eshell t))
+    (eshell-interrupt-process)
+    (insert (format " cd '%s' && youtube-dl " directory) url)
+    (eshell-send-input)))
 
 (defun grep-cursor (word)
   "Grep the current WORD in the files."
@@ -411,25 +428,6 @@
       (goto-char beg) (insert left)
       (deactivate-mark))))
 
-(defun im/youtube-dl-url (&optional url)
-  "Run 'youtube-dl' over the URL. If URL is nil, use URL at point."
-  (interactive)
-  (setq url (or url (thing-at-point-url-at-point)))
-  (let ((eshell-buffer-name "*youtube-dl*")
-        (directory (seq-find (lambda (dir)
-                               (and (file-directory-p dir) (expand-file-name dir)))
-                             '("~/temp") ".")))
-    (eshell)
-    (when (eshell-interactive-process) (eshell t))
-    (eshell-interrupt-process)
-    (insert (format " cd '%s' && youtube-dl " directory) url)
-    (eshell-send-input)))
-
-(defun trailing-whitespace-mode ()
-  (interactive)
-  (setq show-trailing-whitespace (not show-trailing-whitespace))
-  (message "Show-Trailing-Whitespace: %S" show-trailing-whitespace))
-
 (defun im/count-words (beg end)
   "Count words in marked region(BEG to END)."
   (interactive "r")
@@ -471,6 +469,11 @@
            (let ((exp (completing-read "Change to: " cs nil t)))
              (setq-local lisp-indent-function (intern exp))
              (message "Changed to `%s' locally." lisp-indent-function))))
+
+(defun trailing-whitespace-mode ()
+  (interactive)
+  (setq show-trailing-whitespace (not show-trailing-whitespace))
+  (message "Show-Trailing-Whitespace: %S" show-trailing-whitespace))
 
 
 (provide 'ickeys)

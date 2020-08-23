@@ -48,7 +48,7 @@
    (setq org-roam-capture-templates
          '(("d" "default" plain (function org-roam-capture--get-point)
             "%?"
-            :file-name "%<%Y%m%d%H%M%S>-${slug}"
+            :file-name "roam/%<%Y%m%d%H%M%S>-${slug}"
             :head "#+title: ${title}\n#+roam_alias:\n"
             :unnarrowed t)))
 
@@ -58,7 +58,7 @@
    (add-to-list 'org-roam-capture-ref-templates
                 '("a" "Annotation" plain (function org-roam-capture--get-point)
                   "%U ${body}\n"
-                  :file-name "${slug}"
+                  :file-name "roam/${slug}"
                   :head "#+title: ${title}\n#+roam_key: ${ref}\n#+roam_alias:\n\n[[抓取内容]]\n\n"
                   :immediate-finish t
                   :unnarrowed t))

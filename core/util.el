@@ -195,7 +195,19 @@
   (generate-all-defun:where-macros))
 
 
-;;; Help/Tip/Info/Log
+;;; Help/Tip/Info
+
+(defun log/it (&rest args)
+  "Output messsage to a buffer. Usage: (log/it [buffer-name] fmtString variable)."
+  (let ((buffer-name (if (symbolp (car args))
+                         (prog1 (symbol-name (car args))
+                           (setq args (cdr args)))
+                       "*logger*")))
+    (with-current-buffer (get-buffer-create buffer-name)
+      (local-set-key (kbd "q") 'bury-buffer)
+      (goto-char (point-max))
+      (insert "\n")
+      (insert (apply 'format args)))))
 
 (defmacro deftips (name args format-string &rest str-args)
   "Open an org buffer to show the information.
@@ -279,18 +291,6 @@ Plist ARGS can be :buffer/line/pre/post/startup/title/notitle."
                                                                    (message "Copy REF: %s" ref))))))
               (ref (car (split-string (completing-read "REF: " refs nil t) " "))))
          (browse-url ref)))))
-
-(defun log/it (&rest args)
-  "Output messsage to a buffer. Usage: (log/it [buffer-name] fmtString variable)."
-  (let ((buffer-name (if (symbolp (car args))
-                         (prog1 (symbol-name (car args))
-                           (setq args (cdr args)))
-                       "*logger*")))
-    (with-current-buffer (get-buffer-create buffer-name)
-      (local-set-key (kbd "q") 'bury-buffer)
-      (goto-char (point-max))
-      (insert "\n")
-      (insert (apply 'format args)))))
 
 
 (provide 'util)

@@ -19,7 +19,6 @@
 (imload 'imcoding)
 (imload 'imdb)
 (imload 'imtex)
-(imload 'imdraft)
 
 (imload 'ickeys)
 (imload 'ichydra)

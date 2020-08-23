@@ -98,19 +98,6 @@
   "Http proxy default value: (url user password)"
   :type 'string )
 
-;;
-(defcustom ic/incremental-delay 10
-  "Idle time to triggle incremental loading.")
-
-(defcustom ic/incremental-packages '(dash f s timer
-                                          calendar find-func format-spec org-macs org-compat org-faces org-entities
-                                          org-list org-pcomplete org-src org-footnote org-macro ob
-                                          org org-agenda org-capture ox-publish
-                                          easymenu tree-widget with-editor
-                                          git-commit eieio lv transient magit)
-  "Packages to load incrementally."
-  :type 'list)
-
 
 ;;; Helpers
 

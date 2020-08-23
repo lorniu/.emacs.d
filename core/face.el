@@ -103,7 +103,8 @@
   (set-language-environment "chinese-gbk")
   (prefer-coding-system 'utf-8)
 
-  ;; (setq process-coding-system-alist '(("git" utf-8 . utf-8)))
+  ;; process global encoding
+  (setq process-coding-system-alist '(("what?" utf-8 . utf-8)))
 
   ;; specified encoding
   (setq file-name-coding-system 'cp936-dos)
