@@ -271,18 +271,21 @@ Select a candidate can:
                            ((eq (car view) 'buffer) ; buffer
                             (switch-to-buffer (nth 1 view))
                             (goto-char (nth 2 view))))))
-    (let* ((keys `(("C-d" . ,(selectrum-make-action (c)
-                               (when (y-or-n-p (format "Delete this item `%s' ? " c))
-                                 (setq selectrum-views
-                                       (cl-remove c selectrum-views :test 'string-equal :key 'car)))
-                               (im/views+)))
-                   ("C-S-d" . ,(selectrum-make-action ()
-                                 (if (y-or-n-p (format "Clear *ALL* views? "))
-                                     (progn (setq selectrum-views nil)
-                                            (message "Clear Done!"))
-                                   (message "Nothing Done."))))))
-           (selectrum-should-sort-p nil)
-           (selectrum-minibuffer-bindings (append selectrum-minibuffer-bindings keys))
+    (let* ((selectrum-should-sort-p nil)
+           (selectrum-minibuffer-map (let ((map (copy-keymap selectrum-minibuffer-map)))
+                                       (define-key map (kbd "C-d")
+                                         (selectrum-make-action (c)
+                                           (when (y-or-n-p (format "Delete this item `%s' ? " c))
+                                             (setq selectrum-views
+                                                   (cl-remove c selectrum-views :test 'string-equal :key 'car)))
+                                           (im/views+)))
+                                       (define-key map (kbd "C-S-d")
+                                         (selectrum-make-action ()
+                                           (if (y-or-n-p (format "Clear *ALL* views? "))
+                                               (progn (setq selectrum-views nil)
+                                                      (message "Clear Done!"))
+                                             (message "Nothing Done."))))
+                                       map))
            (current (cl-loop for w in (window-list)
                              for b = (window-buffer w)
                              for f = (buffer-file-name b)
@@ -390,37 +393,37 @@ will search current project, if begin with 'o ' then will search org-directory.
                         `((candidates . ,(funcall prop cs))
                           (input . ,input)))))))
          (cand (let ((selectrum-should-sort-p nil)
-                     (selectrum-minibuffer-bindings
-                      (append
-                       selectrum-minibuffer-bindings
-                       `(("C-c C-o" . ,(selectrum-make-action (c)
-                                         ;; use rg.el to show the results in Occur buffer
-                                         (require 'rg)
-                                         (require 'compile)
-                                         ;; jump to current candidate in the *rg* buffer.
-                                         ;; rg implemented with `compile', so I make it work like below.
-                                         ;; let-bound method not working, unkown reason.
-                                         (let ((old-compilation-finish-functions compilation-finish-functions))
-                                           (setq compilation-finish-functions
-                                                 (list
-                                                  (lambda (_a _b)
-                                                    (unwind-protect
-                                                        (progn
-                                                          (pop-to-buffer (current-buffer))
-                                                          (when (string-match "\\`\\(.*?\\):\\([0-9]+\\):\\(.*\\)\\'" c)
-                                                            (let ((file-name (match-string-no-properties 1 c))
-                                                                  (line-number (match-string-no-properties 2 c)))
-                                                              (if rg-group-result
-                                                                  (progn
-                                                                    (re-search-forward (format "^File: %s" file-name) nil t)
-                                                                    (re-search-forward (format "^ *%s" line-number) nil t)
-                                                                    (re-search-forward input (point-at-eol) t))
-                                                                (re-search-forward (format "%s:%s:" file-name line-number) nil t)
-                                                                (re-search-forward input (point-at-eol) t)))))
-                                                      (setq compilation-finish-functions old-compilation-finish-functions)))))
-                                           ;; dispatch to rg.el search.
-                                           (cond ((eq type 'project) (rg-project input "*"))
-                                                 (t                  (rg input "*" dir))))))))))
+                     (selectrum-minibuffer-map (let ((map (copy-keymap selectrum-minibuffer-map)))
+                                                 (define-key map (kbd "C-c C-o")
+                                                   (selectrum-make-action (c)
+                                                     ;; use rg.el to show the results in Occur buffer
+                                                     (require 'rg)
+                                                     (require 'compile)
+                                                     ;; jump to current candidate in the *rg* buffer.
+                                                     ;; rg implemented with `compile', so I make it work like below.
+                                                     ;; let-bound method not working, unkown reason.
+                                                     (let ((old-compilation-finish-functions compilation-finish-functions))
+                                                       (setq compilation-finish-functions
+                                                             (list
+                                                              (lambda (_a _b)
+                                                                (unwind-protect
+                                                                    (progn
+                                                                      (pop-to-buffer (current-buffer))
+                                                                      (when (string-match "\\`\\(.*?\\):\\([0-9]+\\):\\(.*\\)\\'" c)
+                                                                        (let ((file-name (match-string-no-properties 1 c))
+                                                                              (line-number (match-string-no-properties 2 c)))
+                                                                          (if rg-group-result
+                                                                              (progn
+                                                                                (re-search-forward (format "^File: %s" file-name) nil t)
+                                                                                (re-search-forward (format "^ *%s" line-number) nil t)
+                                                                                (re-search-forward input (point-at-eol) t))
+                                                                            (re-search-forward (format "%s:%s:" file-name line-number) nil t)
+                                                                            (re-search-forward input (point-at-eol) t)))))
+                                                                  (setq compilation-finish-functions old-compilation-finish-functions)))))
+                                                       ;; dispatch to rg.el search.
+                                                       (cond ((eq type 'project) (rg-project input "*"))
+                                                             (t                  (rg input "*" dir))))))
+                                                 map)))
                  (selectrum-read "rg: " cands
                                  :initial-input word
                                  :may-modify-candidates t
@@ -445,10 +448,6 @@ will search current project, if begin with 'o ' then will search org-directory.
    "Now not in mepa. Update from git. 20200801. v0.6."
    :ref ("oantolin/embark"
          "embark source: https://raw.githubusercontent.com/oantolin/embark/master/embark.el"))
-
-;; (with-eval-after-load 'selectrum
-;;   (add-to-list 'selectrum-minibuffer-bindings '("M-o" . (lambda () (interactive) (embark-act) (embark-keymap-help))))
-;;   (add-to-list 'selectrum-minibuffer-bindings '("C-c C-o" . embark-occur)))
 
 
 (provide 'imccc)

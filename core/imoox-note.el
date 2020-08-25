@@ -143,7 +143,7 @@
   "Request `note-push-triggled-url' to reload or etc, when invoke `gac/commit-and-push' under notes."
   (let ((project-dir (cdr (project-current))))
     (when (and note-push-triggled-url
-               (string= (expand-file-name project-dir) note-directory))
+               (string= (expand-file-name project-dir) (file-name-as-directory note-directory)))
       (url-retrieve note-push-triggled-url
                     (lambda (_)
                       (re-search-forward "\n\n")

@@ -82,7 +82,7 @@
 
 (add-hook-fun org-after-todo-statistics-hook ()
   "Switch entry to DONE when all subentries are done"
-  (let (org-log-done org-log-states)
+  (let (org-log-done org-todo-log-states)
     (org-todo (if (= n-not-done 0) "DONE" "TODO"))))
 
 (add-hook-fun kill-emacs-hook/clock ()

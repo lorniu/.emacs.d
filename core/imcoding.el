@@ -160,8 +160,8 @@
 ;;  - 20191026, try lsp, still tooooo slow! remove js2, web-mode is better.
 
 (x web-mode/i
+   :ref "fxbois/web-mode"
    :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|vue\\|tsx\\|jsx\\)\\'"
-
    :config
    (setq web-mode-markup-indent-offset    2
          web-mode-css-indent-offset       2

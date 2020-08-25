@@ -4,15 +4,16 @@
 
 (p/refresh-packages
     use-package
-    bind-key key-chord delight
+    bind-key key-chord which-key
 
     ;; looking
+    delight
     rainbow-delimiters
     page-break-lines
     rcirc-styles
     xterm-color
-    posframe company-posframe ; childframe style
     all-the-icons
+    posframe company-posframe ; childframe style
 
     ;; edit and utils
     session
@@ -30,8 +31,8 @@
     memory-usage
 
     ;; exporting
-    graphviz-dot-mode
     gnuplot
+    graphviz-dot-mode
     plantuml-mode
     auctex company-math company-auctex ; latex
 
@@ -134,7 +135,7 @@
 (defcustom ic/incremental-packages '(dash f s timer
                                           calendar find-func format-spec org-macs org-compat org-faces
                                           org-entities org-list org-pcomplete org-src org-footnote org-macro ob
-                                          org org-agenda org-capture ox-publish
+                                          emacsql org org-agenda org-capture ox-publish
                                           easymenu tree-widget with-editor lv
                                           (git-commit . git)
                                           (transient . git)

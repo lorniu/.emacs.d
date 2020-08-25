@@ -354,6 +354,11 @@
    :config
    (define-key image-mode-map "c" 'im/yank-current-buffer-name))
 
+(x which-key/d
+   :init
+   (setq which-key-idle-delay 1.5)
+   (which-key-mode))
+
 (x transient
    :ref "magit/transient")
 
@@ -867,6 +872,7 @@
    (defengine dict-iciba     "http://www.iciba.com/%s")
    (defengine github         "https://github.com/search?ref=simplesearch&q=%s")
    (defengine stackoverflow  "http://stackoverflow.com/search?q=%s")
+   (defengine iconify        "https://iconify.design/icon-sets/?query=%s")
    (defengine wikipedia      "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s")
    (defengine arch-wiki      "http://wiki.archlinux.org/index.php?title=Special%%3ASearch&search=%s&go=Go" :browser 'eww-browse-url)
    (defengine wolfram-alpha  "http://www.wolframalpha.com/input/?i=%s")
@@ -894,88 +900,21 @@
    :config
    (define-key youdao-dictionary-mode-map "s" (lambda () (interactive) (message "%s" 'Add-To-List-TODO))))
 
-(x google-translate/i
-   "One single command `google-translate-smooth-translate', enough."
-   :ref ("Google Translate: http://translate.google.cn/"
-         "atykhonov/google-translate")
-   :commands (google-translate-smooth-translate)
+(x go-translate/i
+   "My rewrite of `google-translate' package."
+   :ref ("lorniu/go-translate"
+         "Google Translate: https://translate.google.cn/"
+         "Vanilla: atykhonov/google-translate")
+   :commands (go-translate
+              go-translate-popup
+              go-translate-popup-current
+              go-translate-kill-ring-save
+              go-translate-tts-play-current)
    :init
-   (setq google-translate-base-url "http://translate.google.cn/translate_a/single"
-         google-translate-listen-url "http://translate.google.cn/translate_tts"
-         google-translate--tkk-url "http://translate.google.cn/")
-   (setq google-translate-show-phonetic nil
-         google-translate-output-destination nil
-         google-translate-pop-up-buffer-set-focus t
-         google-translate-listen-program (executable-find "mplayer")
-         google-translate-backend-method (if (executable-find "curl") 'curl 'emacs))
-   (setq google-translate-translation-directions-alist '(("en" . "zh-CN") ("zh-CN" . "en")))
-
-   (defvar google-translate-default-render-function 'google-translate-my-render)
-   (defun:around google-translate-buffer-output-translation$ (f gtos)
-     "Customize the default render method."
-     (if (fboundp google-translate-default-render-function)
-         (funcall google-translate-default-render-function gtos)
-       (funcall f gtos)))
-   (defun:override google-translate--strip-string$ (text) "No need!" text)
-
-   (defvar google-translate-translation-face '(:inherit font-lock-doc-face))
-   (defun google-translate-my-render (gtos)
-     "Propertize the output buffer."
-     (let ((buffer-name "*Google Translate*"))
-       (with-output-to-temp-buffer buffer-name
-         (with-current-buffer buffer-name
-           (let* ((detailed-translation (gtos-detailed-translation gtos))
-                  (detailed-definition (gtos-detailed-definition gtos))
-                  (suggestion (google-translate--suggestion gtos))
-                  (phonetic (lambda (ph)
-                              (if (and (or detailed-definition detailed-definition) (plusp (length ph)))
-                                  (propertize (format " [%s]\n" ph) 'face '(:inherit font-lock-comment-face :slant normal))
-                                "\n")))
-                  (head-line (lambda (title)
-                               (propertize (format "\n[%s]\n" title) 'face 'font-lock-function-name-face)))
-                  (after-hook (lambda ()
-                                (setq-local cursor-type 'hbar)
-                                (setq-local buffer-read-only t)
-                                (local-set-key "y" 'youdao-dictionary-play-voice-at-point)
-                                (local-set-key (kbd "M-n") (lambda ()
-                                                             (interactive)
-                                                             (google-translate-change-translation-direction 'next)
-                                                             (let ((src (google-translate--current-direction-source-language))
-                                                                   (tgt (google-translate--current-direction-target-language)))
-                                                               (google-translate-translate src tgt (gtos-text gtos))
-                                                               (message "From %s to %s" src tgt))))
-                                (re-search-forward "^\\[.*\\]$" nil t)
-                                (forward-line 2)
-                                (push-mark))))
-             ;; text
-             (insert (google-translate--translating-text gtos "%s")
-                     (funcall phonetic (gtos-text-phonetic gtos)))
-             ;; translation
-             (let (p o)
-               (insert (funcall head-line (google-translate-language-display-name (gtos-target-language gtos))) "\n")
-               (setq p (point))
-               (insert (gtos-translation gtos))
-               (fill-region p (point))
-               (setq o (make-overlay p (point)))
-               (overlay-put o 'face google-translate-translation-face)
-               (insert (funcall phonetic (gtos-translation-phonetic gtos))))
-             ;; details
-             (if (plusp (length suggestion))
-                 (insert (funcall head-line "Suggestion")
-                         suggestion))
-             (if detailed-translation
-                 (insert (funcall head-line "Detail Translation")
-                         (google-translate--detailed-translation detailed-translation nil "\n%s\n" "%2d. %s\n")))
-             (if detailed-definition
-                 (insert (funcall head-line "Detail Definition")
-                         (cl-subseq
-                          (google-translate--detailed-definition detailed-definition nil "\n%s\n" "%2d. %s\n")
-                          12)))
-             (if google-translate-pop-up-buffer-set-focus (pop-to-buffer (current-buffer)))
-             (setq-local temp-buffer-show-hook (list after-hook)))))))
-
-   :config
-   (require 'google-translate-smooth-ui))
+   (setq go-translate-base-url "http://translate.google.cn")
+   (setq go-translate-local-language "zh-CN")
+   (setq go-translate-target-language "en")
+   (setq go-translate-extra-directions '(("zh-CN" . "ja") ("zh-CN" . "ko"))))
 
 (x gnus
    :init
@@ -1182,7 +1121,11 @@
    :init
    (setq magit-no-message '("Turning on magit-auto-revert-mode..."))
    (modify-coding-system-alist 'process "git" 'utf-8)
+
    :config
+   (transient-append-suffix 'magit-log "a" '("w" "Wip" magit-wip-log-current))
+   (transient-append-suffix 'magit-log "-A" '("-m" "Omit merge commits" "--no-merges"))
+
    (magit-auto-revert-mode -1))
 
 (x emms
@@ -1248,6 +1191,13 @@
                                    ((executable-find "powershell") 'powershell)
                                    ((executable-find "growlnotify") 'growl)
                                    ((executable-find "terminal-notifier") 'notifier))))
+
+(x keypression/d-
+   "Some problems exist, but it's interesting."
+   :ref "chuntaro/emacs-keypression"
+   :init
+   (setq keypression-cast-command-name nil)
+   (setq keypression-font-face-attribute '(:height 120 :width normal)))
 
 
 ;;; Multiple Modes

@@ -306,9 +306,10 @@
                     (string-match-p "^db:" label))
               (host-p (label)
                       (aif (label-tag label) (string-match-p "^host" (car it)))))
-    (let* ((keys '(("TAB" . selectrum-select-current-candidate)))
-           (selectrum-should-sort-p nil)
-           (selectrum-minibuffer-bindings (append selectrum-minibuffer-bindings keys))
+    (let* ((selectrum-should-sort-p nil)
+           (selectrum-minibuffer-map (let ((map (copy-keymap selectrum-minibuffer-map)))
+                                       (define-key map (kbd "TAB") 'selectrum-select-current-candidate)
+                                       map))
            (candidates (mapcar (lambda (item)
                                  (let ((label (car item)) (path (cadr item)))
                                    (when (not (stringp label))
@@ -419,6 +420,7 @@
    "Alpha Version: https://alpha.gnu.org/gnu/emacs/pretest/windows/"
    "elc -> eln: http://akrl.sdf.org/gccemacs.html"
    "Melpa Homepage: https://melpa.org/#/"
+   "Melpa Github: https://github.com/melpa/melpa"
    "Config: hlissner/doom-emacs"))
 
 (defreference downloads

@@ -169,8 +169,9 @@
   "\n"
 
   ;; search
-  ("t" google-translate-smooth-translate "Google Translate")
-  ("C-t" google-translate-smooth-translate nil)
+  ("t" go-translate "Google Translate")
+  ("C-t" go-translate nil)
+  ("y" go-translate-popup nil)
   ("T" youdao-dictionary-search-from-input "Youdao Translate")
   ("gt" engine/search-dict-iciba nil)
   ("gg" engine/search-google "Google")
@@ -180,6 +181,7 @@
   ("S" engine/search-stackoverflow "StackOverflow")
   ("W" engine/search-wikipedia "Wikipedia")
   ("L" engine/search-arch-wiki "ArchWiki")
+  ("i" engine/search-iconify "Iconify")
 
   ;; mark
   ("ml" (progn (back-to-indentation) (set-mark (line-end-position))) "line" :exit nil)

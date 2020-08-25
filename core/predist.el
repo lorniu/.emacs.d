@@ -28,17 +28,31 @@
            (add-to-list 'load-path (expand-file-name v))
            else do
            (add-to-list 'package-load-list (list p v)))
-  (message "Refresh Done: %s" ic/package-lock-alist))
+  (when ic/package-lock-alist
+    (message "Pkg-Lock-Alist: %s" ic/package-lock-alist)))
+
+
+
+(let ((origin `(("melpa" . "http://melpa.org/packages/")
+                ("gnu"   . "http://elpa.gnu.org/packages/")
+                ("org"   . "https://orgmode.org/elpa/")))
+      (mirror `(("melpa" . "http://elpa.emacs-china.org/melpa/")
+                ("gnu"   . "http://elpa.emacs-china.org/gnu/")
+                ("org"   . "http://elpa.emacs-china.org/org/"))))
+  (defun p/repo-origin ()
+    (interactive)
+    (setq package-archives origin)
+    (message "%s" (if (called-interactively-p 'any) package-archives 'repo-origin)))
+  (defun p/repo-mirror ()
+    (interactive)
+    (setq package-archives mirror)
+    (message "%s" (if (called-interactively-p 'any) package-archives 'repo-mirror))))
+
+(if ic/elpa-use-mirror (p/repo-mirror) (p/repo-origin))
 
 (defmacro p/refresh-packages (&rest packages-required)
   (declare (indent 2))
-  `(let ((origin `(("melpa" . "http://melpa.org/packages/")
-                   ("gnu"   . "http://elpa.gnu.org/packages/")
-                   ("org"   . "https://orgmode.org/elpa/")))
-         (mirror `(("melpa" . "http://elpa.emacs-china.org/melpa/")
-                   ("gnu"   . "http://elpa.emacs-china.org/gnu/")
-                   ("org"   . "http://elpa.emacs-china.org/org/")))
-         (tip "\n(progn\n  (im/proxy (quote SOCK))\n  (p/repo-origin)\n  (p/install)\n)\n"))
+  `(let ((tip "\n(progn\n  (im/proxy (quote SOCK))\n  (p/repo-origin)\n  (p/install)\n)\n"))
      (defun p/packages ()
        (cl-remove-if (lambda (p) (package-disabled-p p nil)) ',packages-required))
      (defun p/packages-lacks ()
@@ -46,20 +60,12 @@
      (defun p/install ()
        (interactive)
        (package-refresh-contents)
-       (cl-loop for p in (p/packages) unless (package-installed-p p) do (package-install p))
+       (cl-loop for p in (p/packages-lacks) do (package-install p))
        (message "Install Finished."))
-     (defun p/repo-origin ()
-       (interactive)
-       (setq package-archives origin)
-       (message "%s" (if (called-interactively-p 'any) package-archives 'repo-origin)))
-     (defun p/repo-mirror ()
-       (interactive)
-       (setq package-archives mirror)
-       (message "%s" (if (called-interactively-p 'any) package-archives 'repo-mirror)))
-
-     (if ic/elpa-use-mirror (p/repo-mirror) (p/repo-origin))
      (when (= (length (p/packages-lacks)) (length (p/packages))) (user-error "Have you installed any packages? Maybe:\n%s" tip))
      (when (p/packages-lacks) (user-error "Some packages missing %s\n\nPlease install first:\n%s\n\n" (p/packages-lacks) tip))))
+
+
 
 ;; pretend these dependencies already installed
 (add-to-list 'package--builtin-versions `(simple-httpd 1 5 1))

@@ -1,18 +1,17 @@
 ;;; imoox-roam.el --- Roam Research -*- lexical-binding: t -*-
 ;;; Commentary:
 
-;; https://roamresearch.com/
-
 ;;; Code:
 
 (x org-roam
    :ref ("org-roam/org-roam"
          "org-roam/org-roam-server"
          "jethrokuan/company-org-roam"
-         "nobiot/Zero-to-Emacs-and-Org-roam")
+         "nobiot/Zero-to-Emacs-and-Org-roam"
+         "Roam Official: https://roamresearch.com/")
    :hook (org-load . org-roam-mode)
    :hook (org-roam-backlinks-mode . turn-on-visual-line-mode)
-   :delight " [R]"
+   :delight " ❇"
    :commands (org-roam-buffer-toggle-display
               org-roam-dailies-date
               org-roam-dailies-today
@@ -22,6 +21,7 @@
    (defvar org-roam-directory (if (file-exists-p (loco "roam/")) (loco "roam/")
                                 (locc "roam/")))
    (defvar org-roam-file-exclude-regexp "sitemap.org")
+   (defvar org-roam-tag-sources '(prop last-directory))
    :bind (:map org-roam-mode-map
                (("C-c n l" . org-roam)
                 ("C-c n f" . org-roam-find-file)
@@ -88,7 +88,10 @@
      (liveroam-load)
      (browse-url (format "http://%s:%s" org-roam-server-host org-roam-server-port))))
 
-(x company-org-roam)
+(x company-org-roam
+   :init
+   (defun:override company-org-roam--filter-candidates$ (prefix cs)
+     (-filter (lambda (c) (string-prefix-p prefix c)) cs)))
 
 
 

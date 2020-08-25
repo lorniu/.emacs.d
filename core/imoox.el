@@ -19,6 +19,8 @@
       org-export-with-sub-superscripts '{}
       org-blank-before-new-entry '((heading . t) (plain-list-item . nil))
 
+      org-id-link-to-org-use-id t
+      org-catch-invisible-edits 'show
       org-attach-store-link-p t)
 
 (setq org-html-html5-fancy t
@@ -87,9 +89,9 @@
 
   ;; Mono font for align
   (when IS-G
-   (let ((f/face-font-family (f/get :font-mono)))
-     (f/face-font 'org-table)
-     (f/face-font 'org-column)))
+    (let ((f/face-font-family (f/get :font-mono)))
+      (f/face-font 'org-table)
+      (f/face-font 'org-column)))
 
   ;; Add Keywords!
   (defface hi-org-break `((t (:foreground ,(pcase system-type ('gnu/linux "#222222") ('windows-nt "#eeeeee")))))
@@ -220,13 +222,14 @@
                    (buffer-substring-no-properties (region-beginning) (region-end))
                  (and (symbol-at-point) (symbol-name (symbol-at-point)))))
          (selectrum-should-sort-p nil)
-         (selectrum-minibuffer-bindings (append selectrum-minibuffer-bindings
-                                                `(([C-return] . ,(selectrum-make-action (cand _ input)
-                                                                   (if (zerop (length input)) (setq input cand))
-                                                                   (when (string-match-p "^[^:]\\w+[^:]$" input)
-                                                                     (setq input (concat ":" input ":")))
-                                                                   (rg input "org" org-directory)
-                                                                   (pop-to-buffer (rg-buffer-name)))))))
+         (selectrum-minibuffer-map (let ((map (copy-keymap selectrum-minibuffer-map)))
+                                     (define-key map [C-return] (selectrum-make-action (cand _ input)
+                                                                  (if (zerop (length input)) (setq input cand))
+                                                                  (when (string-match-p "^[^:]\\w+[^:]$" input)
+                                                                    (setq input (concat ":" input ":")))
+                                                                  (rg input "org" org-directory)
+                                                                  (pop-to-buffer (rg-buffer-name))))
+                                     map))
          (candidates (let ((ret))
                        (setq ret (mapcar (lambda (x) (format ":%s:" (car x))) org-tag-alist))
                        (if word (push word ret))
@@ -426,8 +429,8 @@ https://github.com/TonCherAmi/org-starless"
                      ("k" (if (y-or-n-p "Stop it ?")
                               (org-timer-stop)
                             (message "Do Nothing."))
-                          (format "Stop this %s" (propertize (if org-timer-countdown-timer "Countdown Timer" "Timer") 'face 'font-lock-constant-face))
-                          :exit t))
+                      (format "Stop this %s" (propertize (if org-timer-countdown-timer "Countdown Timer" "Timer") 'face 'font-lock-constant-face))
+                      :exit t))
                  (defhydra imdra-org-timer (:exit t :foreign-keys warn)
                    "Action"
                    ("t" org-timer-start "Create Timer")

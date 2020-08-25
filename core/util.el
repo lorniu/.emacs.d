@@ -253,42 +253,44 @@ Plist ARGS can be :buffer/line/pre/post/startup/title/notitle."
 (defmacro defreference (name &rest refs)
   "Make a function of NAME to browse the REFS."
   (let* ((flatten (cl-loop for item in refs
-                     if (stringp item) collect item
-                     if (listp item) append
-                       (if (stringp (car item))
-                           (cl-loop for r in item collect (eval r))
-                         (list (eval item)))))
+                           if (stringp item) collect item
+                           if (listp item) append
+                           (if (stringp (car item))
+                               (cl-loop for r in item collect (eval r))
+                             (list (eval item)))))
          (consed (if (null flatten) (user-error "No suitable reference.")
                    (cl-loop for item in flatten
-                      if (string-match "^\\(.*\\): \\(.*\\)$" item) collect
-                        (cons (match-string 2 item) (match-string 1 item))
-                      else collect (cons item nil))))
+                            if (string-match "^\\(.*\\): \\(.*\\)$" item) collect
+                            (cons (match-string 2 item) (match-string 1 item))
+                            else collect (cons item nil))))
          (formatted (cl-loop for item in consed
-                       for ref = (car item)
-                       if (not (string-prefix-p "http" ref)) do
-                         (setq ref (format "https://github.com/%s" ref))
-                       collect (cons ref (cdr item))))
+                             for ref = (car item)
+                             if (not (string-prefix-p "http" ref)) do
+                             (setq ref (format "https://github.com/%s" ref))
+                             collect (cons ref (cdr item))))
          (propertized (cl-loop with face = 'font-lock-doc-face
-                         for item in formatted
-                         for label = (cdr item)
-                         if label do
-                           (let ((len (cl-loop for i in formatted if (cdr i) maximize (1+ (length (car i))))))
-                             (setq label (format (format "%%-%ds (%%s)" len) (car item) label))
-                             (add-face-text-property (length (car item)) (length label) face nil label))
-                         else do
-                           (setq label (car item))
-                         collect label))
+                               for item in formatted
+                               for label = (cdr item)
+                               if label do
+                               (let ((len (cl-loop for i in formatted if (cdr i) maximize (1+ (length (car i))))))
+                                 (setq label (format (format "%%-%ds (%%s)" len) (car item) label))
+                                 (add-face-text-property (length (car item)) (length label) face nil label))
+                               else do
+                               (setq label (car item))
+                               collect label))
          (fun (intern (format (concat (unless (string-match-p "/" (symbol-name name)) "ref/") (if (cdr flatten) "%s*" "%s")) name))))
     `(defun ,fun ()
        ,(format "%s\n\nBrowser/Yank it." propertized)
        (interactive)
        (let* ((refs ',propertized)
               (selectrum-should-sort-p nil)
-              (selectrum-minibuffer-bindings (append selectrum-minibuffer-bindings
-                                                     `(("M-w" . ,(selectrum-make-action (ref)
-                                                                   (setq ref (car (split-string ref " ")))
-                                                                   (kill-new ref)
-                                                                   (message "Copy REF: %s" ref))))))
+              (selectrum-minibuffer-map (let ((map (copy-keymap selectrum-minibuffer-map)))
+                                          (define-key map (kbd "M-w")
+                                            (selectrum-make-action (ref)
+                                              (setq ref (car (split-string ref " ")))
+                                              (kill-new ref)
+                                              (message "Copy REF: %s" ref)))
+                                          map))
               (ref (car (split-string (completing-read "REF: " refs nil t) " "))))
          (browse-url ref)))))
 

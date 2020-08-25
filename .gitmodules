@@ -1,3 +1,6 @@
+[submodule "extra/go-translate"]
+	path = extra/go-translate
+	url = ../go-translate.git
 [submodule "fork/simple-httpd"]
 	path = fork/simple-httpd
 	url = ../simple-httpd.git
