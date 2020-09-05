@@ -6,7 +6,7 @@
 (require 'dash)            ;; “A modern list library for Emacs”
 (require 'subr-x)          ;; Extra Lisp functions; e.g., ‘when-let’.
 (require 'cl-lib)          ;; New Common Lisp library; ‘cl-???’ forms.
-(require 'dash-functional) ;; Function library; ‘-const’, ‘-compose’, ‘-orfn’, ‘-not’, ‘-partial’, etc.
+(require 'dash)            ;; Function library; ‘-const’, ‘-compose’, ‘-orfn’, ‘-not’, ‘-partial’, etc.
 
 (require 'org)
 (require 'ox-latex)

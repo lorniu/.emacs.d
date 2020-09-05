@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Play on Droid with PulseAudio Over TCP
+# Install PulseDroid or SimpleProtocolPlayer on droid, connect and play.
+
+PORT=${2:-12345}
+
+case "$1" in
+    start|s)
+        $0 stop
+        echo -e "Starting server on port $PORT... \c"
+        pactl load-module module-null-sink sink_name=droid sink_properties=device.description="DroidPlayer"
+        pactl load-module module-simple-protocol-tcp source=droid.monitor port=$PORT channels=2 format=s16le rate=48000 record=true
+        ;;
+    stop|k)
+        for id in `pactl list | grep 'sink_name=droid\|simple-protocol-tcp' -B2 | grep Module | sed 's/[^0-9]//g'`; do
+            echo "Stoping $id..."
+            pactl unload-module $id
+        done
+        ;;
+    *)
+        echo "Usage: $0 start(s)|stop(k) [port:$PORT]" >&2
+        ;;
+esac

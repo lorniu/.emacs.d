@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: #+STARTUP: fold/show
+# key: ps
+# condition: (<= (current-column) 2)
+# --
+#+STARTUP: ${$$(yas-choose-value '("showeverything" "fold" "nofold" "content"))}

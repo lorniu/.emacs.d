@@ -16,13 +16,13 @@
   (* 1000.0 (time-subtract-seconds b a)))
 
 (defun bm/show-require-times (&optional not-sortp)
-  (ppl (if not-sortp
-           bm/require-times
-         (let ((time (copy-tree bm/require-times)))
-           (sort time (lambda (a b) (> (cdr a) (cdr b))))))))
+  (pp/list (if not-sortp
+               bm/require-times
+             (let ((time (copy-tree bm/require-times)))
+               (sort time (lambda (a b) (> (cdr a) (cdr b))))))))
 
 (defun bm/show-require-differ-times ()
-  (ppl
+  (pp/list
    (sort (seq-difference bm/require-times bm/require-times-from-last-diff )
          (lambda (a b) (> (cdr a) (cdr b)))))
   (setq bm/require-times-from-last-diff  (copy-tree bm/require-times)) t)
@@ -50,19 +50,19 @@
 
 (defvar bm/imload-times nil)
 
-(defun imload (mod)
-  (bm/record-imload-time mod (require mod)))
-
 (defmacro bm/record-imload-time (label &rest rest)
   `(let ((start-time (current-time)))
      ,@rest
      (push (cons ,label (time-subtract-millis (current-time) start-time)) bm/imload-times)))
 
+(defun imload (mod &optional noerror)
+  (bm/record-imload-time mod (require mod nil noerror)))
+
 (defun bm/show-imload-time (&optional nsortp)
-  (ppl (if nsortp
-           bm/imload-times
-         (append (sort (copy-tree bm/imload-times) (lambda (a b) (> (cdr a) (cdr b))))
-                 (list (cons 'TOTAL-TIME (apply '+ (mapcar 'cdr bm/imload-times))))))))
+  (pp/list (if nsortp
+               bm/imload-times
+             (append (sort (copy-tree bm/imload-times) (lambda (a b) (> (cdr a) (cdr b))))
+                     (list (cons 'TOTAL-TIME (apply '+ (mapcar 'cdr bm/imload-times))))))))
 
 
 (provide 'bm)

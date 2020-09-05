@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: drawer
+# key: d
+# condition: (<= (current-column) 1)
+# --
+:${1:$$(yas-completing-read "DRAWER: " '("PROPERTIES" "LOGBOOK") nil nil nil nil "PROPERTY")}:
+:$2: $0
+:END:

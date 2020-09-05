@@ -16,11 +16,11 @@
 
 (when IS-WIN
   ;; English
-  (f/default-font (f/get :font (cons "Consolas" 0)))
+  (ff/font-default (ff/get :font (cons "Consolas" 0)))
   ;; Chinese
-  (f/unicode-font (f/get :font-u "Microsoft YaHei UI Light"))
+  (ff/font-unicode (ff/get :font-unicode "Microsoft YaHei"))
   ;; Scale
-  (setq face-font-rescale-alist (f/get :rescale '(("simsun" . 1) ("隶书" . 1))))
+  (setq face-font-rescale-alist (ff/get :rescale '(("simsun" . 1) ("隶书" . 1))))
   ;; Key
   (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
   (global-set-key [C-wheel-up]   'text-scale-increase)
@@ -31,16 +31,16 @@
 
 (when IS-NG
   (setf (alist-get 'menu-bar-lines default-frame-alist) 0)
-  (unless (f/get :theme) (plist-put ic/faces :theme 'origin))
+  (unless (ff/get :theme) (plist-put ic/faces :theme 'origin))
   (xterm-mouse-mode)
   (global-set-key [mouse-4] (lambdai (scroll-down 1)))
   (global-set-key [mouse-5] (lambdai (scroll-up 1))))
 
 (when IS-LINUX-G
   ;; English
-  (f/default-font (f/get :font (cons "" 0)))
+  (ff/font-default (ff/get :font (cons "" 0)))
   ;; Chinese
-  (f/unicode-font (f/get :font-u '("Source Han Sans CN")))
+  (ff/font-unicode (ff/get :font-unicode '("Source Han Sans CN")))
   ;; Key
   (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
   (global-set-key [C-mouse-4] 'text-scale-increase)
@@ -68,7 +68,7 @@
                 mode-line-modified
                 mode-line-remote
                 ,(if IS-G 'mode-line-frame-identification "  ")
-                (:eval projectile-mode-line)
+                (:eval project-mode-line)
                 mode-line-buffer-identification
                 (" " mode-line-position)
                 ,(if IS-G `(vc-mode vc-mode))
@@ -76,7 +76,7 @@
                 mode-line-misc-info
                 mode-line-end-spaces))
 
-(aif (f/get :theme) (load-theme it t))
+(aif (ff/get :theme) (load-theme it t))
 
 
 ;;; Encoding

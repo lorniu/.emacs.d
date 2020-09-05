@@ -15,6 +15,10 @@
 ;;  - ignore/log4e/message/fringe/mode/gntp/growl
 ;;  - momentary/libnotify/notifications/notifier/osx/x11/toaster
 ;;
+;;;
+;;
+;; Changed so lot, can't merge to upstream. imfine.
+;;
 ;;; Code:
 
 (require 'cl-lib)
@@ -23,88 +27,16 @@
   "Notification system for Emacs similar to Growl"
   :group 'emacs)
 
-(defvar alert-styles nil)
-
-(defun alert-styles-radio-type (widget-name)
-  (append
-   (list widget-name :tag "Style")
-   (mapcar #'(lambda (style)
-               (list 'const
-                     :tag (or (plist-get (cdr style) :title)
-                              (symbol-name (car style)))
-                     (car style)))
-           (setq alert-styles
-                 (sort alert-styles
-                       #'(lambda (l r)
-                           (string< (symbol-name (car l))
-                                    (symbol-name (car r)))))))))
-
-(defun alert-configuration-type ()
-  (list 'repeat
-        (list
-         'list :tag "Select style if alert matches selector"
-         '(repeat
-           :tag "Selector"
-           (choice
-            (cons :tag "Severity"
-                  (const :format "" :severity)
-                  (set (const :tag "Urgent" urgent)
-                       (const :tag "High" high)
-                       (const :tag "Moderate" moderate)
-                       (const :tag "Normal" normal)
-                       (const :tag "Low" low)
-                       (const :tag "Trivial" trivial)))
-            (cons :tag "User Status"
-                  (const :format "" :status)
-                  (set (const :tag "Buffer not visible" buried)
-                       (const :tag "Buffer visible" visible)
-                       (const :tag "Buffer selected" selected)
-                       (const :tag "Buffer selected, user idle" idle)))
-            (cons :tag "Major Mode"
-                  (const :format "" :mode)
-                  regexp)
-            (cons :tag "Category"
-                  (const :format "" :category)
-                  regexp)
-            (cons :tag "Title"
-                  (const :format "" :title)
-                  regexp)
-            (cons :tag "Message"
-                  (const :format "" :message)
-                  regexp)
-            (cons :tag "Predicate"
-                  (const :format "" :predicate)
-                  function)
-            (cons :tag "Icon"
-                  (const :format "" :icon)
-                  regexp)))
-         (alert-styles-radio-type 'choice)
-         '(set :tag "Options"
-               (cons :tag "Make alert persistent"
-                     (const :format "" :persistent)
-                     (choice :value t (const :tag "Yes" t)
-                             (function :tag "Predicate")))
-               (cons :tag "Never persist"
-                     (const :format "" :never-persist)
-                     (choice :value t (const :tag "Yes" t)
-                             (function :tag "Predicate")))
-               (cons :tag "Continue to next rule"
-                     (const :format "" :continue)
-                     (choice :value t (const :tag "Yes" t)
-                             (function :tag "Predicate")))))))
-
-(defcustom alert-default-icon
-  (concat data-directory
-          "images/icons/hicolor/scalable/apps/emacs.svg")
-  "Filename of default icon to show for libnotify-alerts."
-  :type 'string
-  :group 'alert)
-
 (defcustom alert-default-style 'message
   "The style to use if no rules match in the current configuration.
 If a configured rule does match an alert, this style is not used;
 it is strictly a fallback."
-  :type (alert-styles-radio-type 'radio)
+  :type 'symbol
+  :group 'alert)
+
+(defcustom alert-default-icon (concat data-directory "images/icons/hicolor/scalable/apps/emacs.svg")
+  "Filename of default icon to show for libnotify-alerts."
+  :type 'string
   :group 'alert)
 
 (defcustom alert-default-title nil
@@ -135,19 +67,9 @@ This can be overridden with the Never Persist option (:never-persist)."
   :type 'integer
   :group 'alert)
 
-(defcustom alert-hide-all-notifications nil
-  "If non-nil, no alerts are ever shown to the user."
-  :type 'boolean
-  :group 'alert)
-
 (defcustom alert-log-messages t
   "If non-nil, all alerts are logged to the *Alerts* buffer."
   :type 'boolean
-  :group 'alert)
-
-(defcustom alert-user-configuration nil
-  "Rules that determine how and when alerts get displayed."
-  :type (alert-configuration-type)
   :group 'alert)
 
 (defcustom alert-severity-faces
@@ -184,6 +106,10 @@ This is used by styles external to Emacs that don't understand faces."
   :type '(alist :key-type symbol :value-type color)
   :group 'alert)
 
+(defvar alert-styles nil)
+
+(defvar alert-active-alerts nil)
+
 
 
 (defface alert-urgent-face
@@ -217,10 +143,6 @@ This is used by styles external to Emacs that don't understand faces."
   :group 'alert)
 
 
-
-(defvar alert-active-alerts nil)
-
-(defvar alert-internal-configuration nil)
 
 (defun alert-define-style (name &rest plist)
   "Define a new style for notifying the user of alert messages.
@@ -264,9 +186,7 @@ definition:
                       ;; It is the same property list that was passed to
                       ;; the notifier function.
                       ))"
-  (add-to-list 'alert-styles (cons name plist))
-  (put 'alert-user-configuration 'custom-type (alert-configuration-type))
-  (put 'alert-define-style 'custom-type (alert-styles-radio-type 'radio)))
+  (add-to-list 'alert-styles (cons name plist)))
 
 (defun alert-buffer-status (&optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -315,84 +235,8 @@ definition:
                         #'alert-remove-when-active
                         remover info))))
 
-;;;###autoload
-(cl-defun alert-add-rule (&key severity status mode category title
-                               message predicate icon (style alert-default-style)
-                               persistent continue never-persist append)
-  "Programmatically add an alert configuration rule.
-
-Normally, users should custoimze `alert-user-configuration'.
-This facility is for module writers and users that need to do
-things the Lisp way.
-
-Here is a rule the author currently uses with ERC, so that the
-fringe gets colored whenever people chat on BitlBee:
-
-\(alert-add-rule :status   \\='(buried visible idle)
-                :severity \\='(moderate high urgent)
-                :mode     \\='erc-mode
-                :predicate
-                #\\='(lambda (info)
-                    (string-match (concat \"\\\\`[^&].*@BitlBee\\\\\\='\")
-                                  (erc-format-target-and/or-network)))
-                :persistent
-                #\\='(lambda (info)
-                    ;; If the buffer is buried, or the user has been
-                    ;; idle for `alert-reveal-idle-time' seconds,
-                    ;; make this alert persistent.  Normally, alerts
-                    ;; become persistent after
-                    ;; `alert-persist-idle-time' seconds.
-                    (memq (plist-get info :status) \\='(buried idle)))
-                :style \\='fringe
-                :continue t)"
-  (let ((rule (list (list t) style (list t))))
-    (if severity
-        (nconc (nth 0 rule)
-               (list (cons :severity
-                           (if (listp severity)
-                               severity
-                             (list severity))))))
-    (if status
-        (nconc (nth 0 rule)
-               (list (cons :status
-                           (if (listp status)
-                               status
-                             (list status))))))
-    (if mode
-        (nconc (nth 0 rule)
-               (list (cons :mode
-                           (if (stringp mode)
-                               mode
-                             (concat "\\`" (symbol-name mode)
-                                     "\\'"))))))
-    (if category
-        (nconc (nth 0 rule) (list (cons :category category))))
-    (if title
-        (nconc (nth 0 rule) (list (cons :title title))))
-    (if message
-        (nconc (nth 0 rule) (list (cons :message message))))
-    (if predicate
-        (nconc (nth 0 rule) (list (cons :predicate predicate))))
-    (if icon
-        (nconc (nth 0 rule) (list (cons :icon icon))))
-    (setcar rule (cdr (nth 0 rule)))
-
-    (if persistent
-        (nconc (nth 2 rule) (list (cons :persistent persistent))))
-    (if never-persist
-        (nconc (nth 2 rule) (list (cons :never-persist never-persist))))
-    (if continue
-        (nconc (nth 2 rule) (list (cons :continue continue))))
-    (setcdr (cdr rule) (list (cdr (nth 2 rule))))
-
-    (if (null alert-internal-configuration)
-        (setq alert-internal-configuration (list rule))
-      (if append
-          (nconc alert-internal-configuration (list rule))
-        (setq alert-internal-configuration
-              (cons rule alert-internal-configuration))))
-
-    rule))
+(defsubst alert-encode-string (str)
+  (encode-coding-string str (keyboard-coding-system)))
 
 ;;;###autoload
 (cl-defun alert (message &key (severity 'normal) title icon category
@@ -447,7 +291,6 @@ Here are some more typical examples of usage:
       (alert-buffer current-major-mode current-buffer-status current-buffer-name)
       (with-current-buffer (or buffer (current-buffer))
         (list (current-buffer) (or mode major-mode) (alert-buffer-status) (buffer-name)))
-
     (let ((base-info (list :message message
                            :title (or title alert-default-title current-buffer-name)
                            :icon icon
@@ -458,82 +301,13 @@ Here are some more typical examples of usage:
                            :id id
                            :timeout (or timeout alert-default-fade-time)
                            :data data))
-          matched)
+          (style (or style alert-default-style)))
 
       (if alert-log-messages (alert-log-notify base-info))
-
-      (unless alert-hide-all-notifications
-        (catch 'finish
-          (dolist (config (append alert-user-configuration alert-internal-configuration))
-            (let* ((style-def (cdr (assq (or style (nth 1 config)) alert-styles)))
-                   (options (nth 2 config))
-                   (persist-p (or persistent (cdr (assq :persistent options))))
-                   (persist (if (functionp persist-p)
-                                (funcall persist-p base-info)
-                              persist-p))
-                   (never-persist-p (or never-persist
-                                        (cdr (assq :never-persist options))))
-                   (never-per (if (functionp never-persist-p)
-                                  (funcall never-persist-p base-info)
-                                never-persist-p))
-                   (continue (cdr (assq :continue options)))
-                   info)
-              (setq info (if (not (memq :persistent base-info))
-                             (append base-info (list :persistent persist))
-                           base-info)
-                    info (if (not (memq :never-persist info))
-                             (append info (list :never-persist never-per))
-                           info))
-              (when
-                  (or style           ; :style always "matches", for testing
-                      (not
-                       (memq
-                        nil
-                        (mapcar
-                         #'(lambda (condition)
-                             (cl-case (car condition)
-                               (:severity
-                                (memq severity (cdr condition)))
-                               (:status
-                                (memq current-buffer-status (cdr condition)))
-                               (:mode
-                                (string-match
-                                 (cdr condition)
-                                 (symbol-name current-major-mode)))
-                               (:category
-                                (and category (string-match
-                                               (cdr condition)
-                                               (if (stringp category)
-                                                   category
-                                                 (symbol-name category)))))
-                               (:title
-                                (and title
-                                     (string-match (cdr condition) title)))
-                               (:message
-                                (string-match (cdr condition) message))
-                               (:predicate
-                                (funcall (cdr condition) info))
-                               (:icon
-                                (string-match (cdr condition) icon))))
-                         (nth 0 config)))))
-
-                (alert-send-notification alert-buffer info style-def persist never-per)
-                (setq matched t)
-                (if (or style (not (if (functionp continue)
-                                       (funcall continue info)
-                                     continue)))
-                    (throw 'finish t)))))))
-
-      (if (and (not matched) alert-default-style)
-          (alert-send-notification alert-buffer base-info
-                                   (cdr (assq alert-default-style
-                                              alert-styles)))))))
+      (alert-send-notification alert-buffer base-info (cdr (assq style alert-styles))))))
 
 
-
-(alert-define-style 'ignore :title "Ignore Alert"
-                    :notifier #'ignore
-                    :remover #'ignore)
+;;; Ignore
 
 (alert-define-style 'ignore :title "Don't display alerts")
 
@@ -661,53 +435,38 @@ Here are some more typical examples of usage:
 
 ;;; gntp
 
-(require 'gntp nil t)
+(defvar alert-gntp-icon "http://cvs.savannah.gnu.org/viewvc/*checkout*/emacs/emacs/etc/images/icons/hicolor/48x48/apps/emacs.png"
+  "Icon file using gntp.")
 
-(defcustom alert-gntp-icon
-  "http://cvs.savannah.gnu.org/viewvc/*checkout*/emacs/emacs/etc/images/icons/hicolor/48x48/apps/emacs.png"
-  "Icon file using gntp."
-  :type 'string
-  :group 'alert)
+(defun alert-gntp-notify (info)
+  (require 'gntp nil t)
+  (gntp-notify 'alert
+               (alert-encode-string (plist-get info :title))
+               (alert-encode-string (plist-get info :message))
+               gntp-server nil
+               (number-to-string
+                (cdr (assq (plist-get info :severity)
+                           alert-growl-priorities)))
+               (if (eq (plist-get info :icon) nil)
+                   alert-gntp-icon
+                 (plist-get info :icon)))
+  (alert-message-notify info))
 
-(when (featurep 'gntp)
-  (defun alert-gntp-notify (info)
-    (gntp-notify 'alert
-                 (alert-encode-string (plist-get info :title))
-                 (alert-encode-string (plist-get info :message))
-                 gntp-server nil
-                 (number-to-string
-                  (cdr (assq (plist-get info :severity)
-                             alert-growl-priorities)))
-                 (if (eq (plist-get info :icon) nil)
-                     alert-gntp-icon
-                   (plist-get info :icon)))
-    (alert-message-notify info))
-
-  (alert-define-style 'gntp :title "Notify using gntp"
-                      :notifier #'alert-gntp-notify))
+(alert-define-style 'gntp :title "Notify using gntp" :notifier #'alert-gntp-notify)
 
 
 ;;; growl
 
-(defcustom alert-growl-command (executable-find "growlnotify")
-  "Path to the growlnotify command.
-This is found in the Growl Extras: http://growl.info/extras.php."
-  :type 'file
-  :group 'alert)
+(defvar alert-growl-command (executable-find "growlnotify")
+  "Path to the growlnotify command.")
 
-(defcustom alert-growl-priorities
-  '((urgent   . 2)
-    (high     . 2)
-    (moderate . 1)
-    (normal   . 0)
-    (low      . -1)
-    (trivial  . -2))
-  "A mapping of alert severities onto Growl priority values."
-  :type '(alist :key-type symbol :value-type integer)
-  :group 'alert)
-
-(defsubst alert-encode-string (str)
-  (encode-coding-string str (keyboard-coding-system)))
+(defvar alert-growl-priorities '((urgent   . 2)
+                                 (high     . 2)
+                                 (moderate . 1)
+                                 (normal   . 0)
+                                 (low      . -1)
+                                 (trivial  . -2))
+  "A mapping of alert severities onto Growl priority values.")
 
 (defun alert-growl-notify (info)
   (if alert-growl-command
@@ -732,22 +491,13 @@ This is found in the Growl Extras: http://growl.info/extras.php."
 ;;; libnotify
 
 (defcustom alert-libnotify-command (executable-find "notify-send")
-  "Path to the notify-send command.
-This is found in the libnotify-bin package in Debian based
-systems."
+  "Path to the notify-send command. This is found in the libnotify-bin package in Debian based systems."
   :type 'file
-  :group 'alert)
-
-(defcustom alert-libnotify-additional-args
-  nil
-  "Additional args to pass to notify-send.
-Must be a list of strings."
-  :type '(repeat string)
   :group 'alert)
 
 (defcustom alert-libnotify-priorities
   '((urgent   . critical)
-    (high     . critical)
+    (high     . ncritical)
     (moderate . normal)
     (normal   . normal)
     (low      . low)
@@ -758,45 +508,25 @@ Must be a list of strings."
 
 (defun alert-libnotify-notify (info)
   "Send INFO using notify-send.
-Handles :ICON, :CATEGORY, :SEVERITY, :PERSISTENT, :NEVER-PERSIST, :TITLE
-and :MESSAGE keywords from the INFO plist.  :CATEGORY can be
-passed as a single symbol, a string or a list of symbols or
-strings."
+Handles :ICON, :CATEGORY, :SEVERITY, :PERSISTENT, :NEVER-PERSIST, :TITLE and :MESSAGE keywords from the INFO plist.
+:CATEGORY can be passed as a single symbol, a string or a list of symbols or strings."
   (if alert-libnotify-command
-      (let* ((args
-              (append
-               (list "--icon"     (or (plist-get info :icon) alert-default-icon)
-                     "--app-name" "Emacs"
-                     "--urgency"  (let ((urgency (cdr (assq
-                                                       (plist-get info :severity)
-                                                       alert-libnotify-priorities))))
-                                    (if urgency
-                                        (symbol-name urgency)
-                                      "normal")))
-               (copy-tree alert-libnotify-additional-args)))
-             (category (plist-get info :category)))
-        (nconc args
-               (list "--expire-time"
-                     (number-to-string
-                      (* 1000 ; notify-send takes msecs
-                         (if (and (plist-get info :persistent)
-                                  (not (plist-get info :never-persist)))
-                             0 ; 0 indicates persistence
-                           (plist-get info :timeout))))))
-        (when category
-          (nconc args
-                 (list "--category"
-                       (cond ((symbolp category)
-                              (symbol-name category))
-                             ((stringp category) category)
-                             ((listp category)
-                              (mapconcat (if (symbolp (car category))
-                                             #'symbol-name
-                                           #'identity)
-                                         category ","))))))
-        (nconc args (list
-                     (alert-encode-string (plist-get info :title))
-                     (alert-encode-string (plist-get info :message))))
+      (let* ((category (plist-get info :category))
+             (args (list (alert-encode-string (plist-get info :title))
+                         (alert-encode-string (plist-get info :message))
+                         "--icon"     (or (plist-get info :icon) alert-default-icon)
+                         "--app-name" "Emacs"
+                         "--urgency"  (let ((urgency (cdr (assq
+                                                           (plist-get info :severity)
+                                                           alert-libnotify-priorities))))
+                                        (if urgency (symbol-name urgency) "normal"))
+                         "--expire-time" (number-to-string
+                                          (* 1000 (if (and (plist-get info :persistent) (not (plist-get info :never-persist))) 0 (plist-get info :timeout)))))))
+        (if category
+            (nconc args
+                   (list "--category" (cond ((symbolp category) (symbol-name category))
+                                            ((stringp category) category)
+                                            ((listp category) (mapconcat (if (symbolp (car category)) #'symbol-name #'identity) category ","))))))
         (apply #'call-process alert-libnotify-command nil
                (list (get-buffer-create " *libnotify output*") t) nil args))
     (alert-message-notify info)))
@@ -806,20 +536,44 @@ strings."
                     :notifier #'alert-libnotify-notify)
 
 
+;;; dunstify
+
+(defcustom alert-dunstify-command (executable-find "dunstify")
+  "Path to the dunstify command."
+  :type 'file
+  :group 'alert)
+
+(defun alert-dunstify-notify (info)
+  "Send INFO using dunstify."
+  (if alert-dunstify-command
+      (let* ((id (plist-get info :id))
+             (args (list (alert-encode-string (plist-get info :title))
+                         (alert-encode-string (plist-get info :message))
+                         "-i" (or (plist-get info :icon) alert-default-icon)
+                         "-a" "Emacs"
+                         "-u" (let ((urgency (cdr (assq
+                                                   (plist-get info :severity)
+                                                   alert-libnotify-priorities))))
+                                (if urgency (symbol-name urgency) "normal"))
+                         "-t" (number-to-string
+                               (* 1000 (if (and (plist-get info :persistent) (not (plist-get info :never-persist))) 0 (plist-get info :timeout)))))))
+        (if id (nconc args (list "-r" (format "%s" id))))
+        (apply #'call-process alert-dunstify-command nil
+               (list (get-buffer-create " *dunstify output*") t) nil args))
+    (alert-message-notify info)))
+
+(alert-define-style 'dunstify :title "Notify using dunstify" :notifier #'alert-dunstify-notify)
+
+
 ;;; notifications
 
-(require 'notifications nil t)
-
-(defcustom alert-notifications-priorities
-  '((urgent   . critical)
-    (high     . critical)
-    (moderate . normal)
-    (normal   . normal)
-    (low      . low)
-    (trivial  . low))
-  "A mapping of alert severities onto Growl priority values."
-  :type '(alist :key-type symbol :value-type symbol)
-  :group 'alert)
+(defvar alert-notifications-priorities '((urgent   . critical)
+                                         (high     . critical)
+                                         (moderate . normal)
+                                         (normal   . normal)
+                                         (low      . low)
+                                         (trivial  . low))
+  "A mapping of alert severities onto Growl priority values.")
 
 (defvar alert-notifications-ids (make-hash-table :test #'equal)
   "Internal store of notification ids returned by the `notifications' backend.
@@ -830,6 +584,7 @@ by the `notifications' style.")
 
 (defun alert-notifications-notify (info)
   "Show the alert defined by INFO with `notifications-notify'."
+  (require 'notifications nil t)
   (let ((id (notifications-notify :title (plist-get info :title)
                                   :body  (plist-get info :message)
                                   :app-icon (plist-get info :icon)
@@ -859,18 +614,11 @@ by the `notifications' style.")
 
 ;;; notifier
 
-(defcustom alert-notifier-command (executable-find "terminal-notifier")
-  "Path to the terminal-notifier command.
-From https://github.com/julienXX/terminal-notifier."
-  :type 'file
-  :group 'alert)
+(defvar alert-notifier-command (executable-find "terminal-notifier")
+  "Path to the terminal-notifier command.")
 
-(defcustom alert-notifier-default-icon
-  (concat data-directory
-          "images/icons/hicolor/128x128/apps/emacs.png")
-  "Filename of default icon to show for terminal-notifier alerts."
-  :type 'string
-  :group 'alert)
+(defvar alert-notifier-default-icon (concat data-directory "images/icons/hicolor/128x128/apps/emacs.png")
+  "Filename of default icon to show for terminal-notifier alerts.")
 
 (defun alert-notifier-notify (info)
   (if alert-notifier-command
@@ -964,35 +712,20 @@ not change display, depending on the window manager)."
   "Call `x-urgent'."
   (x-urgent))
 
-(alert-define-style 'x11 :title "Set the X11 window property"
-                    :notifier #'alert-x11-notify)
+(alert-define-style 'x11 :title "Set the X11 window property" :notifier #'alert-x11-notify)
 
 
 ;;; toaster
 
-(defcustom alert-toaster-default-icon
-  (let ((exec-bin (executable-find "emacs.exe")))
-    (cond (exec-bin
-           (concat (file-name-directory exec-bin) "../share/icons/hicolor/128x128/apps/emacs.png"))
-          (t nil)))
-  "Icon file using toaster."
-  :type 'string
-  :group 'alert
-  )
-
-(defcustom alert-toaster-command (executable-find "toast")
-  "Path to the toast command.
-This is found at https://github.com/nels-o/toaster."
-  :type 'file
-  :group 'alert
-  )
+(defvar alert-toaster-command (executable-find "toast")
+  "Path to the toast command.")
 
 (defun alert-toaster-notify (info)
   (if alert-toaster-command
       (let ((args (list
                    "-t" (alert-encode-string (plist-get info :title))
                    "-m" (alert-encode-string (plist-get info :message))
-                   "-p" (expand-file-name (or (plist-get info :icon) alert-toaster-default-icon))
+                   "-p" (expand-file-name (or (plist-get info :icon) alert-default-icon))
                    )))
         (apply #'call-process alert-toaster-command nil nil nil args))
     (alert-message-notify info)))
@@ -1002,10 +735,8 @@ This is found at https://github.com/nels-o/toaster."
 
 ;;; powershell
 
-(defcustom alert-powershell-script (expand-file-name (loce "bin/x/ps-notify.ps1"))
-  "Script to send-notify under powershell."
-  :type 'string
-  :group 'alert)
+(defvar alert-powershell-script (expand-file-name (loce "bin/x/ps-notify.ps1"))
+  "Script to send-notify under powershell.")
 
 (defun powershell-send-notify (title message &optional timeout)
   (cl-flet ((normalize (input)
@@ -1018,15 +749,13 @@ This is found at https://github.com/nels-o/toaster."
                        (or timeout alert-default-fade-time))))
       (shell-command cmd))))
 
-(defun alert-powershell-nofity (info)
+(defun alert-powershell-notify (info)
   (let ((title (plist-get info :title))
         (message (plist-get info :message))
         (timeout (plist-get info :timeout)))
     (powershell-send-notify title message timeout)))
 
-(alert-define-style 'powershell
-                    :title "Notify using powershell under Windows"
-                    :notifier #'alert-powershell-nofity)
+(alert-define-style 'powershell :title "Notify using powershell under Windows" :notifier #'alert-powershell-notify)
 
 
 (provide 'alert)

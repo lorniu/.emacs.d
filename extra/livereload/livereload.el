@@ -33,6 +33,7 @@
 (require 'json)
 
 (defvar livereload--package-directory (file-name-directory load-file-name))
+(defvar livereload--listen-port 35729)
 
 (defvar livereload--server nil)
 (defvar livereload--connections nil)
@@ -80,7 +81,7 @@
     (unless command (error "no command in %s!" message))
     (livereload--event (livereload--keywordize command) message connection)))
 
-(defun livereload--handle-websocket-error (connection type errors)
+(defun livereload--handle-websocket-error (_connection type errors)
   (livereload--log "[ERROR] `%S': %s" type errors))
 
 (cl-defgeneric livereload--event (command message connection))
@@ -193,11 +194,12 @@
   (delete-process livereload--server)
   (livereload--log "Server shutdown"))
 
-(cl-defun livereload-start-server (&optional (listen-port 35729))
+(cl-defun livereload-start-server (&optional (listen-port livereload--listen-port))
   (interactive)
   (when (and livereload--server (process-live-p livereload--server))
     (livereload--log "deleting process %s first" livereload--server)
     (livereload-shutdown-server))
+  (setq livereload--listen-port listen-port)
   (setq livereload--server
         ;; we can't use `websocket-server' directly, since we want
         ;; to use a slightly different filter function that serves
@@ -216,6 +218,7 @@
                                                           (websocket-frame-payload f))))
                       :on-close (lambda (ws) (livereload--closed (websocket-conn ws)))
                       :on-error (lambda (ws &rest args) (apply #'livereload--handle-websocket-error (websocket-conn ws) args)))
+         :host "0.0.0.0"
          :service listen-port
          :sentinel (lambda (process change)
                      (livereload--log "%s changed state to %s. Killing." process change)
@@ -365,11 +368,22 @@ to it in the future.")
 
 (require 'simple-httpd)
 
-(defvar livereload--httpd-port 5656)
+(defvar livereload-port 5659)
 
 (defun livereload--body-decorator (mime body)
   (if (string-prefix-p "text/html" mime)
-      (format "%s\n\n<script src=\"http://localhost:35729/livereload.js\"></script>" body)
+      (format "%s
+
+<livereload>
+  <script>
+    !function () {
+      let s = document.createElement('script');
+      s.src = location.protocol + '//' + location.hostname + ':%d/livereload.js';
+      document.querySelector('livereload').appendChild(s);
+    }();
+  </script>
+</livereload>
+" body livereload--listen-port)
     body))
 
 (defun liveload ()
@@ -378,10 +392,10 @@ to it in the future.")
   (livereload-mode 1)
   ;; open http server, with script inject.
   (httpd-start :root default-directory
-               :port livereload--httpd-port
+               :port livereload-port
                :cache nil
                :body-decorator 'livereload--body-decorator)
-  (message "Serving %s in port %s" default-directory livereload--httpd-port))
+  (message "Serving %s in port %s" default-directory livereload-port))
 
 (defun liveview ()
   (interactive)
@@ -399,7 +413,7 @@ to it in the future.")
                          "")))
                     (t ""))))
     (browse-url (format "http://localhost:%d/%s"
-                        livereload--httpd-port
+                        livereload-port
                         (url-hexify-string rel)))))
 
 

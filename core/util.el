@@ -52,14 +52,29 @@
      (cl-letf (((symbol-function 'undo-boundary) (lambda ()))) ,@body)
      (undo-boundary)))
 
-(defmacro pm (expr)
-  `(progn (pp (macroexpand-1 ',expr)) t))
-
 (defmacro im/profile (&rest body)
   "Profiler BODY form."
   `(progn (profiler-start 'cpu)
           (ignore-errors ,@body (profiler-report))
           (profiler-stop)))
+
+(defmacro with-scratchpad-name (name &rest body)
+  "Provide for Named Scratchpad in XMonad."
+  (declare (indent 1))
+  `(progn (select-frame (make-frame '((name . ,name))))
+          ,@body))
+
+(defmacro pp/macro (expr)
+  `(progn (pp (macroexpand-1 ',expr)) t))
+
+(defmacro pp/list (lst)
+  `(cl-loop for i in ,lst
+            do (princ i) (terpri)
+            finally (return
+                     (let ((v [:length nil :items nil]))
+                       (aset v 1 (length ,lst))
+                       (aset v 3 ,lst)
+                       v))))
 
 
 ;;; Utils
@@ -67,10 +82,6 @@
 (defun list-nn (&rest elements)
   "Make ELEMENTS to list, ignore nil."
   (cl-loop for e in elements when (not (null e)) collect e))
-
-(defun ppl (list)
-  "Print print LIST"
-  (dolist (l list t) (princ l) (terpri)))
 
 (defun time-str (&optional time nano)
   "Format TIME to String. if TIME is nil, return current time."
@@ -110,12 +121,9 @@
   (with-temp-buffer
     (if (string-match-p "^\\(http\\|file://\\)" file)
         (url-insert-file-contents file)
-      (insert-file-contents-literally file))
-    (let ((buffer-string (buffer-substring-no-properties
-                          (point-min) (point-max))))
-      (if callback
-          (funcall callback buffer-string)
-        (buffer-string)))))
+      (insert-file-contents file))
+    (let ((bs (buffer-substring-no-properties (point-min) (point-max))))
+      (if callback (funcall callback bs) bs))))
 
 (defmacro im/open-file-view (file &rest args)
   "Open a FILE with View-Mode."
@@ -153,16 +161,39 @@
   "Join ITEMS as \\(aaa\\)\\|\\(bbb\\) style."
   (mapconcat (lambda (x) (format "\\(%s\\)" x)) items "\\|"))
 
-(defun current-vm-p ()
-  "Judge if this is a VM host. Can used in BSD now."
-  (cl-find-if (lambda (x) (string-prefix-p "vtnet" (car x)))
-              (network-interface-list)))
+(defun assoc-for (alist &rest keys)
+  "Recursively find KEYs in ALIST."
+  (while keys
+    (setq alist (cdr (assoc (pop keys) alist))))
+  alist)
+
+(defun file-name-parent-directory (dir)
+  "Get the parent directory for current DIR."
+  (when (and dir (not (equal "/" dir)))
+    (file-name-directory (directory-file-name dir))))
+
+(defun im/thing-at-region-or-point (&optional thing)
+  "Return string at point. Region first, THING then."
+  (if (use-region-p)
+      (buffer-substring-no-properties (region-beginning) (region-end))
+    (cond ((functionp thing) (funcall thing))
+          ((symbolp thing) (thing-at-point (or thing 'word) 'no-properties))
+          (t thing))))
 
 
-;;; Wrap
+;;; Wraps
 
-(defmacro add-hook-fun (hook params &rest body)
-  "Usage: (add-hook-fun hook-name/tag () xxx), tag can be ignored."
+(defmacro >>init>> (&rest body)
+  `(add-to-list 'after-init-hook (defun my-after-init-do-something () ,@body)))
+(defmacro >>face>> (&rest body)
+  `(with-eval-after-load 'face ,@body))
+
+(defun loce (subpath &optional nullp) (let ((f (locate-user-emacs-file-origin subpath))) (if (or (not nullp) (file-exists-p f)) (expand-file-name f))))
+(defun locc (&optional subpath nullp) (let ((f (locate-user-emacs-file (or subpath "./")))) (if (or (not nullp) (file-exists-p f)) (expand-file-name f))))
+(defun loco (subpath &optional nullp) (let ((f (expand-file-name subpath org-directory))) (if (or (not nullp) (file-exists-p f)) f)))
+
+(defmacro defun-hook (hook params &rest body)
+  "Usage: (defun-hook hook-name/tag () xxx), tag can be ignored."
   (declare (indent defun))
   (let* ((sym-name (symbol-name hook))
          (name-arr (split-string sym-name "hook/"))
@@ -177,122 +208,22 @@
        ,hook-name)))
 
 (cl-macrolet ((generate-all-defun:where-macros
-                  nil
-                `(progn
-                   ,@(cl-loop for where in (mapcar 'car advice--where-alist)
-                        collect
-                          `(defmacro ,(intern (format "defun%s" where)) (advice-name params &rest body)
-                             ,(format "Usage: (defun%s function$label (args) body), tag cannot be ignored." where)
-                             (declare (indent defun))
-                             (let* ((fun-arr (split-string (symbol-name advice-name) "\\$"))
-                                    (fun-name (intern (car fun-arr))))
-                               (unless (cdr fun-arr)
-                                 (user-error "Advice name not available"))
-                               `(progn
-                                  (defun ,advice-name ,params ,@body)
-                                  (advice-add #',fun-name ,,where #',advice-name)
-                                  (list ',fun-name ,,where ',advice-name))))))))
+               nil
+               `(progn
+                  ,@(cl-loop for where in (mapcar 'car advice--where-alist)
+                             collect
+                             `(defmacro ,(intern (format "defun%s" where)) (advice-name params &rest body)
+                                ,(format "Usage: (defun%s function$label (args) body), tag cannot be ignored." where)
+                                (declare (indent defun))
+                                (let* ((fun-arr (split-string (symbol-name advice-name) "\\$"))
+                                       (fun-name (intern (car fun-arr))))
+                                  (unless (cdr fun-arr)
+                                    (user-error "Advice name not available"))
+                                  `(progn
+                                     (defun ,advice-name ,params ,@body)
+                                     (advice-add #',fun-name ,,where #',advice-name)
+                                     (list ',fun-name ,,where ',advice-name))))))))
   (generate-all-defun:where-macros))
-
-
-;;; Help/Tip/Info
-
-(defun log/it (&rest args)
-  "Output messsage to a buffer. Usage: (log/it [buffer-name] fmtString variable)."
-  (let ((buffer-name (if (symbolp (car args))
-                         (prog1 (symbol-name (car args))
-                           (setq args (cdr args)))
-                       "*logger*")))
-    (with-current-buffer (get-buffer-create buffer-name)
-      (local-set-key (kbd "q") 'bury-buffer)
-      (goto-char (point-max))
-      (insert "\n")
-      (insert (apply 'format args)))))
-
-(defmacro deftips (name args format-string &rest str-args)
-  "Open an org buffer to show the information.
-Plist ARGS can be :buffer/line/pre/post/startup/title/notitle."
-  `(defun ,name ()
-     (interactive)
-     (let ((bn ,(or (plist-get args :buffer) "*Help-Tip*")))
-       (with-output-to-temp-buffer bn
-         (with-current-buffer bn
-           (let ((inhibit-read-only t))
-             ,(aif (plist-get args :pre) `(insert ,(format "%s\n" it)))
-             (insert ,(cl-loop for startup in (aif (plist-get args :startup) (if (listp it) it (list it)) nil)
-                         concat (format "#+STARTUP: %s\n" startup)))
-             ,(unless (plist-get args :notitle)
-                `(insert ,(format "#+TITLE: %s\n\n" (or (plist-get args :title) name))))
-             (insert
-              ,(if (null str-args) format-string
-                 (apply #'format format-string
-                        (cl-loop for sa in str-args
-                           for s = (eval sa)
-                           collect (if (string-match "^\\(.*\\) \\(-+\\)$" s)
-                                       (concat (match-string 1 s)
-                                               (cl-loop for i below (length (match-string 2 s)) concat "\n"))
-                                     s)))))
-             ,(aif (plist-get args :post) `(progn ,it))
-             (set-buffer-modified-p nil)
-             (goto-char (point-min))
-             (forward-line ,(or (plist-get args :line) 4)))
-           (org-mode)
-           (view-mode 1)
-           (make-local-variable 'view-mode-map)
-           (define-key view-mode-map "q" 'View-kill-and-leave)
-           (pop-to-buffer bn))))))
-
-(defmacro defhelper (name &rest doc-strings)
-  "Make a helper function of NAME-helper to show the DOC-STRINGS."
-  (let ((fun-name (intern (concat "h/" (symbol-name name))))
-        (doc-string (mapconcat 'identity doc-strings "\n")))
-    `(defun ,fun-name () ,doc-string
-            (interactive)
-            (describe-function ',fun-name))))
-
-(defmacro defreference (name &rest refs)
-  "Make a function of NAME to browse the REFS."
-  (let* ((flatten (cl-loop for item in refs
-                           if (stringp item) collect item
-                           if (listp item) append
-                           (if (stringp (car item))
-                               (cl-loop for r in item collect (eval r))
-                             (list (eval item)))))
-         (consed (if (null flatten) (user-error "No suitable reference.")
-                   (cl-loop for item in flatten
-                            if (string-match "^\\(.*\\): \\(.*\\)$" item) collect
-                            (cons (match-string 2 item) (match-string 1 item))
-                            else collect (cons item nil))))
-         (formatted (cl-loop for item in consed
-                             for ref = (car item)
-                             if (not (string-prefix-p "http" ref)) do
-                             (setq ref (format "https://github.com/%s" ref))
-                             collect (cons ref (cdr item))))
-         (propertized (cl-loop with face = 'font-lock-doc-face
-                               for item in formatted
-                               for label = (cdr item)
-                               if label do
-                               (let ((len (cl-loop for i in formatted if (cdr i) maximize (1+ (length (car i))))))
-                                 (setq label (format (format "%%-%ds (%%s)" len) (car item) label))
-                                 (add-face-text-property (length (car item)) (length label) face nil label))
-                               else do
-                               (setq label (car item))
-                               collect label))
-         (fun (intern (format (concat (unless (string-match-p "/" (symbol-name name)) "ref/") (if (cdr flatten) "%s*" "%s")) name))))
-    `(defun ,fun ()
-       ,(format "%s\n\nBrowser/Yank it." propertized)
-       (interactive)
-       (let* ((refs ',propertized)
-              (selectrum-should-sort-p nil)
-              (selectrum-minibuffer-map (let ((map (copy-keymap selectrum-minibuffer-map)))
-                                          (define-key map (kbd "M-w")
-                                            (selectrum-make-action (ref)
-                                              (setq ref (car (split-string ref " ")))
-                                              (kill-new ref)
-                                              (message "Copy REF: %s" ref)))
-                                          map))
-              (ref (car (split-string (completing-read "REF: " refs nil t) " "))))
-         (browse-url ref)))))
 
 
 (provide 'util)

@@ -2,33 +2,10 @@
 ;;; Commentary:
 ;;; Code:
 
-(defgroup imfine nil "Private custom variables"
-  :group 'emacs
-  :prefix "ic/")
-
-(when (and IS-WIN (null (getenv "HOME")))
-  (setenv "HOME" (getenv "USERPROFILE")))
-
-(setq user-full-name "imfine"
-      user-mail-address "lorniu@gmail.com"
-
-      inhibit-startup-message t
-      gnus-inhibit-startup-message t
-      auto-mode-case-fold nil
-      enable-local-eval t
-      enable-local-variables :all
-
-      byte-compile-warnings '(cl-functions))
-
-(setf (symbol-function 'loce-origin) (symbol-function 'locate-user-emacs-file))
-(defun:override locate-user-emacs-file$ (new-name &optional _) (expand-file-name new-name ic/cache-dir))
-
-(defun loce (subpath &optional nullp) (let ((f (loce-origin subpath))) (if (or (not nullp) (file-exists-p f)) (expand-file-name f))))
-(defun locc (&optional subpath nullp) (let ((f (locate-user-emacs-file (or subpath "./")))) (if (or (not nullp) (file-exists-p f)) (expand-file-name f))))
-(defun loco (subpath &optional nullp) (let ((f (expand-file-name subpath org-directory))) (if (or (not nullp) (file-exists-p f)) f)))
-
-
 ;;; Customization
+
+(defgroup imfine nil "Private custom variables"
+  :group 'emacs :prefix "ic/")
 
 (defcustom org-directory (let ((d "~/.notes")) (expand-file-name (if (file-exists-p d) d "~/org")))
   "Main Directory for GTD/Notes/Diary and others."
@@ -42,25 +19,29 @@
   "Cache Directory"
   :type 'string)
 
-(defcustom ic/elpa-use-mirror (if (current-vm-p) nil t)
-  "Elpa use mirror or not."
-  :type 'boolean)
+(defcustom ic/external-paths (list (loce "bin/x") (loco "x.bin"))
+  "Extend the PATH environment."
+  :type '(repeat string))
 
-(defcustom ic/package-lock-alist nil
-  "Packages to disable or redirect. ((p . v)), v should be version/nil/dir."
+(defcustom ic/external-load-path-tops (list (loco "x.share/emacs/"))
+  "Extra load-path root."
+  :type 'list)
+
+(defcustom ic/elpa-repo-type (if (getenv "VPS") :origin)
+  "Which elpa repo `package.el' will use."
+  :type 'symbol)
+
+(defcustom ic/package-load-alist nil
+  "Packages to disable or redirect: (('xxx' . nil|version|directory))"
   :type 'list)
 
 (defcustom ic/faces nil
   "(:title a :font (cons b 120) :theme c)"
   :type 'list)
 
-(defcustom ic/external-paths (list (loce "bin/x") (loco "x.bin"))
-  "Extend the PATH environment."
-  :type '(repeat string))
-
-(defcustom ic/external-load-path-top nil
-  "Extra load-path root."
-  :type 'list)
+(defcustom ic/find-file-readonly-regexp nil
+  "Regexp to decide whether file should be readonly after opened."
+  :type 'string)
 
 ;;
 (defcustom ic/my-postgres (list "postgres" "root")
@@ -71,132 +52,114 @@
   "Common Lisp init file."
   :type 'file)
 
-(defcustom ic/feeds-org-file (or (loco "000/favors.org" t) (loce "elfeeds.org"))
-  "Feeds Used for `elfeed', an org file."
-  :type 'string)
-
-;;
-(defcustom ic/favorites nil
-  "Favorite files, used by `im/view-favorites'."
-  :type '(alist :key-type string))
-
-(defcustom ic/favorite-filter nil
-  "Extra filter. A function to filter current ITEM."
-  :type 'string)
-
 ;;
 (defcustom ic/proxy-type nil
-  "Which proxy to use, http or sock."
-  :type 'symbol
-  :group 'imfine)
+  "Which proxy to use, :http or :sock."
+  :type 'keyword)
 
 (defcustom ic/proxy-sock '("Default server" "127.0.0.1" 1080 5)
   "Socket proxy default value."
   :type 'list)
 
-(defcustom ic/proxy-http '("127.0.0.1:8118" nil nil)
+(defcustom ic/proxy-http '("127.0.0.1:1081" nil nil)
   "Http proxy default value: (url user password)"
   :type 'string )
 
-
-;;; Helpers
+(defcustom ic/system-terminal (if IS-WIN "start cmd %s"
+                                "alacritty --working-directory %s -t floater")
+  "System terminal, %s for workding directory."
+  :type 'string)
 
-(defun imup ()
-  (if ic/up (if (string-match-p "@" ic/up) ic/up (concat "vip@" ic/up))))
-
-(defun up-host ()
-  (aif (and ic/up (split-string (imup) "@")) (cadr it)))
-
-(defun up-user ()
-  (aif (and ic/up (split-string (imup) "@")) (car it)))
-
-(defmacro >>face>> (&rest body)
-  `(with-eval-after-load 'face ,@body))
-
-(defmacro >>init>> (&rest body)
-  `(add-to-list 'after-init-hook
-                (defun my-after-init-do-something ()
-                  ,@body)))
+;;
+(defcustom ic/shengciben (loco "000/words.org")
+  "Shengciben"
+  :type 'string)
 
 
-;;; System-Variables
+;;; Variables
 
-(setq track-eol t
-      visible-bell nil
+(setq user-full-name "imfine"
+      user-mail-address "lorniu@gmail.com"
+
+      inhibit-startup-message t
+      gnus-inhibit-startup-message t
+      auto-mode-case-fold nil
+      enable-local-eval t
+      enable-local-variables :all
+
+      byte-compile-warnings '(cl-functions))
+
+(setq visible-bell nil
+      track-eol t
       ring-bell-function 'ignore
       confirm-kill-processes nil
       disabled-command-function nil
       inhibit-compacting-font-caches t
-      custom-unlispify-tag-names nil
+      custom-unlispify-tag-names nil)
 
-      scroll-step 1
+(setq scroll-step 1
       scroll-margin 0
       scroll-conservatively 101
       scroll-preserve-screen-position t
       auto-window-vscroll nil
       hscroll-step 1
-      hscroll-margin 1
+      hscroll-margin 1)
 
-      resize-mini-windows t
+(setq resize-mini-windows t
       enable-recursive-minibuffers t
       column-number-mode 1
-      fringes-outside-margins t
+      fringes-outside-margins t)
 
-      kill-do-not-save-duplicates t
+(setq kill-do-not-save-duplicates t
       kill-ring-max 250
       mark-ring-max 10
       select-enable-clipboard t
       select-enable-primary nil
-      delete-by-moving-to-trash t
-      trash-directory (locc "trash")
+      delete-by-moving-to-trash t)
 
-      use-dialog-box nil
+(setq use-dialog-box nil
       woman-use-own-frame nil
       help-window-select t
       mouse-autoselect-window -0.05
       x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)
 
       man-notify-method 'pushy
-      ad-redefinition-action 'accept
-
-      create-lockfiles nil
-      backup-directory-alist `((".*" . ,(locc "backup-files/")))
-
-      auto-save-interval 0
-      auto-save-visited-file-name t
-      auto-save-no-message t
-      auto-save-file-name-transforms `((".*" ,temporary-file-directory t))
-      auto-save-list-file-prefix (locc (if IS-WIN "auto-save.list/_s" "auto-save-list/.saves-"))
-      auto-save-list-file-name (expand-file-name "hahahaha~" auto-save-list-file-prefix ))
+      ad-redefinition-action 'accept)
 
 (setq-default tab-width 4
 	          indent-tabs-mode nil
 	          truncate-lines t)
 
+(fset 'yes-or-no-p 'y-or-n-p)
+
+
+;;; Enviroments
+
 (setenv "TZ" "PRC")
 (setenv "LC_COLLATE" "C")
 (setenv "LC_ALL" "en_US.UTF-8")
 
-(fset 'yes-or-no-p 'y-or-n-p)
+(when (and IS-WIN (null (getenv "HOME")))
+  (setenv "HOME" (getenv "USERPROFILE")))
 
 
 ;;; Load/Exec Path
 
-(when IS-WIN
-  (add-to-list 'ic/external-paths (loce "bin/w") t))
+(with-eval-after-load 'predist ; make sure these are added before 'elpa/*' items
+  (cl-loop for d in ic/external-paths
+           if (file-exists-p d) do
+           (setenv "PATH" (concat d (if IS-WIN ";" ":") (getenv "PATH")))
+           (add-to-list 'exec-path d))
 
-(cl-loop for d in ic/external-paths
-         if (file-exists-p d) do
-         (setenv "PATH" (concat d (if IS-WIN ";" ":") (getenv "PATH")))
-         (add-to-list 'exec-path d))
+  (when IS-WIN (add-to-list 'ic/external-paths (loce "bin/w") t))
 
-(cl-loop for root in (append ic/external-load-path-top (list (loce "extra") (loce "fork")))
-         for dirs = (directory-files root t)
-         do (cl-loop for dir in dirs
-                     if (and (not (eq (file-name-extension dir) "")) (file-directory-p dir)) do
-                     (add-to-list 'load-path dir)))
+  (cl-loop for root in (append ic/external-load-path-tops (list (loce "extra") (loce "fork")))
+           for dirs = (ignore-errors (directory-files root t))
+           do (cl-loop for dir in dirs
+                       if (and (not (eq (file-name-extension dir) "")) (file-directory-p dir)) do
+                       (add-to-list 'load-path dir))))
 
-(add-to-list 'custom-theme-load-path (loce "extra/themes"))
+(add-to-list 'custom-theme-load-path (loce "themes"))
 
 
 ;;; Custom File
@@ -215,11 +178,8 @@
   (with-temp-file custom-file (insert (format ";; %s" (system-name)))))
 
 (defun:around custom-set-faces$defer-run (f &rest args)
-  "`custom-set-face' has highest period!"
-  (add-hook-fun after-init-hook/defer-custom () (apply f args)))
-
-(custom-set-variables)
-(custom-set-faces)
+  ;; "`custom-set-face' has highest period!"
+  (defun-hook after-init-hook/defer-custom () (apply f args)))
 
 (load custom-file t t)
 
@@ -227,7 +187,11 @@
 ;;; Proxy
 
 (setq url-gateway-local-host-regexp
-      (concat "^" (regexp-opt '("localhost" "127.0.0.1" "192.168." "10."))))
+      (concat "^"
+              (regexp-opt
+               '("localhost"
+                 "127.0.0.1"
+                 "192.168." "10."))))
 
 (defun im/curl-options--replace-proxy (&optional proxy)
   (if (and (boundp 'request-curl-options) request-curl-options)
@@ -244,20 +208,21 @@
     (push "-x" request-curl-options)))
 
 (defun im/proxy (&optional type)
-  (interactive (list (intern (completing-read "type: " '(disable SOCK HTTP) nil t))))
-  (cond ((eq type 'HTTP)
+  (interactive (list (intern (completing-read "type: " '(disable :sock :http) nil t))))
+  (cond ((eq type :http)
          (let ((url (car ic/proxy-http))
                (user (cadr ic/proxy-http))
                (password (caddr ic/proxy-http)))
-           (setq url-gateway-method 'native socks-server nil)
-           (setq url-proxy-services `(("no_proxy" . ,url-gateway-local-host-regexp)
+           (setq url-gateway-method 'native
+                 socks-server nil
+                 url-proxy-services `(("no_proxy" . ,url-gateway-local-host-regexp)
                                       ("http" . ,url)
                                       ("https" . ,url)))
            (im/curl-options--replace-proxy url)
            (when user
              (setq url-http-proxy-basic-auth-storage `((,url (,user . ,password)))))
            (message "Http proxy %s enabled." url)))
-        ((eq type 'SOCK)
+        ((eq type :sock)
          (setq url-gateway-method 'socks
                socks-server ic/proxy-sock
                url-proxy-services nil)
@@ -273,159 +238,141 @@
 (if ic/proxy-type (im/proxy ic/proxy-type)) ; initial proxy
 
 
-;;; Favorites
+;;; Preferences
 
-(defvar favorites-default
-  '(("notes/"                   org-directory  :project)
-    ("emacs/"                   (loce "core/") :project)
-    ("emacs.cache/"             (locc))
-    ("conf: emacs.private-init" custom-file)
-    ("conf: xmonad.hs"          (loce "share/xmonad/xmonad.hs"))
+(setq auto-mode-alist
+      (append '(("\\.class\\'"           . class-mode)
+                ("\\.scm\\'"             . scheme-mode)
+                ("\\.\\(ba\\)?sh\\'"     . sh-mode)
+                ("\\.\\(ini\\|inf\\)\\'" . conf-mode))
+              auto-mode-alist))
 
-    ("host: Dropbox"            "https://dropbox.com")
-    ("host: MvnRepository"      "https://mvnrepository.com")
+(setq jka-compr-compression-info-list
+      (prog1 ;; for .rar, you should install `unarchiver'
+          (append `(["\\.plist$"
+                     "converting text XML to binary plist" "plutil" ("-convert" "binary1" "-o" "-" "-")
+                     "converting binary plist to text XML" "plutil" ("-convert" "xml1" "-o" "-" "-")
+                     nil nil "bplist"])
+                  jka-compr-compression-info-list)
+        (jka-compr-update)))
 
-    ((format "ssh: %s" (imup))  (format "/ssh:%s:~/" (imup))                         (imup))
+(setq display-buffer-alist
+      `(("\\*Compile-Log\\*"            ; regexp to filter buffer-name
+         (display-buffer-reuse-window)  ; functions to deal with display
+         (window-height . 0.3)          ; parameters to pass to functions above
+         (window-width . 0.3))
 
-    ("sys: /usr/local/"         "/sudo::/usr/local/"                                 IS-BSD)
-    ("sys: /etc/systemd/"       "/sudo::/etc/systemd/system/multi-user.target.wants" (file-directory-p "/etc/systemd"))
-    ("sys: pacman.conf"         "/sudo::/etc/pacman.conf"                            (file-exists-p "/etc/pacman.conf"))
-    ("sys: Windows Homepath"    (concat (getenv "HOMEDRIVE") (getenv "HOMEPATH"))    IS-WIN))
-  "((label path modes)+)")
+        ("\\*[cC]ompilation\\*"
+         (display-buffer-reuse-window display-buffer-at-bottom))
 
-(defun im/view-favorites ()
-  "View the favorites. 3rd args can be :interactive/:readonly/IS-LINUX..."
-  (interactive)
-  (cl-labels ((label-tag (label) ; (host/x xxx host)
-                         (if (string-match-p ": " label)
-                             (let ((ret (split-string label ": ")))
-                               (append ret (list (if (string-match-p "/" (car ret))
-                                                     (car (split-string label "/"))
-                                                   (car ret)))))))
-              (db-p (label)
-                    (string-match-p "^db:" label))
-              (host-p (label)
-                      (aif (label-tag label) (string-match-p "^host" (car it)))))
-    (let* ((selectrum-should-sort-p nil)
-           (selectrum-minibuffer-map (let ((map (copy-keymap selectrum-minibuffer-map)))
-                                       (define-key map (kbd "TAB") 'selectrum-select-current-candidate)
-                                       map))
-           (candidates (mapcar (lambda (item)
-                                 (let ((label (car item)) (path (cadr item)))
-                                   (when (not (stringp label))
-                                     (setq label (eval label)))
-                                   (when (and (not (db-p label)) (not (stringp path)))
-                                     (setq path (eval path)))
-                                   ;; face
-                                   (cond ((listp path))
-                                         ((file-remote-p path)
-                                          (setq label (propertize label 'face '(:weight bold))))
-                                         ((file-directory-p path)
-                                          (setq label (propertize label 'face dired-directory-face))))
-                                   ;; tag/format
-                                   (aif (label-tag label)
-                                     (setq label
-                                           (cond ((db-p label)
-                                                  (format "%-6s %s"
-                                                          (propertize (concat (car it) ":") 'face 'font-lock-keyword-face)
-                                                          (cadr it)))
-                                                 ((host-p label)
-                                                  (format "%-22s %s"
-                                                          (format "%-6s %s"
-                                                                  (propertize (concat (car it) ":") 'face dired-header-face)
-                                                                  (cadr it))
-                                                          (propertize (concat "(" path ")") 'face dired-ignored-face)))
-                                                 (t
-                                                  (format "%-6s %s"
-                                                          (propertize (concat (car it) ":") 'face 'font-lock-string-face)
-                                                          (cadr it))))))
-                                   (append (list label path) (cddr item))))
-                               (append ic/favorites favorites-default)))
-           (candidates-refind (cl-remove-if-not
-                               (lambda (item)
-                                 (let ((label (car item)) (path (cadr item))
-                                       (sex-p (cl-find-if 'listp (cddr item))))
-                                   (and path
-                                        (not (cl-find :disabled (cddr item)))
-                                        (or (null sex-p)
-                                            (eval sex-p))
-                                        (or (null ic/favorite-filter)
-                                            (not (funcall ic/favorite-filter item)))
-                                        (or (db-p label)
-                                            (host-p label)
-                                            (file-remote-p path)
-                                            (file-exists-p path)))))
-                               (append
-                                (cl-remove-if #'label-tag candidates :key 'car)
-                                (cl-sort (cl-remove-if-not #'label-tag candidates :key 'car)
-                                         (lambda (x y)
-                                           (let ((tag-x (label-tag x))
-                                                 (tag-y (label-tag y))
-                                                 (host-x-p (host-p x))
-                                                 (host-y-p (host-p y)))
-                                             (cond ((and host-x-p (not host-y-p)) nil)
-                                                   ((and host-y-p (not host-x-p)) t)
-                                                   ((and tag-x tag-y
-                                                         (string-equal (caddr tag-x) (caddr tag-y))
-                                                         (not (string-equal (car tag-x) (car tag-y))))
-                                                    (< (length (car tag-x)) (length (car tag-y))))
-                                                   (t (string-lessp x y)))))
-                                         :key #'car))))
-           (candidate (completing-read "Favor: " candidates-refind nil t nil nil (caar candidates-refind)))
-           (item (or (cl-find-if (lambda (c) (string= (car c) candidate)) candidates-refind) (user-error "Nothing to do.")))
-           (label (car item))
-           (path (cadr item))
-           (modes (cddr item)))
-      (cond ((db-p label) ; DB link
-             (sql-connect (car path)))
+        ("\\*Messages\\*"
+         (display-buffer-reuse-window display-buffer-at-bottom)
+         (reusable-frames . t))
 
-            ((host-p label) ; HOST link
-             (condition-case _ (browse-url path)
-               (error (browse-web path))))
+        ("\\*Youdao Dictionary\\*\\|\\*Help\\*\\|\\*Shell Command Output\\*"
+         (display-buffer-reuse-window display-buffer-at-bottom)
+         (window-height . 0.3)
+         (reusable-frames . t))
 
-            ;; directory
-            ((and (file-directory-p path) (memq :project modes))
-             (let ((default-directory path))
-               (call-interactively 'projectile-find-file)))
-            ((and (file-directory-p path) (memq :project-dir modes))
-             (let ((default-directory path))
-               (call-interactively 'projectile-find-dir)))
-            ((file-directory-p path)
-             (let ((default-directory path))
-               (call-interactively 'dired)))
+        ("\\*\\(e?shell[-+]?\\|PowerShell\\|Python\\)\\*\\|[-+]\\(shell\\)[-+]"
+         (display-buffer-same-window)
+         (reusable-frames . t))
 
-            ((memq :readonly modes) (im/open-file-view path))
-            (t (find-file path))))))
+        ("\\*Async Shell Command\\*"
+         (%display-buffer-at-bottom-follows-with-quit)
+         (window-height . 0.3))
 
-(defun im/add-favorite (label path &optional first-p mode)
-  "Add new file to `ic/favorites', MODE can be :interactive/:project/:project-dir/:readonly or (show-condition)."
-  (interactive (let ((f (read-file-name "Choose File: " nil nil t)))
-                 (list (file-name-nondirectory f) f)))
-  (if (and (not (string-prefix-p "db" label))
-           (not (string-prefix-p "host" label))
-           (not (file-remote-p path))
-           (not (file-exists-p path)))
-      (user-error "Failed, file '%s' Not Found." path)
-    (let ((favor (list label path)))
-      (if mode (setq favor (append favor (list mode))))
-      (add-to-list 'ic/favorites favor (not first-p)))
-    (if (called-interactively-p 'any) (message "Favor file '%s' added successfully." label) label)))
+        ("." nil (reusable-frames . t))))
+
+(defun %display-buffer-at-bottom-follows-with-quit (buffer alist)
+  (display-buffer-at-bottom buffer alist)
+  (select-window (get-buffer-window buffer))
+  (with-current-buffer buffer (view-mode 1)))
+
+;; sudo edit
+(cl-loop with sudo-face
+         = (lambda ()
+             (when (string-equal (file-remote-p (or buffer-file-name default-directory) 'user) "root")
+               (setq header-line-format (propertize " Edit as ROOT! " 'face '(:foreground "white" :background "red3")))))
+         for hook in '(find-file-hook dired-mode-hook)
+         do (add-hook hook sudo-face)
+         finally
+         (defun su ()
+           "Edit file as Super User."
+           (interactive)
+           (let ((pt (point)) (old-buf (current-buffer))
+                 (buf-name (expand-file-name (or buffer-file-name default-directory))))
+             (setq buf-name (or (file-remote-p buf-name 'localname) (concat "/sudo::" buf-name)))
+             (cl-letf (((symbol-function 'server-buffer-done) (lambda (__ &optional _) nil)))
+               (find-file buf-name))
+             (kill-buffer-if-not-modified old-buf)
+             (goto-char pt))))
+
+;; read-only filter
+(defun-hook find-file-hook/readonly ()
+  "Files that should be readonly."
+  (let* ((case-fold-search nil)
+         (match? (lambda (&rest items) (string-match-p (apply #'join-as-regor-group items) buffer-file-name))))
+    (when (or (and ic/find-file-readonly-regexp
+                   (string-match-p ic/find-file-readonly-regexp buffer-file-name))
+              (and (not
+                    (funcall match? ; exclude
+                             "/usr/home"
+                             "\\.cache/" "tmp/" "vvv/" "notes"
+                             "autoloads.el$" "loaddefs.el$"))
+                   (funcall match? ; include
+                            "^/usr/"
+                            ".emacs.d/packages"
+                            ".roswell/lisp/quicklisp")))
+      (view-mode 1)
+      (make-local-variable 'view-mode-map)
+      (define-key view-mode-map "q" 'View-kill-and-leave))))
+
+;; clean before save
+(defun-hook before-save-hook/cleanup ()
+  (unless (cl-find major-mode '(org-mode))
+    (delete-trailing-whitespace)))
+
+;; auto byte-compile
+(defun-hook after-save-hook/bytecompile ()
+  (when nil
+    (save-window-excursion
+      (when (and (eq major-mode 'emacs-lisp-mode)
+                 (string-match-p "^[a-z1-9]" (buffer-name))
+                 (string-match-p "\\/\\.emacs\\.d\\/\\(core\\|extra\\)\\/" (buffer-file-name)))
+        (byte-compile-file (buffer-file-name))))))
 
 
-;;; References
+;;; Miscellaneous Helpers
 
-(defreference emacs
-  ("https://gnu.org/software/emacs/download.html"
-   "Windows Mirror: http://mirrors.ustc.edu.cn/gnu/emacs/windows/"
-   "Alpha Version: https://alpha.gnu.org/gnu/emacs/pretest/windows/"
-   "elc -> eln: http://akrl.sdf.org/gccemacs.html"
-   "Melpa Homepage: https://melpa.org/#/"
-   "Melpa Github: https://github.com/melpa/melpa"
-   "Config: hlissner/doom-emacs"))
+(defun imup ()
+  (if ic/up (if (string-match-p "@" ic/up) ic/up (concat "vip@" ic/up))))
 
-(defreference downloads
-  ("SQLite3: https://sqlite.org/download.html"
-   "Graphviz: http://graphviz.org/download/"))
+(defun up-host ()
+  (aif (and ic/up (split-string (imup) "@")) (cadr it)))
+
+(defun up-user ()
+  (aif (and ic/up (split-string (imup) "@")) (car it)))
+
+(defun log/it (&rest args)
+  "Output messsage to a buffer. Usage: (log/it [buffer-name] fmtString variable)."
+  (let ((buffer-name (if (symbolp (car args))
+                         (prog1 (symbol-name (car args))
+                           (setq args (cdr args)))
+                       "*logger*")))
+    (with-current-buffer (get-buffer-create buffer-name)
+      (local-set-key (kbd "q") 'bury-buffer)
+      (goto-char (point-max))
+      (insert "\n")
+      (insert (apply 'format args)))))
+
+(defmacro defhelper (name &rest doc-strings)
+  "Make a helper function of NAME-helper to show the DOC-STRINGS."
+  (let ((fun-name (intern (concat "h/" (symbol-name name))))
+        (doc-string (mapconcat 'identity doc-strings "\n")))
+    `(defun ,fun-name () ,doc-string
+            (interactive)
+            (describe-function ',fun-name))))
 
 
 (provide 'cust)

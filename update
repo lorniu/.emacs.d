@@ -1,0 +1,5 @@
+#!/bin/sh
+
+
+git submodule foreach "git checkout -q master && git pull --rebase && echo"
+git pull --rebase

@@ -2,6 +2,8 @@
 ;;; Commentary:
 ;;; Code:
 
+(require 'project)
+
 (defvar gac/ask-for-summary-p t)
 
 (defun gac/prompt-password (proc string)
@@ -29,7 +31,7 @@
   (interactive)
   (let* ((buffer-file (or (buffer-file-name) (buffer-name)))
          (commit-msg (if (zerop (length commit-msg)) (gac/get-commit-message buffer-file) commit-msg))
-         (default-directory (or (projectile-project-root) (file-name-directory buffer-file))))
+         (default-directory (or (project-root (project-current)) (file-name-directory buffer-file))))
     (shell-command "git add .")
     (shell-command (format "git commit -m %s" (shell-quote-argument commit-msg)))))
 
@@ -38,7 +40,7 @@
   (im/git-commit commit-msg)
   (let ((proc (start-process "git" "*git-auto-push*" "git" "push")))
     (set-process-filter proc 'gac/prompt-password)
-    (set-process-sentinel proc (lambda (proc status)
+    (set-process-sentinel proc (lambda (_ status)
                                  (run-hooks 'gac/commit-and-push-hook)
                                  (message "Git *PUSH* %s !" (substring status 0 -1))))))
 

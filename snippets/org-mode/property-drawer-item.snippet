@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: property drawer with item
+# key: pdi
+# condition: (<= (current-column) 3)
+# --
+:PROPERTIES:
+:${$$(yas-choose-value '("ID" "CUSTOM_ID" "header-args"))}: $0
+:END:

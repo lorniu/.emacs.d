@@ -14,7 +14,7 @@
 -- xcompmgr               : shadow effects and more
 -- tilix                  : terminal
 -- nemo                   : file manager
--- slock                  : screen saver
+-- slock                  : screen saver | xautolock -time 15 -locker slock
 -- deepin-screen-recorder : screenshot
 -- feh                    : image viewer
 -- dunst                  : notification
@@ -241,11 +241,11 @@ myKeys  = [ ((m, xK_w)                       , nextScreen)
                          , (f, n) <- [(W.view, 0), (W.shift, shiftMask)]]
 
 myKeysP :: [(String, X ())]
-myKeysP = [ ("<XF86MonBrightnessDown>" , spawn "sudo xbacklight -dec 3")
-          , ("<XF86MonBrightnessUp>"   , spawn "sudo xbacklight -inc 3")
-          , ("<XF86AudioMute>"         , spawn "amixer -q set Master toggle")
-          , ("<XF86AudioLowerVolume>"  , spawn "amixer -q set Master 2%-")
-          , ("<XF86AudioRaiseVolume>"  , spawn "amixer -q set Master 2%+")
+myKeysP = [ ("<XF86MonBrightnessDown>" , spawn "brightnessctl s 2-")
+          , ("<XF86MonBrightnessUp>"   , spawn "brightnessctl s 2+")
+          , ("<XF86AudioMute>"         , spawn "isend sound toggle")
+          , ("<XF86AudioLowerVolume>"  , spawn "isend sound down")
+          , ("<XF86AudioRaiseVolume>"  , spawn "isend sound up")
           , ("<XF86AudioPlay>"         , spawn "mpc play")
           , ("<XF86AudioPause>"        , spawn "mpc pause")
           , ("<XF86AudioStop>"         , spawn "mpc stop")

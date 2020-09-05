@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
-# name: #+LaTeX: <code>
-# key: la
-# condition: (<= (current-column) 2)
+# name: P/LaTeX
+# key: l
+# condition: (<= (current-column) 1)
 # --
-#+LaTeX: $0
+#+${$$(yas-completing-read "Choose:" '("LaTeX" "LaTeX_HEAD" "LaTeX_HEAD_EXTRA" "ATTR_LaTeX") nil nil nil nil "LaTeX")}: $0

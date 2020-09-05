@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: headline (active task)
+# key: ta
+# condition: (<= (current-column) 2)
+# --
+
+* `(format-time-string "[%Y-%m-%d %a]" (org-read-date nil 'to-time nil nil nil nil 'inactivate))`
+:PROPERTIES:
+:CUSTOM_ID: active
+:END:

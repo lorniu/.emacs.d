@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 #.(read-from-minibuffer "Domain name: " "*.imfine.cc")
+echo 1
 
 if [ -z "$1" ]; then
     echo HOST must not be empty.
@@ -40,6 +41,7 @@ fi
 # regist or renew cert
 if [[ $host == "*"* ]]; then
     # dns-01 style for wildcard cert
+    # Make sure that env file exists (CF_Email/CF_key), it is used to manipulate DNS of cf.
     if [[ $host =~ .(gq|cf|ml|ga|tk)$ ]]; then
         # cloudflare, banned api for gq/ml/etc now, so use DNS-Alias-Mode instead.
         # first, you shold add a CNAME: _acme-challenge.a.gq => _acme-challenge.aliasDomain.com

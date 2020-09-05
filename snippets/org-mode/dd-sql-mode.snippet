@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: drawer: sql-mode
+# key: dd
+# condition: (<= (current-column) 2)
+# --
+:PROPERTIES:
+:header-args:sql+: :engine mysql
+:header-args:sql+: :dbuser root :dbpassword root
+:header-args:sql+: :dbhost localhost :database ${1:mysql}
+:END:

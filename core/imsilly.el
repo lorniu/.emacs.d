@@ -37,22 +37,23 @@
 (defun im/interactive-script (&optional script buffer)
   "Choose some scripts to run. Often used in mode-hook."
   (interactive (list (read-file-name "Script file: ")))
-  (if (and script (file-executable-p script))
-      (progn
-        (unless buffer (setq buffer "*interactive-script*"))
-        (alert (format "Script %s running..." script) :timeout 3 :severity 'low :title buffer)
-        (set-process-sentinel
-         (start-process-shell-command "interactive-script" buffer script)
-         (lambda (proc event)
-           (alert (format "Script %s executed %s" script event) :timeout 10 :title buffer)
-           (when (string-match-p "finished" event)
-             (with-current-buffer (process-buffer proc)
-               (view-mode -1)
-               (goto-char (point-max))
-               (insert (format "\n======= %s ========\n\n\n" (time-str)))
-               (view-mode 1))))))
-    (when (called-interactively-p 'any)
-      (message "Script %s is not available." script))))
+  (let ((id (+ 10000 (random 20000))))
+    (if (and script (file-executable-p script))
+        (progn
+          (unless buffer (setq buffer "*interactive-script*"))
+          (alert "Script running..." :timeout 120 :severity 'low :title script :id id)
+          (set-process-sentinel
+           (start-process-shell-command "interactive-script" buffer script)
+           (lambda (proc event)
+             (alert (format "Script executed %s" event) :timeout 10 :title script :id id)
+             (when (string-match-p "finished" event)
+               (with-current-buffer (process-buffer proc)
+                 (view-mode -1)
+                 (goto-char (point-max))
+                 (insert (format "\n======= %s ========\n\n\n" (time-str)))
+                 (view-mode 1))))))
+      (when (called-interactively-p 'any)
+        (message "Script %s is not available." script)))))
 
 
 ;;; Walk through directory
@@ -105,6 +106,7 @@
     ;; Need import this to REGEDIT
     (with-temp-file (emacs-file "Open-With-Emacs.reg" t)
       (setq-local buffer-file-coding-system 'gbk)
+      ;; [open-with-emacs]
       (insert (string-join (cons "Windows Registry Editor Version 5.00\n"
                                  (mapcar (lambda (subpath)
                                            (format
@@ -118,12 +120,15 @@
                                             subpath subpath))
                                          '("*" "Directory" "Directory\\Background")))
                            "\n\n"))
+      ;; [org-Protocol]
       (insert "
-[HKEY_CLASSES_ROOT\\org-protocol]\n@=\"URL:Org Protocol\"\n\"URL Protocol\"=\"\"
+[HKEY_CLASSES_ROOT\\org-protocol]
+@=\"URL:Org Protocol\"
+\"URL Protocol\"=\"\"
 [HKEY_CLASSES_ROOT\\org-protocol\\shell]
 [HKEY_CLASSES_ROOT\\org-protocol\\shell\\open]
-[HKEY_CLASSES_ROOT\\org-protocol\\shell\\open\\command]\n")
-      (insert (format "@=\"\\\"%s\\\" \\\"%%1\\\"\"\n\n" (c-bin t))))
+[HKEY_CLASSES_ROOT\\org-protocol\\shell\\open\\command]" (format "
+@=\"\\\"%s\\\" \\\"%%1\\\"\"\n\n" (c-bin t))))
 
     ;; Manually Step
     (when (yes-or-no-p (format "Saved in %s. View ?" (emacs-file "\\")))

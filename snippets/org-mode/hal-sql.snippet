@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: :sqli
+# key: :
+# condition: (company-grab-line "^[[:blank:]]*#\\+begin_sql.*")
+# --
+:engine mysql :commandline -uroot -proot -hlocalhost ${1:test}

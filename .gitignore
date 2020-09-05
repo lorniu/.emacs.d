@@ -1,5 +1,6 @@
 /*
 !README.md
+!CHANGELOG.md
 !.gitignore
 !init.el
 !init.elc
@@ -9,6 +10,8 @@
 !/fork
 !/share
 !/snippets
+!/themes
+!update
 __pycache__/
 _*
 .git.bk
