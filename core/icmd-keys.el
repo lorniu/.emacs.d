@@ -202,7 +202,7 @@
    ("R"      "" im/note-publish-reset-directories)
    ("p"      "" org-timer-pause-or-continue :if-non-nil org-timer-start-time)
    ("SPC"    "" org-timer-pause-or-continue :if-non-nil org-timer-start-time)
-   ("i"      "" (lambda () (interactive) (when (or org-timer-start-time (y-or-n-p "Start a new timer?"))
+   ("i"      "" (lambda () (interactive) (when (or org-timer-start-time (y-or-n-p "Start a new timer??"))
                                            (call-interactively #'org-timer-item))))
    ]
   [["Agenda"
