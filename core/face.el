@@ -50,6 +50,9 @@
 ;;; MacOS
 
 (when IS-MAC
+  ;; English
+  (ff/font-default (ff/get :font (cons "" 0)))
+  ;; Key
   (setq mouse-wheel-scroll-amount '(1 ((control) . 5)))
   (global-set-key [C-wheel-up] 'text-scale-increase)
   (global-set-key [C-wheel-down] 'text-scale-decrease))
