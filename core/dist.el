@@ -193,30 +193,37 @@
    :ref ("Melpa: https://melpa.org/#/"
          "Melpa Github: melpa/melpa")
    :init
-   (defun-hook package-menu-mode-hook() (hl-line-mode 1))
-   (defun p/elpa-clean-dup-packages (&optional dry-run)
-     (interactive "P")
-     (let* ((dirs (directory-files package-user-dir nil "-"))
-            (packages (mapcar (lambda (d)
-                                (string-match "\\(.*\\)\\(-[0-9].*\\)" d)
-                                (cons (match-string 1 d)
-                                      (subseq (match-string 2 d) 1)))
-                              (cl-remove-if (lambda (d) (string-match-p "signed$" d)) dirs)))
-            (packages-dup
-             (cl-loop for p in packages
-                      if (> (length (cl-remove-if-not (lambda (d) (string= (car p) (car d))) packages)) 1)
-                      collect p))
-            (packages-preserved
-             (cl-remove-duplicates packages-dup :test 'string-equal :key 'car))
-            (packages-should-removed
-             (cl-set-difference packages-dup packages-preserved)))
-       (if packages-should-removed
-           (cl-loop for p in packages-should-removed
-                    for d = (expand-file-name (concat (car p) "-" (cdr p)) package-user-dir)
-                    do (progn
-                         (message "Deleting %s %s" d (if dry-run "[dry-run]" ""))
-                         (unless dry-run (delete-directory d t))))
-         (message "Nothing to clean.")))))
+   (defun-hook package-menu-mode-hook() (hl-line-mode 1)))
+
+(defun p/elpa-clean-dup-packages (&optional dry-run)
+  (interactive "P")
+  (let* ((dirs (directory-files package-user-dir nil "-"))
+         (packages (mapcar (lambda (d)
+                             (string-match "\\(.*\\)\\(-[0-9].*\\)" d)
+                             (cons (match-string 1 d)
+                                   (subseq (match-string 2 d) 1)))
+                           (cl-remove-if (lambda (d) (string-match-p "signed$" d)) dirs)))
+         (packages-dup
+          (cl-loop for p in packages
+                   if (> (length (cl-remove-if-not (lambda (d) (string= (car p) (car d))) packages)) 1)
+                   collect p))
+         (packages-preserved
+          (cl-remove-duplicates packages-dup :test 'string-equal :key 'car))
+         (packages-should-removed
+          (cl-set-difference packages-dup packages-preserved)))
+    (if packages-should-removed
+        (cl-loop for p in packages-should-removed
+                 for d = (expand-file-name (concat (car p) "-" (cdr p)) package-user-dir)
+                 do (progn
+                      (message "Deleting %s %s" d (if dry-run "[dry-run]" ""))
+                      (unless dry-run (delete-directory d t))))
+      (message "Nothing to clean."))))
+
+(defun p/native-compile-async ()
+  "Native specific directory manually."
+  (interactive)
+  (let ((dir (read-directory-name "Directory to native compile: " package-user-dir nil t)))
+    (native-compile-async dir 'recursively)))
 
 
 (provide 'dist)
