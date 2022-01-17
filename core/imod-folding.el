@@ -252,12 +252,12 @@
 
 
 
-(defmacro hs-set-rule (modes &rest args)
+(defmacro hs-set-rule (modes &optional start end comment-start forward-sexp-func adjust-beg-func)
   (declare (indent 1))
   (macroexp-progn
    (cl-loop for m in (if (listp modes) modes (list modes))
             collect `(setq hs-special-modes-alist (cl-remove ',m hs-special-modes-alist :key #'car))
-            collect `(add-to-list 'hs-special-modes-alist ',(cons m args)))))
+            collect `(add-to-list 'hs-special-modes-alist ',(list m start end comment-start forward-sexp-func adjust-beg-func)))))
 
 (hs-set-rule nxml-mode
   "<!--\\|<[^/>]*[^/]>"
@@ -314,6 +314,18 @@
     ;; Don't fold whole document, that's useless
     (unless (save-excursion (search-backward "\\begin{document}" (line-beginning-position) t))
       (LaTeX-find-matching-end))))
+
+(hs-set-rule makefile-gmake-mode
+  "^[a-zA-Z$.].*:"
+  ""
+  "#"
+  (lambda (_)
+    (let* ((cur (point))
+           (nx (save-excursion (makefile-next-dependency) (point)))
+           (np (save-excursion (forward-paragraph) (point)))
+           (nn (if (= cur nx) np (min nx np))))
+      (goto-char nn)
+      (forward-comment -100))))
 
 
 
