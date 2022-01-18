@@ -20,7 +20,7 @@
    :bind ((im-keys-mode-map
            ("C-c f"   . im/smart-folding)
            ("C-c F"   . im/smart-folding-all)
-           ("C-c M-f" . hs-hide-level)
+           ("C-c M-f" . (lambda () (interactive) (im/smart-folding-all 1)))
            ("C-c C-f" . imtt/transient-fold))
           (hs-minor-mode-map
            ([(M-down-mouse-1)] . nil)
@@ -147,8 +147,8 @@
    ;; otherwise
    (t (message "Nothing to fold/unfold."))))
 
-(defun im/smart-folding-all ()
-  (interactive)
+(defun im/smart-folding-all (&optional arg)
+  (interactive "P")
   (cond
    ;; if fold-this overlay found, unfold all
    ((or (%fold-this-some (point)) (and (eq (char-after) 10) (%fold-this-some (- (point) 1))))
@@ -184,14 +184,15 @@
     (cond ((and outline-minor-mode outline-prefer-p)
            (call-interactively 'im/outline-toggle-all))
           (hs-minor-mode
-           (hs-minor-mode
-            (save-mark-and-excursion
-              (if (seq-find
-                   (lambda (ov) (and (overlayp ov) (overlay-get ov 'hs)))
-                   (overlays-in (point-min) (point-max)))
-                  (hs-show-all)
-                (hs-hide-all))
-              (recenter))))
+           (let ((hs-hide-comments-when-hiding-all (not arg))) ; C-u then not hide comments
+             (hs-minor-mode
+              (save-mark-and-excursion
+                (if (seq-find
+                     (lambda (ov) (and (overlayp ov) (overlay-get ov 'hs)))
+                     (overlays-in (point-min) (point-max)))
+                    (hs-show-all)
+                  (hs-hide-all))
+                (recenter)))))
           ((and outline-minor-mode (outline-on-heading-p))
            (call-interactively 'im/outline-toggle-all))))))
 
