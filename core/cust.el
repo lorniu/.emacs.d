@@ -200,7 +200,9 @@
             (defun %make-custom-set-face-the-highest-period (f &rest args)
               (eval-after-load 'imover (apply f args))))
 
-(load custom-file t t)
+(condition-case _err
+    (load custom-file t t)
+  (error (warn "Error in: %s" custom-file)))
 
 (provide 'cust)
 
