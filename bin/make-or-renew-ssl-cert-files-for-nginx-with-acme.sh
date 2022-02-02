@@ -11,9 +11,9 @@ fi
 host=$1
 hostdir=$1
 acme="$HOME/.acme.sh/acme.sh "
-env_file=$HOME/.notes/x.share/ssl-cert/env
+env_file=$HOME/.notes/share/ssl-cert/env
 www=$HOME/.notes/webapp/html
-dest=$HOME/.notes/x.share/ssl-cert
+dest=$HOME/.notes/share/ssl-cert
 
 if [ ! -d $dest ]; then
     echo Directory $dest is not exist.
@@ -46,21 +46,21 @@ if [[ $host == "*"* ]]; then
         # cloudflare, banned api for gq/ml/etc now, so use DNS-Alias-Mode instead.
         # first, you shold add a CNAME: _acme-challenge.a.gq => _acme-challenge.aliasDomain.com
         echo "Make new key cert files (dns/alias)..."
-        $acme --issue -d ${host:2} -d $host --dns dns_cf --force --challenge-alias $dns_alias_host
+        ( set -x; $acme --issue -d ${host:2} -d $host --dns dns_cf --force --challenge-alias $dns_alias_host )
     else
         echo "Make new key cert files (dns)..."
-        $acme --issue -d ${host:2} -d $host --dns dns_cf --force
+        ( set -x; $acme --issue -d ${host:2} -d $host --dns dns_cf --force )
     fi
     hostdir="x.${host:2}"
 else
     # http-01 style, make sure nginx is runing
     if [ ! -d "~/.acme.sh/$host" ]; then
         echo "Make new key cert files (http)..."
-        $acme --force --issue -d $host --webroot $www  # --standalone
+        ( set -x; $acme --force --issue -d $host --webroot $www )  # --standalone
     else
         echo Renew cert files...
         echo "Renew cert files (http)..."
-        $acme --renew -d $host --force
+        ( set -x; $acme --renew -d $host --force )
     fi
 fi
 
