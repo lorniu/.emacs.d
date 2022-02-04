@@ -4,11 +4,12 @@
 ;;
 ;;  - chinese-py (builtin)
 ;;  - pyim (pure elisp)
-;;  - emacs-rime (dynamic + librime)
+;;  - rime (dynamic + librime)
 ;;
-;; OS native, auto-switch:
+;; OS native IMEs, smart-switch with this:
 ;;
-;;  - emacs-smart-input-source.el (Smart switch OS ims)
+;;  - emacs-smart-input-source.el
+;;
 ;;
 ;; Get librime:
 ;;
@@ -77,7 +78,7 @@ To enable, set ic/ism-default like:\n
 
 (is-ime-with-rime-file default.custom.yaml
   "patch:
-  menu/page_size: 6
+  menu/page_size: 5
   switcher/hotkeys:
     - Control+grave
   ascii_composer/switch_key:
@@ -85,11 +86,11 @@ To enable, set ic/ism-default like:\n
     Shift_L: commit_code
     Shift_R: inline_ascii
     Control_L: noop
-    Control_R: noop")
+    Control_R: commit_text")
 
 (is-ime-with-rime-file weasel.custom.yaml
   "patch:
-  \"style/color_scheme\": google # 皮肤风格
+  \"style/color_scheme\": google # 皮肤风格 ink/google..
   \"style/layout/border_width\": 0
   \"style/layout/border\": 0
   \"style/horizontal\": true
@@ -100,13 +101,18 @@ To enable, set ic/ism-default like:\n
   "patch:
   switches:
     - name: ascii_mode
-      reset: 0
+      reset: 1
       states: [ 中文, 西文 ]
     - name: full_shape
       states: [ 半角, 全角 ]
     - name: simplification
       reset: 1
       states: [ 漢字, 汉字 ]")
+
+(defun im/ime-reload-fcitx5-rime ()
+  "Helper to reload/redeploy os-native rime."
+  (interactive)
+  (shell-command "qdbus org.fcitx.Fcitx5 /controller org.fcitx.Fcitx.Controller1.SetConfig \"fcitx://config/addon/rime/deploy\" \"\""))
 
 (provide 'imod-ime)
 
