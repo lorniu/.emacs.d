@@ -37,6 +37,7 @@
        (imload 'imod-shell)
        (imload 'imod-translator)
        (imload 'imod-ime)
+       (imload 'imod-print)
        (imload 'imod-eaf)
        (imload 'imod-emacs-server)
 
