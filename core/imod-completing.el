@@ -94,10 +94,10 @@
            consult--my-source-buffer
            consult--my-source-erc-buffer
            consult--my-eaf-buffer
-           consult--source-file
            consult--source-bookmark
+           consult--source-recent-file
            consult--source-project-buffer
-           consult--source-project-file)))
+           consult--source-project-recent-file)))
 
 (x embark/e
    :ref "oantolin/embark"
