@@ -1,6 +1,8 @@
 ;;; imod-mmm.el --- Multiple Major Modes -*- lexical-binding: t -*-
 
-;; web-mode/mmm-mode/polymode
+;;  1. web-mode
+;;  2. mmm-mode
+;;  3. polymode
 
 ;;; Code:
 
@@ -39,23 +41,20 @@
       :innermodes '(poly-html-js-innermode poly-html-css-innermode)))
 
 
-;;; Poly - Vue
+;;; Poly - Vue.js
 
 (with-eval-after-load 'polymode
-  (define-innermode poly-vue-template-innermode
-      :mode 'html-mode
-      :head-matcher "^<[[:space:]]*\\(?:template\\)[[:space:]]*>"
-      :tail-matcher "^</[[:space:]]*\\(?:template\\)[[:space:]]*>"
-      :head-mode 'host :tail-mode 'host)
+  (define-hostmode poly-vue-hostmode
+      :mode 'html-mode)
   (define-innermode poly-vue-script-innermode
       :mode 'js-mode
       :head-matcher "<[[:space:]]*\\(?:script\\)[[:space:]]*>"
       :tail-matcher "</[[:space:]]*\\(?:script\\)[[:space:]]*>"
       :head-mode 'host :tail-mode 'host)
-  (define-auto-innermode poly-vue-template-tag-lang-innermode
-      :head-matcher "^<[[:space:]]*\\(?:template\\)[[:space:]]*lang=[[:space:]]*[\"'][[:space:]]*[[:alpha:]]+[[:space:]]*[\"'][[:space:]]*>"
-      :tail-matcher "^</[[:space:]]*\\(?:template\\)[[:space:]]*>"
-      :mode-matcher (cons  "^<[[:space:]]*\\(?:template\\)[[:space:]]*lang=[[:space:]]*[\"'][[:space:]]*\\([[:alpha:]]+\\)[[:space:]]*[\"'][[:space:]]*>" 1)
+  (define-innermode poly-vue-style-innermode
+      :mode 'css-mode
+      :head-matcher "<[[:space:]]*\\(?:style\\)[[:space:]]*\\(?:scoped\\|[[:space:]]\\)*>"
+      :tail-matcher "</[[:space:]]*\\(?:style\\)[[:space:]]*>"
       :head-mode 'host :tail-mode 'host)
   (define-auto-innermode poly-vue-script-tag-lang-innermode
       :head-matcher "<[[:space:]]*\\(?:script\\)[[:space:]]*lang=[[:space:]]*[\"'][[:space:]]*[[:alpha:]]+[[:space:]]*[\"'][[:space:]]*>"
@@ -67,17 +66,10 @@
       :tail-matcher "</[[:space:]]*\\(?:style\\)[[:space:]]*>"
       :mode-matcher (cons  "<[[:space:]]*\\(?:style\\)\\(?:scoped\\|[[:space:]]\\)*lang=[[:space:]]*[\"'][[:space:]]*\\([[:alpha:]]+\\)[[:space:]]*[\"']\\(?:scoped\\|[[:space:]]\\)*>" 1)
       :head-mode 'host :tail-mode 'host)
-  (define-innermode poly-vue-style-innermode
-      :mode 'css-mode
-      :head-matcher "<[[:space:]]*\\(?:style\\)[[:space:]]*\\(?:scoped\\|[[:space:]]\\)*>"
-      :tail-matcher "</[[:space:]]*\\(?:style\\)[[:space:]]*>"
-      :head-mode 'host :tail-mode 'host)
   (define-polymode poly-vue-mode
-      :hostmode 'poly-sgml-hostmode
-      :innermodes '(poly-vue-template-tag-lang-innermode
-                    poly-vue-script-tag-lang-innermode
+      :hostmode 'poly-vue-hostmode
+      :innermodes '(poly-vue-script-tag-lang-innermode
                     poly-vue-style-tag-lang-innermode
-                    poly-vue-template-innermode
                     poly-vue-script-innermode
                     poly-vue-style-innermode)))
 

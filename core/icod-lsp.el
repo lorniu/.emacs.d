@@ -14,26 +14,24 @@
 
 
 
-(x eglot
-   :init
-   (defmacro eglot-set-server (mode bin &rest args)
-     `(with-eval-after-load 'eglot
-        (when (executable-find ,bin)
-          (add-to-list 'eglot-server-programs '(,mode . (,bin ,@args)))
-          (cons ',mode ',bin)))))
+(x eglot)
 
-(prog1 :event-log-switcher
-  (defvar eglot-log-event-p nil)
-  (defun:around jsonrpc--log-event$toggle-event-log (f &rest args)
-    (when (and eglot-log-event-p
-               (ignore-errors (eq (type-of (car args)) 'eglot-lsp-server)))
-      (apply f args)))
-  (defun im/toggle-eglot-event-log ()
-    (interactive)
-    (message "EGLOG event log is current: %s"
-             (if (setq eglot-log-event-p (not eglot-log-event-p))
-                 "ON"
-               "OFF"))))
+(defmacro eglot-set-server (mode bin &rest args)
+  `(with-eval-after-load 'eglot
+     (when (executable-find ,bin)
+       (add-to-list 'eglot-server-programs '(,mode . (,bin ,@args)))
+       (cons ',mode ',bin))))
+
+;; event-log switcher
+(defvar eglot-log-event-p nil)
+(defun:around jsonrpc--log-event$toggle-event-log (f &rest args)
+  (when (and eglot-log-event-p
+             (ignore-errors (eq (type-of (car args)) 'eglot-lsp-server)))
+    (apply f args)))
+(defun im/toggle-eglot-event-log ()
+  (interactive)
+  (message "EGLOG event log is current: %s"
+           (if (setq eglot-log-event-p (not eglot-log-event-p)) "ON" "OFF")))
 
 
 
@@ -44,15 +42,6 @@
    (setq lsp-diagnostic-package :auto)
    (setq lsp-completion-provider :none)
 
-   (defun lsp-and-future ()
-     (interactive)
-     (lsp)
-     (add-hook (intern (format "%s-hook" (symbol-name major-mode))) 'lsp))
-   (defun lsp-and-future-cancel ()
-     (interactive)
-     (lsp-mode -1)
-     (remove-hook (intern (format "%s-hook" (symbol-name major-mode))) 'lsp))
-
    :defer-config
    (x lsp-ui
       :init
@@ -60,6 +49,16 @@
       (setq lsp-ui-sideline-enable nil)
       (setq lsp-ui-flycheck-enable t)
       (setq lsp-ui-doc-use-webkit t)))
+
+(defun lsp-and-future ()
+  (interactive)
+  (lsp)
+  (add-hook (intern (format "%s-hook" (symbol-name major-mode))) 'lsp))
+
+(defun lsp-and-future-cancel ()
+  (interactive)
+  (lsp-mode -1)
+  (remove-hook (intern (format "%s-hook" (symbol-name major-mode))) 'lsp))
 
 (provide 'icod-lsp)
 

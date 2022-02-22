@@ -4,50 +4,6 @@
 
 ;;; Code:
 
-(x web-mode/i
-   :ref "fxbois/web-mode"
-   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|vue\\|tsx\\|jsx\\|cshtml\\)\\'"
-   :defer-config
-   (setq web-mode-enable-auto-indentation nil
-         web-mode-markup-indent-offset    2
-         web-mode-css-indent-offset       4
-         web-mode-code-indent-offset      4
-         web-mode-enable-css-colorization t
-         web-mode-content-types-alist '(("jsx"    . "\\.js[x]?\\'"))
-         web-mode-engines-alist       '(("blade"  . "\\.blade\\.")
-                                        ("ruby"   . "\\.html\\.erb\\'")))
-
-   (defun:hook web-mode-hook ()
-     ;; per-file-type
-     (pcase (file-name-extension (or (buffer-file-name) ""))
-       ("jsx"
-        (flycheck-mode 1)
-        (electric-pair-local-mode 1)
-        (setq-local web-mode-enable-auto-quoting nil))
-       ("tsx"
-        (setq-local web-mode-enable-auto-quoting nil))
-       ("cshtml"
-        (setq-local web-mode-indent-style 1)
-        (setq-local web-mode-markup-indent-offset 4)
-        (setq-local web-mode-script-padding 4)
-        (setq-local web-mode-style-padding 4)
-        (setq-local web-mode-code-indent-offset 4))
-       (_
-        (hs-minor-mode -1)))
-
-     ;; smart-capf
-     (defvar-local im-web-mode-capf-cache nil)
-     (add-hook 'post-command-hook
-               (lambda ()
-                 (let* ((lang (web-mode-language-at-pos))
-                        (mode (intern (format "%s-mode" lang)))
-                        (fs (or (cdr (assoc mode im-web-mode-capf-cache))
-                                (cdar (cl-pushnew (cons mode (im-capf-functions-of-mode mode)) im-web-mode-capf-cache :key #'car)))))
-                   (setq major-mode mode)
-                   ;;(cw mode fs)
-                   (setq-local completion-at-point-functions fs)))
-               nil t)))
-
 (x mhtml-mode
    :init
    (defun:hook mhtml-mode-hook ()
@@ -62,11 +18,80 @@
    :init (setq emmet-move-cursor-between-quotes t))
 
 (x web-beautify
-   "
-- XML (emacs native): M-x sgml-pretty-print
-- XML (libxml2):      M-| xmllint --format -
-- XML (web-beautify): M-x web-beautify-html
-")
+   ;; - XML (emacs native): M-x sgml-pretty-print
+   ;; - XML (libxml2):      M-| xmllint --format -
+   ;; - XML (web-beautify): M-x web-beautify-html
+   )
+
+
+;;; Web-Mode
+
+(x web-mode/i
+   :ref "fxbois/web-mode"
+   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|tsx\\|jsx\\|cshtml\\)\\'"
+   :defer-config
+   (setq web-mode-enable-auto-indentation nil
+         web-mode-markup-indent-offset    2
+         web-mode-css-indent-offset       4
+         web-mode-code-indent-offset      4
+         web-mode-enable-css-colorization t)
+   (setq web-mode-content-types-alist '(("jsx"    . "\\.js[x]?\\'"))
+         web-mode-engines-alist       '(("blade"  . "\\.blade\\.")
+                                        ("ruby"   . "\\.html\\.erb\\'"))))
+
+(defun:hook web-mode-hook/smart-capf ()
+  (defvar-local im-web-mode--last-lang nil)
+  (defvar-local im-web-mode--capf-cache nil)
+  (add-hook 'post-command-hook
+            (lambda ()
+              (condition-case err
+                  (let ((lang (web-mode-language-at-pos)))
+                    (unless (string-equal im-web-mode--last-lang lang)
+                      (setq im-web-mode--last-lang lang)
+                      (let* ((mode (intern (format "%s-mode" lang)))
+                             (funcs (or (cdr (assoc mode im-web-mode--capf-cache))
+                                        (let ((cfom (im-capf-functions-of-mode mode)))
+                                          (cl-pushnew (cons mode cfom) im-web-mode--capf-cache :key #'car)
+                                          cfom))))
+                        (setq-local completion-at-point-functions funcs)
+                        (if (ignore-errors lsp-mode) (lsp-completion-mode 1)
+                          (ignore-errors (lsp-completion-mode -1)))
+                        (when (ignore-errors eglot--managed-mode)
+                          (add-hook 'completion-at-point-functions #'eglot-completion-at-point nil t)))))
+                (error (message "[error] web-mode-post-hook: %s" err))))
+            nil t))
+
+(defun:hook web-mode-hook/per-file-type-config ()
+  (pcase (file-name-extension (or (buffer-file-name) ""))
+    ("jsx"
+     (flycheck-mode 1)
+     (electric-pair-local-mode 1)
+     (setq-local web-mode-enable-auto-quoting nil))
+    ("tsx"
+     (setq-local web-mode-enable-auto-quoting nil))
+    ("cshtml"
+     (setq-local web-mode-indent-style 1)
+     (setq-local web-mode-markup-indent-offset 4)
+     (setq-local web-mode-script-padding 4)
+     (setq-local web-mode-style-padding 4)
+     (setq-local web-mode-code-indent-offset 4))
+    (_ (hs-minor-mode -1))))
+
+
+;;; Vue.js
+
+;;  1. web-mode
+;;  2. polymode
+;;  3. vue-mode (not so good)
+
+(defcustom ic/vue-mode 'imvue-mode "Which style to use for editing Vue.js" :type 'symbol)
+
+(add-to-list 'auto-mode-alist `("\\.vue\\'" . ,ic/vue-mode))
+
+(define-derived-mode imvue-mode web-mode "WebVue" "Edit vue with web-mode")
+
+;; sudo npm install -g vls
+(eglot-set-server imvue-mode "vls")
 
 (provide 'icod-frontend)
 
