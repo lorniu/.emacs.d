@@ -14,19 +14,29 @@
      ( "e" . wdired-change-to-wdired-mode )
      ( "z" . idp/dired-du-size )
      ( "Y" . idp/dired-rsync )
-     ( "," . dired-collapse-mode )
+     ( "," . im-dired--toggle-collapse )
      ( "s" . imtt/transient-dired-sort )
      ( "C-c m" . imtt/transient-dired)))
    :init
    (require 'wdired)
+   (require 'dired-collapse)
+   (require 'ls-lisp)
+
    (setq wgrep-enable-key "e")
 
-   (require 'dired-collapse)
-   (defun:hook dired-mode-hook ()
-     (dired-collapse-mode 1))
+   (defvar ic/dired-collapse-enable t)
+   (defun:hook dired-mode-hook/collapse ()
+     (dired-collapse-mode (if ic/dired-collapse-enable 1 -1)))
+   (defun im-dired--toggle-collapse (&optional arg)
+     "Toggle collapse, with `C-u' then futrue will effact future dired buffer."
+     (interactive "P")
+     (let (current-prefix-arg)
+       (call-interactively 'dired-collapse-mode))
+     (when arg
+       (setq ic/dired-collapse-enable dired-collapse-mode)
+       (message "Global dired-collapse mode: %s" ic/dired-collapse-enable)))
 
    :defer-config
-   (require 'ls-lisp)
    (setq dired-listing-switches "-alh"
          ls-lisp-use-insert-directory-program nil
          ls-lisp-dirs-first t
