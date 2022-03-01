@@ -1,0 +1,36 @@
+# -*- mode: snippet -*-
+# name: codes: elisp-tabulated-list
+# key: elisp
+# --
+
+(define-derived-mode ${1:topic}-mode tabulated-list-mode "${1:$(capitalize yas-text)}"
+  "${1:$(capitalize yas-text)} mode"
+  (setq tabulated-list-format [(name width sort)])
+  (tabulated-list-init-header)
+
+  (setq tabulated-list-entries '((id [strings or (label . properties)])))
+  (tabulated-list-print))
+
+(defun $1 ()
+  (interactive)
+  (switch-to-buffer "*$1*")
+  ($1-mode))
+
+(transient-define-infix $1-transient:--xxx ()
+  :description "xxx"
+  :class 'transient-option
+  :shortarg "-t"
+  :argument "--xxx=")
+
+(transient-define-prefix $1-transient ()
+  "Transient for $1"
+  ["Arguments"
+   ("-f" "Follow" "-f")
+   ($1-transient:--xxx)]
+  ["Actions"
+   ("l" "Log" (lambda () (interactive) ()))])
+
+(defvar $1-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "l") '$1-transient)
+    map))
