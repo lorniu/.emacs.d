@@ -38,7 +38,7 @@
   keycast ; show key-pressed
   evil ; viper -> evil-local-mode
   cowsay ;; figlet ; ascii art
-  docker dockerfile-mode ; docker
+  kubernetes docker dockerfile-mode ; container
 
   ;; complete, search and nav
   vertico orderless consult marginalia embark

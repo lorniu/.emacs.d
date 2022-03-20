@@ -38,6 +38,7 @@
        (imload 'imod-translator)
        (imload 'imod-ime)
        (imload 'imod-print)
+       (imload 'imod-container)
        (imload 'imod-eaf)
        (imload 'imod-emacs-server)
 
