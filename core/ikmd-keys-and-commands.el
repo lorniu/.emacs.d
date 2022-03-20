@@ -706,6 +706,32 @@ Saves to a temp file and puts the filename in the kill ring."
              (web-mode    web-mode-markup-indent-offset web-mode-css-indent-offset web-mode-code-indent-offset)
              (t (user-error "[%s] Nothing to do with %s" this-command major-mode))))))
 
+(defun im/pick-lines (&optional regexp)
+  "Pick all lines matching the REGEXP in current buffer or region.
+ps. builtin `kill-matching-lines' almost do the same thing."
+  (interactive)
+  (let* ((regionp (use-region-p))
+         (re (or regexp (read-string (format "Pick lines containing match for regexp%s: " (if regionp " (region)" ""))))))
+    (cl-assert (> (length re) 0) nil "REGEXP is too short!")
+    (let ((beg (if regionp (region-beginning) (point-min)))
+          (end (if regionp (region-end) (point-max)))
+          (marker (prepare-change-group))
+          (result-buffer (get-buffer-create "*matched-results*")))
+      (unwind-protect
+          (save-match-data
+            (save-excursion
+              (goto-char beg)
+              (while (re-search-forward re end t)
+                (let ((lbeg (line-beginning-position))
+                      (lend (line-beginning-position 2)))
+                  (princ (buffer-substring lbeg lend) result-buffer)
+                  (unless current-prefix-arg
+                    (delete-region lbeg lend))))))
+        (undo-amalgamate-change-group marker))
+      (with-current-buffer result-buffer
+        (local-set-key "q" #'bury-buffer)
+        (display-buffer result-buffer)))))
+
 (provide 'ikmd-keys-and-commands)
 
 ;;; ikmd-keys-and-commands.el ends here
