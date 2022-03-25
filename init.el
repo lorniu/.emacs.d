@@ -65,10 +65,9 @@
        (imload 'iwww-irc)
        (imload 'iwww-gnus)
 
-       (imload 'ioox-org)
-       (imload 'ioox-gtd)
-       (imload 'ioox-notes)
-       (imload 'ioox+TeX)
+       (imload 'iorg)
+       (imload 'iorg-notes)
+       (imload 'iorg+TeX)
 
        (imload 'ikmd-keys-and-commands)
        (imload 'ikmd-kmacro)

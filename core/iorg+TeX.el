@@ -1,4 +1,4 @@
-;;; ioox+TeX.el --- LaTeX -*- lexical-binding: t -*-
+;;; iorg+TeX.el --- LaTeX -*- lexical-binding: t -*-
 
 ;;; Code:
 
@@ -154,6 +154,6 @@
           (if errorp (error "File produced with errors: %s, detail from %s." warnings log-buf))))
       nil)))
 
-(provide 'ioox+TeX)
+(provide 'iorg+TeX)
 
-;;; ioox+TeX.el ends here
+;;; iorg+TeX.el ends here

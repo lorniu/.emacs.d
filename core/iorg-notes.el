@@ -1,4 +1,4 @@
-;;; ioox-notes.el --- Note publishing -*- lexical-binding: t -*-
+;;; iorg-notes.el --- Note publishing -*- lexical-binding: t -*-
 
 ;; After published or git pushed, you can:
 ;;
@@ -289,6 +289,6 @@
    (setq org-roam-ui-follow t)
    (setq org-roam-ui-update-on-save t))
 
-(provide 'ioox-notes)
+(provide 'iorg-notes)
 
-;;; ioox-notes.el ends here
+;;; iorg-notes.el ends here
