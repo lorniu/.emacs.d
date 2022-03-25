@@ -296,7 +296,7 @@ Select a candidate can:
 
 (defvar myc-rg-completion-groups
   '(("c" "current" (lambda (input) (cons 'dir (myc-rg-get-candicates input))))
-    ("p" "project" (lambda (input) (if-let ((d (cdr (project-current))))
+    ("p" "project" (lambda (input) (if-let ((d (project-root (project-current))))
                                        (cons 'project (myc-rg-get-candicates input d))
                                      (user-error "No project found"))))
     ("n" "notes"   (lambda (input) (cons 'note (myc-rg-get-candicates input org-directory))))))
