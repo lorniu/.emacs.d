@@ -143,7 +143,7 @@
    (setq page-break-lines-lighter "")
    (global-page-break-lines-mode 1)
    :defer-config
-   (nconc page-break-lines-modes '(web-mode css-mode haskell-mode c-mode c++-mode conf-mode powershell-mode)))
+   (nconc page-break-lines-modes '(web-mode css-mode conf-mode powershell-mode prog-mode)))
 
 (x all-the-icons/i
    "M-x all-the-icons-install-fonts."
