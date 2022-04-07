@@ -107,7 +107,7 @@
     });\n</script>\n<script src=\"%PATH\" async></script>")
 
    ;; babel switcher
-   (cl-loop for l in '(shell
+   (cl-loop for l in '(shell typescript
                        lisp python ruby haskell java js csx csharp
                        sql sqlite
                        gnuplot ditaa dot plantuml calc

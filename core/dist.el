@@ -77,6 +77,7 @@
 
   ;; modes
   emmet-mode web-beautify sass-mode ; html
+  typescript-mode ob-typescript ; typescript
   yaml-mode
   websocket know-your-http-well ; http
   restclient ob-restclient httprepl ; rest
