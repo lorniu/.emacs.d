@@ -3,9 +3,18 @@
 ;; Plans:
 ;;
 ;;  1. omnisharp-emacs (deprecated)
-;;  2. LSP/Eglot + omnisharp
+;;  2. LSP/Eglot + omnisharp/csharp-ls
 ;;
-;;  yay -S omnisharp-roslyn-bin
+;; LSP Server:
+;;
+;;  1. yay -S omnisharp-roslyn-bin
+;;  2. dotnet tool install --glboal csharp-ls
+;;
+;; Bug:
+;;
+;;  - https://github.com/OmniSharp/omnisharp-roslyn/issues/2238 (textDocument/definition URI is incompatible with (...)ExternalSourceService cache)
+;;  - https://github.com/razzmatazz/csharp-language-server/issues/12 (Doesn't work with latest Emacs git master)
+;;
 
 ;;; Code:
 
@@ -17,6 +26,8 @@
      (electric-pair-local-mode 1)
      (local-set-key (kbd "C-c C-c") 'recompile))
    :defer-config
+   ;;(setq lsp-csharp-server-path (executable-find "csharp-ls"))
+   ;;(eglot-set-server csharp-mode "/usr/bin/env" "--default-signal" "csharp-ls")
    (setq lsp-csharp-server-path (executable-find "omnisharp"))
    (eglot-set-server csharp-mode "omnisharp" "-lsp"))
 
