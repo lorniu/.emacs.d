@@ -159,7 +159,8 @@
   (if (not now)
       (setq ic/incremental-packages (append ic/incremental-packages packages))
     (while packages
-      (let ((gc-cons-threshold most-positive-fixnum)
+      (let ((default-directory "~/")
+            (gc-cons-threshold most-positive-fixnum)
             (req (pop packages)) (existp t))
         (when (consp req)
           (setq existp (executable-find (symbol-name (cdr req))))

@@ -8,16 +8,18 @@
    (cl-defmethod project-root ((project (head flg))) (cdr project))
 
    (defvar project-mode-line
-     '(:eval (let* ((pname (project-root (project-current)))
-                    (mname (if pname
-                               (format (if (file-remote-p default-directory) "{%s}  " "<%s>  ")
-                                       (file-name-nondirectory (if (string-suffix-p "/" pname)
-                                                                   (cl-subseq pname 0 (1- (length pname)))
-                                                                 pname)))
-                             " ")))
-               (propertize mname 'face (if (facep 'project-mode-line-face)
-                                           'project-mode-line-face
-                                         'font-lock-comment-face)))))
+     '(:eval (condition-case _
+                 (let* ((pname (project-root (project-current)))
+                        (mname (if pname
+                                   (format (if (file-remote-p default-directory) "{%s}  " "<%s>  ")
+                                           (file-name-nondirectory (if (string-suffix-p "/" pname)
+                                                                       (cl-subseq pname 0 (1- (length pname)))
+                                                                     pname)))
+                                 " ")))
+                   (propertize mname 'face (if (facep 'project-mode-line-face)
+                                               'project-mode-line-face
+                                             'font-lock-comment-face)))
+               (error ""))))
 
    (defun my-project-try-flg-file (dir)
      (cl-flet ((files-match-p (regexp d) (cl-find-if (lambda (f) (string-match-p regexp f)) (directory-files d))))
