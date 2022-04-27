@@ -278,7 +278,7 @@
 (cl-macrolet ((generate-all-defun:where-macros
                 nil
                 `(progn
-                   ,@(cl-loop for where in (mapcar 'car advice--where-alist)
+                   ,@(cl-loop for where in (mapcar 'car (if (boundp 'advice--how-alist) advice--how-alist advice--where-alist)) ; v29 rename to how
                               collect
                               `(defmacro ,(intern (format "defun%s" where)) (advice-name params &rest body)
                                  ,(format "Usage: (defun%s function$label (args) body), tag cannot be ignored." where)
