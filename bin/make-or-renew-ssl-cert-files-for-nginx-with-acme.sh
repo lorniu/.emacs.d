@@ -44,16 +44,18 @@ if [[ $host == "*"* ]]; then
     # Make sure that env file exists (CF_Email/CF_key), it is used to manipulate DNS of cf.
     if [[ $host =~ .(gq|cf|ml|ga|tk)$ ]]; then
         # cloudflare, banned api for gq/ml/etc now, so use DNS-Alias-Mode instead.
-        # first, you shold add a CNAME: _acme-challenge.a.gq => _acme-challenge.aliasDomain.com
+        # first, you should add a CNAME: _acme-challenge.a.gq => _acme-challenge.aliasDomain.com
         echo "Make new key cert files (dns/alias)..."
         ( set -x; $acme --issue -d ${host:2} -d $host --dns dns_cf --force --challenge-alias $dns_alias_host )
     else
+        # [校验域名方式] 将会在 dns 服务器上创建一条 CNAME 记录，测试联通后删掉
         echo "Make new key cert files (dns)..."
         ( set -x; $acme --issue -d ${host:2} -d $host --dns dns_cf --force )
     fi
     hostdir="x.${host:2}"
 else
     # http-01 style, make sure nginx is runing
+    # [校验域名方式] 将会在 nginx 的主目录 (.notes/webapp/html/) 下创建 /.well-known 文件夹，测试能联通后删除
     if [ ! -d "~/.acme.sh/$host" ]; then
         echo "Make new key cert files (http)..."
         ( set -x; $acme --force --issue -d $host --webroot $www )  # --standalone

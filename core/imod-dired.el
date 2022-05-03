@@ -15,7 +15,6 @@
      ( "z" . idp/dired-du-size )
      ( "Y" . idp/dired-rsync )
      ( "," . im-dired--toggle-collapse )
-     ( "s" . imtt/transient-dired-sort )
      ( "C-c m" . imtt/transient-dired)))
    :init
    (require 'wdired)
@@ -83,7 +82,6 @@
     ("D" (lambda () (!tdesc "RCDSHc " "Move/Copy/Del/SLink/HLink/Comp")) dired-do-delete :format " %d")
     ("G" (lambda () (!tdesc "GMOT   " "Chg Group/Mode/Owner/Touch")) dired-do-chgrp :format " %d")
     ("L" (lambda () (!tdesc "LB!&   " "Load/Compile/ShellCmd/AsyncCmd")) dired-do-load :format " %d")
-    ("s" (lambda () (!tdesc "s=rw   " "Sort/Diff/Wdired/KillName")) imtt/transient-dired-sort :format " %d")
     ]
    ["Mark & Flag"
     ("m " (lambda () (!tdesc "muUt  " "Mark..")) dired-mark :format " %d")
