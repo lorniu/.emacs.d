@@ -27,12 +27,15 @@
            ([(M-mouse-1)] . hs-mouse-toggle-hiding)))
    :init
    (setq hs-allow-nesting t)
+
    :defer-config
+
    (defvar %hs-display-line-overlay-map
      (let ((m (make-sparse-keymap)))
        (define-key m [return] 'hs-show-block)
        (define-key m [mouse-1] 'hs-show-block)
        m))
+
    (defun %hs-display-line-counts (ov)
      (when (eq 'code (overlay-get ov 'hs))
        (let ((s (overlay-start ov)) pre)
@@ -78,6 +81,24 @@
             '((name . set-selective-display-from-cursor-column)))
 
 (defvar-local outline-prefer-p nil)
+
+(defun:around forward-comment$avoid-across-page-break (fn count)
+  "When forward comment, don't across page-break!"
+  (let ((o (point)))
+    (funcall fn count)
+    (let* ((p (point))
+           (q (save-excursion
+                (goto-char o)
+                (when (funcall (if (> count 0) #'re-search-forward #'re-search-backward) "^\f$" nil t)
+                  (if (> count 0)
+                      (progn
+                        (beginning-of-line)
+                        (skip-chars-backward " \t\n")
+                        (if (> p (point)) (point)))
+                    (end-of-line)
+                    (skip-chars-forward " \t\n")
+                    (if (> (point) p) (point)))))))
+      (if q (goto-char q)))))
 
 
 
@@ -294,7 +315,7 @@
   (lambda (_) (ruby-end-of-block)))
 
 (hs-set-rule haskell-mode
-  "^[a-zA-Z]+"
+  "^[a-zA-Z\f]+"
   ""
   "--\\|{-"
   (lambda (_)
@@ -302,7 +323,7 @@
       (if (and (equal (char-before) 10) (equal (char-after) 12))
           (forward-line)
         (forward-paragraph)
-        (search-forward-regexp "^[-a-zA-Z]" nil t)
+        (search-forward-regexp "^[-a-zA-Z\f]" nil t)
         (backward-char 2)
         (if (>= beg (point)) (goto-char (point-max)))
         (if (equal (char-before) 10) (backward-char))))))
