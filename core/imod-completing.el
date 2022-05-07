@@ -20,7 +20,7 @@
    (dolist (m '(prog-mode sqlplus-mode org-mode java-mode sly-mrepl-mode))
      (let ((hook (intern (format "%s-hook" m))))
        (add-hook hook (lambda () (setq-local corfu-auto t)))))
-   (corfu-global-mode 1))
+   (global-corfu-mode 1))
 
 (x cape
    :ref "minad/cape"
