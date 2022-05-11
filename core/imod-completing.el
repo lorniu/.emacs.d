@@ -271,7 +271,7 @@ Select a candidate can:
                                                  (progn (setq myc-views nil) (message "Clear Done!"))
                                                (message "Nothing Done."))))
                                map)
-                     :lookup (lambda (_ __ view)
+                     :lookup (lambda (view &rest _)
                                (cond
                                 ;; check
                                 ((not (string-match-p "^{} " (or view "")))

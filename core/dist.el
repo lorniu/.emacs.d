@@ -20,6 +20,7 @@
   nano-theme modus-themes gruvbox-theme ; themes
 
   ;; edit and utils
+  vundo
   session
   syntax-subword
   wgrep
@@ -105,7 +106,8 @@
   sx ; stackoverflow
   uuidgen
   udev-mode
-  go-translate)
+  go-translate
+  package-lint)
 
 
 ;;; x

@@ -124,6 +124,7 @@
 
 
 (x ace-window
+   "Can `M-x windmove-swap-states-default-keybindings' then use S-M-arrow to swap."
    :bind ("C-x w" . ace-window)
    :defer-config
    (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))

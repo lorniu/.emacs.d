@@ -5,6 +5,15 @@
 
 ;;; Code:
 
+(x vundo
+   :ref "casouri/vundo"
+   :bind (("C-x u" . vundo)
+          (vundo-mode-map
+           ("l" . vundo-forward)
+           ("h" . vundo-backward)
+           ("j" . vundo-next)
+           ("k" . vundo-previous))))
+
 (x ahs
    :bind ((ahs-mode-map
            ("M-p" . ahs-backward)
