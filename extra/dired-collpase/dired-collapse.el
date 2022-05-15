@@ -65,7 +65,6 @@
 
 
 (require 'dired)
-(require 'f)
 
 (defgroup dired-collapse ()
   "Collapse unique nested paths in dired listing."
@@ -122,6 +121,13 @@ filename (for example when the final directory is empty)."
       (overlay-put ov 'face 'shadow)
       ov)))
 
+(defun dired-collapse--chop-prefix (prefix s)
+  "Remove PREFIX if it is at the start of S."
+  (let ((pos (length prefix)))
+    (if (and (>= (length s) (length prefix)) (string= prefix (substring s 0 pos)))
+        (substring s pos)
+      s)))
+
 (defun dired-collapse ()
   "Collapse unique nested paths in dired listing."
   (when (or (not (file-remote-p default-directory)) dired-collapse-remote)
@@ -140,14 +146,15 @@ filename (for example when the final directory is empty)."
                   files)
               (while (and (file-directory-p path)
                           (file-readable-p path)
-                          (setq files (f-entries path))
+                          (setq files
+                                (directory-files path t directory-files-no-dot-files-regexp))
                           (= 1 (length files))
                           (file-directory-p (car files)))
                 (setq path (car files)))
               (if (and (not files)
                        (equal path (dired-get-filename nil t)))
                   (dired-collapse--create-ov 'to-eol)
-                (setq path (s-chop-prefix (dired-current-directory) path))
+                (setq path (dired-collapse--chop-prefix (dired-current-directory) path))
                 (when (string-match-p "/" path)
                   (let ((default-directory (dired-current-directory)))
                     (dired-collapse--replace-file path))

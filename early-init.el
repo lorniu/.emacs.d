@@ -2,6 +2,8 @@
 
 ;;; Code
 
+(defvar idebug nil)
+
 (defconst IS-MAC     (eq system-type 'darwin))
 (defconst IS-BSD     (eq system-type 'berkeley-unix))
 (defconst IS-LINUX   (eq system-type 'gnu/linux))

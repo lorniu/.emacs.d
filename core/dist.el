@@ -132,6 +132,7 @@
                (name (intern name)))
     (delq nil
           `(progn
+             (if idebug (message "Loading %s..." ',name))
              ,(if (cl-find ?i flags)
                   (let ((c (plist-get options :if)))
                     `(if ,(or (eq c nil) c) (load-packages-incrementally '(,name)))))

@@ -2,6 +2,10 @@
 
 ;;; Code:
 
+(require 'wdired)
+(require 'im-dired-plus)
+(require 'dired-collapse)
+
 (x dired
    "Maybe should add this to .bashrc:
    "
@@ -16,26 +20,11 @@
      ( "Y" . idp/dired-rsync )
      ( "," . im-dired--toggle-collapse )
      ( "C-c m" . imtt/transient-dired)))
-   :init
-   (require 'wdired)
-   (require 'dired-collapse)
-   (require 'ls-lisp)
-
+   :config
    (setq wgrep-enable-key "e")
+   (setq dired-dwim-target t)
 
-   (defvar ic/dired-collapse-enable t)
-   (defun:hook dired-mode-hook/collapse ()
-     (dired-collapse-mode (if ic/dired-collapse-enable 1 -1)))
-   (defun im-dired--toggle-collapse (&optional arg)
-     "Toggle collapse, with `C-u' then futrue will effact future dired buffer."
-     (interactive "P")
-     (let (current-prefix-arg)
-       (call-interactively 'dired-collapse-mode))
-     (when arg
-       (setq ic/dired-collapse-enable dired-collapse-mode)
-       (message "Global dired-collapse mode: %s" ic/dired-collapse-enable)))
-
-   :defer-config
+   (require 'ls-lisp)
    (setq dired-listing-switches "-alh"
          ls-lisp-use-insert-directory-program nil
          ls-lisp-dirs-first t
@@ -43,10 +32,8 @@
          ls-lisp-UCA-like-collation nil
          ls-lisp-use-localized-time-format t
          ls-lisp-format-time-list '("%Y/%m/%d %H:%M" "%Y/%m/%d %H:%M"))
-
    (defvar ls-lisp-xid-shorten-threshold (if IS-WIN 8)
      "Shorten display the Uid/Gid column, eg, Administrators is toooooo long.")
-
    (defun:before ls-lisp-format$shorten (_fn file-attr _fs _sw _ti)
      (when ls-lisp-xid-shorten-threshold
        (cl-labels ((norm (file n &optional
@@ -58,11 +45,21 @@
                                (propertize (format "%s~" (upcase (cl-subseq item 0 len)))
                                            'help-echo item))))))
          (norm file-attr 2)
-         (norm file-attr 3))))
+         (norm file-attr 3)))))
 
-   ;; others
-   (setq dired-dwim-target t)
-   (require 'im-dired-plus))
+(x dired-collapse
+   :init
+   (defvar ic/dired-collapse-enable t)
+   (defun:hook dired-mode-hook/collapse ()
+     (dired-collapse-mode (if ic/dired-collapse-enable 1 -1)))
+   (defun im-dired--toggle-collapse (&optional arg)
+     "Toggle collapse, with `C-u' then futrue will effact future dired buffer."
+     (interactive "P")
+     (let (current-prefix-arg)
+       (call-interactively 'dired-collapse-mode))
+     (when arg
+       (setq ic/dired-collapse-enable dired-collapse-mode)
+       (message "Global dired-collapse mode: %s" ic/dired-collapse-enable))))
 
 (defun im/dired-up-directory-follow-symlink (&optional arg)
   (interactive "P")
