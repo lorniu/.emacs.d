@@ -17,7 +17,7 @@
   erc-hl-nicks
   all-the-icons ; icons
   posframe ; childframe
-  nano-theme modus-themes gruvbox-theme ; themes
+  nano-theme modus-themes gruvbox-theme srcery-theme ; themes
 
   ;; edit and utils
   vundo
