@@ -2,6 +2,10 @@
 
 ;;; Code:
 
+(x dupan
+   :init
+   (require 'dupan nil t))
+
 (x dropbox
    :ref ("https://www.dropbox.com/home"
          "https://www.dropbox.com/developers/apps"
