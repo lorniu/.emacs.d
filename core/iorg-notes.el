@@ -5,7 +5,7 @@
 ;;   (im/interactive-script "note-sync-outputs-to-vps.sh")  ; rsync out/*.html to vps
 ;;   (url-retrieve "https://vps/sys/pull-and-reload")       ; execute `git pull` on vps
 ;;
-;; Use Commands + Hooks to make it automated. Read `init-szarch.el' for more.
+;; Use Commands + Hooks to make it automated. Read `init-xxx.el' for more.
 ;;
 
 ;; Capture Content from Browser

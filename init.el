@@ -19,7 +19,7 @@
        (imload 'imod-transient)
        (imload 'imod-general)
        (imload 'imod-edit+)
-       (imload 'imod-nontext)
+       (imload 'imod-docs+media)
        (imload 'imod-tramp)
        (imload 'imod-mmm)
        (imload 'imod-auth)

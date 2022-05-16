@@ -72,6 +72,16 @@
 
 
 
+(x ztree
+   "Use `ztree-diff' to diff directories."
+   :ref "fourier/ztree"
+   :defer-config
+   (setq ztree-draw-unicode-lines t)
+   (setq ztree-diff-additional-options nil) ; '("-w" "-i")
+   (add-to-list 'ztree-diff-filter-list "^~"))
+
+
+
 (transient-define-prefix imtt/transient-dired ()
   :transient-non-suffix 'transient--do-exit
   [["Dired"
