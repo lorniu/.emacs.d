@@ -1,4 +1,4 @@
-{- szarch
+{- szarch/svarch
 
    Sample: /usr/share/xmonad/man/xmonad.hs
    Document: https://hackage.haskell.org/package/xmonad-contrib-0.16/docs/XMonad-Doc-Extending.html
