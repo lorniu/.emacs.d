@@ -15,9 +15,6 @@
 (progn (imload 'dist)
        (imload 'face)
 
-       (imload 'iext-favors)
-       (imload 'iext-sudo)
-
        (imload 'imod-apps)
        (imload 'imod-transient)
        (imload 'imod-general)

@@ -1,4 +1,4 @@
-;;; iext-favors.el --- Favors -*- lexical-binding: t -*-
+;;; favors.el --- Favors -*- lexical-binding: t -*-
 
 ;;; Code:
 
@@ -165,23 +165,93 @@
 
 ;;; r/xxx
 
+(defmacro defreference (name &rest refs)
+  (declare (indent 1))
+  (let* ((flatten (cl-loop for item in refs
+                           if (stringp item) collect item
+                           if (listp item) append
+                           (if (stringp (car item))
+                               (cl-loop for r in item collect (eval r))
+                             (list (eval item)))))
+         (consed (if (null flatten) (user-error "No suitable reference.")
+                   (cl-loop for item in flatten
+                            if (string-match "^\\(.*\\): \\(.*\\)$" item) collect
+                            (cons (match-string 2 item) (match-string 1 item))
+                            else collect (cons item nil))))
+         (formatted (cl-loop for item in consed
+                             for ref = (car item)
+                             if (not (string-prefix-p "http" ref)) do
+                             (setq ref (format "https://github.com/%s" ref))
+                             collect (cons ref (cdr item))))
+         (propertized (cl-loop with face = 'font-lock-doc-face
+                               for item in formatted
+                               for label = (cdr item)
+                               if label do
+                               (let ((len (cl-loop for i in formatted if (cdr i) maximize (1+ (length (car i))))))
+                                 (setq label (format (format "%%-%ds (%%s)" len) (car item) label))
+                                 (add-face-text-property (length (car item)) (length label) face nil label))
+                               else do
+                               (setq label (car item))
+                               collect label)))
+    (setq name (symbol-name name))
+    (let ((fun (intern
+                (if (string-match-p "^|.*|$" name)
+                    (substring name 1 -1)
+                  (format (concat (unless (string-match-p "/" name) "r/") (if (cdr flatten) "%s*" "%s")) name)))))
+      `(defun ,fun ()
+         ,(format "%s\n\nBrowser/Yank it." propertized)
+         (interactive)
+         (let* ((refs ',propertized)
+                (ref (car (split-string
+                           (minibuffer-with-setup-hook
+                               (lambda ()
+                                 (let ((map (make-composed-keymap nil (current-local-map))))
+                                   (define-key map (kbd "M-w")
+                                               (myc-make-action (ref)
+                                                 (setq ref (car (split-string ref " ")))
+                                                 (kill-new ref)
+                                                 (message "Copy REF: %s" ref)))
+                                   (use-local-map map)))
+                             (let ((completion-ignore-case t))
+                               (completing-read "REF: " refs nil t)))
+                           " "))))
+           (when (string-match "\\[\\(.+\\)\\]" ref)
+             (setq ref
+                   (string-replace
+                    (match-string 0 ref)
+                    (read-string (format "%s: " (match-string 1 ref)) nil nil (match-string 1 ref))
+                    ref)))
+           (browse-url ref))))))
+
 (defreference emacs
-              ("Mail List: https://lists.gnu.org/archive/html/emacs-devel/"
-               "Forum: https://www.reddit.com/r/emacs/"
-               "Forum: https://emacs-china.org/"
-               "Download: https://gnu.org/software/emacs/download.html"
-               "Windows Alpha: https://alpha.gnu.org/gnu/emacs/pretest/windows/"
-               "Windows Mirror: http://mirrors.ustc.edu.cn/gnu/emacs/windows/"
-               "elc -> eln: http://akrl.sdf.org/gccemacs.html"
-               "Config: hlissner/doom-emacs"
-               "Source Repo: https://git.savannah.gnu.org/cgit/emacs.git/"
-               "Melpa: https://melpa.org/#/"
-               "Melpa Github: melpa/melpa"))
+  "Mail List: https://lists.gnu.org/archive/html/emacs-devel/"
+  "Forum: https://www.reddit.com/r/emacs/"
+  "Forum: https://emacs-china.org/"
+  "Download: https://gnu.org/software/emacs/download.html"
+  "Windows Alpha: https://alpha.gnu.org/gnu/emacs/pretest/windows/"
+  "Windows Mirror: http://mirrors.ustc.edu.cn/gnu/emacs/windows/"
+  "elc -> eln: http://akrl.sdf.org/gccemacs.html"
+  "Config: hlissner/doom-emacs"
+  "Source Repo: https://git.savannah.gnu.org/cgit/emacs.git/"
+  "Melpa: https://melpa.org/#/"
+  "Melpa Github: melpa/melpa")
+
+(defreference |rrr|
+  "Wallpaper: https://wallhaven.cc"
+  "Wallpaper: https://pixabay.com"
+  "MP3 download: https://www.mp3juices.cc/"
+  "MP3 download: https://www.jbsou.cn/"
+  "Game Audio: https://opengameart.org"
+  "Music: music.163.com")
 
 (defreference downloads
-              ("SQLite3: https://sqlite.org/download.html"
-               "Graphviz: http://graphviz.org/download/"))
+  "SQLite3: https://sqlite.org/download.html"
+  "Graphviz: http://graphviz.org/download/")
 
-(provide 'iext-favors)
+(defreference utils
+  "Net Speed: https://www.speedtest.cn"
+  "Ip Checker: https://www.vps234.com/ipchecker/")
 
-;;; iext-favors.el ends here
+(provide 'favors)
+
+;;; favors.el ends here

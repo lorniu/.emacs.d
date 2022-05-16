@@ -91,6 +91,7 @@
 (imload 'utils)
 (imload 'predist)
 (imload 'preface)
+(imload 'favors)
 
 (imload 'cust-proxy)
 (imload 'cust-lists-and-hooks)

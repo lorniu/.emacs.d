@@ -294,7 +294,7 @@
   (generate-all-defun:where-macros))
 
 
-;;; Helper & Reference & Log
+;;; Helper & Log
 
 (defmacro defhelper (name &rest doc-strings)
   "Make a helper function of NAME-helper to show the DOC-STRINGS."
@@ -303,60 +303,6 @@
     `(defun ,fun-name () ,doc-string
             (interactive)
             (describe-function ',fun-name))))
-
-(defmacro defreference (name &rest refs)
-  "Make a function of NAME to browse the REFS."
-  (declare (indent 1))
-  (let* ((flatten (cl-loop for item in refs
-                           if (stringp item) collect item
-                           if (listp item) append
-                           (if (stringp (car item))
-                               (cl-loop for r in item collect (eval r))
-                             (list (eval item)))))
-         (consed (if (null flatten) (user-error "No suitable reference.")
-                   (cl-loop for item in flatten
-                            if (string-match "^\\(.*\\): \\(.*\\)$" item) collect
-                            (cons (match-string 2 item) (match-string 1 item))
-                            else collect (cons item nil))))
-         (formatted (cl-loop for item in consed
-                             for ref = (car item)
-                             if (not (string-prefix-p "http" ref)) do
-                             (setq ref (format "https://github.com/%s" ref))
-                             collect (cons ref (cdr item))))
-         (propertized (cl-loop with face = 'font-lock-doc-face
-                               for item in formatted
-                               for label = (cdr item)
-                               if label do
-                               (let ((len (cl-loop for i in formatted if (cdr i) maximize (1+ (length (car i))))))
-                                 (setq label (format (format "%%-%ds (%%s)" len) (car item) label))
-                                 (add-face-text-property (length (car item)) (length label) face nil label))
-                               else do
-                               (setq label (car item))
-                               collect label))
-         (fun (intern (format (concat (unless (string-match-p "/" (symbol-name name)) "r/") (if (cdr flatten) "%s*" "%s")) name))))
-    `(defun ,fun ()
-       ,(format "%s\n\nBrowser/Yank it." propertized)
-       (interactive)
-       (let* ((refs ',propertized)
-              (ref (car (split-string
-                         (minibuffer-with-setup-hook
-                             (lambda ()
-                               (let ((map (make-composed-keymap nil (current-local-map))))
-                                 (define-key map (kbd "M-w")
-                                             (myc-make-action (ref)
-                                               (setq ref (car (split-string ref " ")))
-                                               (kill-new ref)
-                                               (message "Copy REF: %s" ref)))
-                                 (use-local-map map)))
-                           (completing-read "REF: " refs nil t))
-                         " "))))
-         (when (string-match "\\[\\(.+\\)\\]" ref)
-           (setq ref
-                 (string-replace
-                  (match-string 0 ref)
-                  (read-string (format "%s: " (match-string 1 ref)) nil nil (match-string 1 ref))
-                  ref)))
-         (browse-url ref)))))
 
 
 ;;; Miscellaneous
