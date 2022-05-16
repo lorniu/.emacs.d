@@ -140,7 +140,7 @@
                (call-interactively 'project-find-file)))
             ((and (file-directory-p path) (memq :project-dir modes))
              (let ((default-directory path))
-               (call-interactively 'im/project-find-dir)))
+               (call-interactively 'im/project-find-directory)))
             ((file-directory-p path)
              (let ((default-directory path))
                (call-interactively 'dired)))

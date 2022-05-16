@@ -47,7 +47,7 @@
 
   ( "C-x f"         .  project-find-file                           )
   ( "C-x F"         .  consult-file-externally                     )
-  ( "C-x d"         .  im/project-find-dir                         )
+  ( "C-x d"         .  im/project-find-directory                   )
   ( "C-x C-b"       .  ibuffer                                     )
   ( "C-x b"         .  consult-buffer                              )
   ( "C-x 4 b"       .  consult-buffer-other-window                 )
