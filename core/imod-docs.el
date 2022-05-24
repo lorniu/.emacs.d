@@ -1,6 +1,14 @@
-;;; imod-docs+media.el --- Docs and Media -*- lexical-binding: t -*-
+;;; imod-docs.el --- Docs -*- lexical-binding: t -*-
 
 ;;; Code:
+
+(x image-mode
+   :init
+   (add-to-list 'auto-mode-alist '("\\.otf\\'" . image-mode))
+   :defer-config
+   (define-key image-mode-map "c" 'im/yank-current-buffer-name))
+
+
 
 (x pdf-tools
    "A replacement of DocView for PDF files, it's created on-demand."
@@ -53,55 +61,6 @@
         (message "Rotate success as '%s'." newfile)
       (user-error "%s" ret))))
 
-
+(provide 'imod-docs)
 
-(x image-mode
-   :init
-   (add-to-list 'auto-mode-alist '("\\.otf\\'" . image-mode))
-   :defer-config
-   (define-key image-mode-map "c" 'im/yank-current-buffer-name))
-
-(x gimp
-   :commands (connect-gimp gimp-mode))
-
-(x mpv
-   :commands (mpv-extra-options)
-   :defer-config
-   (defun mpv-extra-options ()
-     (interactive)
-     (let ((s (read-from-minibuffer "MPV Options: "
-                                    (mapconcat #'identity mpv-default-options " "))))
-       (setq mpv-default-options
-             (if (string-equal "" s) nil
-               (split-string s " ")))
-       (message "%S" mpv-default-options))))
-
-(x emms
-   "Play music in emacs.
-   "
-   "First, install a player:
-   "
-   ": brew install mpv/vls...
-   "
-   :commands emms
-   :init
-   (setq emms-show-formatoo "Playing: %s")
-   (setq emms-source-file-default-directory "~/playing/")
-   (setq emms-directory (locc "emms"))
-   (make-directory emms-directory t)
-   :defer-config
-   (require 'emms-setup)
-   (emms-all)
-   (emms-default-players)
-   ;; keys
-   (define-key emms-playlist-mode-map (kbd "SPC") 'emms-pause)
-   (define-key emms-playlist-mode-map (kbd "+") 'emms-volume-raise)
-   (define-key emms-playlist-mode-map (kbd "-") 'emms-volume-lower)
-   (define-key emms-playlist-mode-map (kbd "<right>") (lambda () (interactive) (emms-seek +10)))
-   (define-key emms-playlist-mode-map (kbd "<left>")  (lambda () (interactive) (emms-seek -10)))
-   (define-key emms-playlist-mode-map (kbd "<up>")    (lambda () (interactive) (emms-seek +60)))
-   (define-key emms-playlist-mode-map (kbd "<down>")  (lambda () (interactive) (emms-seek -60))))
-
-(provide 'imod-docs+media)
-
-;;; imod-docs+media.el ends here
+;;; imod-docs.el ends here

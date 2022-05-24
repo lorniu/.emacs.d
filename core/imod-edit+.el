@@ -27,9 +27,6 @@
            ("j" . vundo-next)
            ("k" . vundo-previous))))
 
-(x multiple-cursors/x
-   :ref "magnars/multiple-cursors.el")
-
 (x expand-region/i
    :ref "magnars/expand-region.el"
    :init
