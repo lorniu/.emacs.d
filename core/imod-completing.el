@@ -20,7 +20,10 @@
    (dolist (m '(prog-mode sqlplus-mode org-mode java-mode sly-mrepl-mode))
      (let ((hook (intern (format "%s-hook" m))))
        (add-hook hook (lambda () (setq-local corfu-auto t)))))
-   (global-corfu-mode 1))
+   (global-corfu-mode 1)
+
+   (require 'kind-all-the-icons)
+   (add-to-list 'corfu-margin-formatters #'kind-all-the-icons-margin-formatter))
 
 (x cape
    :ref "minad/cape"
