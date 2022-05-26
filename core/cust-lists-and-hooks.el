@@ -85,17 +85,18 @@
   "Files that should be readonly."
   (let* ((case-fold-search nil)
          (match? (lambda (&rest items) (string-match-p (apply #'join-as-regor-group items) buffer-file-name))))
-    (when (or (and ic/find-file-readonly-regexp
-                   (string-match-p ic/find-file-readonly-regexp buffer-file-name))
-              (and (not
-                    (funcall match? ; exclude
-                             "/usr/home"
-                             "\\.cache/" "tmp/" "vvv/" "notes"
-                             "autoloads.el$" "loaddefs.el$"))
-                   (funcall match? ; include
-                            "^/usr/"
-                            ".emacs.d/packages"
-                            ".roswell/lisp/quicklisp")))
+    (when (and buffer-file-name
+               (or (and ic/find-file-readonly-regexp
+                        (string-match-p ic/find-file-readonly-regexp buffer-file-name))
+                   (and (not
+                         (funcall match? ; exclude
+                                  "/usr/home"
+                                  "\\.cache/" "tmp/" "vvv/" "notes"
+                                  "autoloads.el$" "loaddefs.el$"))
+                        (funcall match? ; include
+                                 "^/usr/"
+                                 ".emacs.d/packages"
+                                 ".roswell/lisp/quicklisp"))))
       (view-mode 1)
       (make-local-variable 'view-mode-map)
       (define-key view-mode-map "q" 'View-kill-and-leave))))

@@ -64,6 +64,7 @@
 
       disabled-command-function nil
       ad-redefinition-action 'accept
+      read-extended-command-predicate #'command-completion-default-include-p
 
       undo-limit 10000000
 

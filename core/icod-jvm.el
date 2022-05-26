@@ -131,6 +131,9 @@ note: Ensime is deprecated.
                   (jdecomp--classfile-p file))
          (kill-buffer (current-buffer))
          (jdecomp-decompile-and-view file jar))))
+   (defun:around jdecomp--classfile-p$null-case (fn file)
+     "If file is nil, return false."
+     (and file (funcall fn file)))
    (define-derived-mode class-mode fundamental-mode "" "")
    (jdecomp-mode 1))
 

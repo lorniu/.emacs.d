@@ -32,7 +32,7 @@
   vlf ; view-large-file
   ztree ; dir diff
   memory-usage
-  pdf-tools org-noter org-noter-pdftools ; read & note
+  pdf-tools org-noter org-noter-pdftools nov ; read & note
   pyim pyim-basedict rime sis ; ime
   rg ; search
   mpv emms ; media

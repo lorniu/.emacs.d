@@ -19,7 +19,7 @@
        (imload 'imod-general)
        (imload 'imod-edit+)
        (imload 'imod-apps)
-       (imload 'imod-docs)
+       (imload 'imod-reader)
        (imload 'imod-tramp)
        (imload 'imod-mmm)
        (imload 'imod-auth)

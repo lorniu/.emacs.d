@@ -1,4 +1,4 @@
-;;; imod-docs.el --- Docs -*- lexical-binding: t -*-
+;;; imod-reader.el --- Docs -*- lexical-binding: t -*-
 
 ;;; Code:
 
@@ -15,7 +15,8 @@
    :ref "vedang/pdf-tools"
    :init
    (defun:hook find-file-hook/pdf-tools ()
-     (and (string-equal (file-name-extension buffer-file-name) "pdf")
+     (and buffer-file-name
+          (string-equal (file-name-extension buffer-file-name) "pdf")
           (not (featurep 'pdf-tools))
           (require 'pdf-tools)
           (not (executable-find pdf-info-epdfinfo-program))
@@ -61,6 +62,14 @@
         (message "Rotate success as '%s'." newfile)
       (user-error "%s" ret))))
 
-(provide 'imod-docs)
+
 
-;;; imod-docs.el ends here
+(x nov
+   "EPUB reader."
+   :ref "https://depp.brause.cc/nov.el/"
+   :init
+   (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
+
+(provide 'imod-reader)
+
+;;; imod-reader.el ends here
