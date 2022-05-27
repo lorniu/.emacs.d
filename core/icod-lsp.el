@@ -10,6 +10,7 @@
 (defreference lsp
   "emacs-lsp/lsp-mode"
   "joaotavora/eglot"
+  "manateelazycat/lsp-bridge"
   "Specification: https://microsoft.github.io/language-server-protocol/specifications/specification-current/")
 
 
@@ -59,6 +60,15 @@
   (interactive)
   (lsp-mode -1)
   (remove-hook (intern (format "%s-hook" (symbol-name major-mode))) 'lsp))
+
+
+
+(x lsp-bridge
+   :commands (lsp-bridge-mode global-lsp-bridge-mode)
+   :defer-config
+   (require 'lsp-bridge)
+   (require 'lsp-bridge-jdtls)
+   (setq lsp-bridge-completion-provider 'corfu))
 
 (provide 'icod-lsp)
 

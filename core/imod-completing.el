@@ -17,7 +17,7 @@
    :bind
    ((corfu-map ([tab] . %first-yas-then-complete)))
    :init
-   (dolist (m '(prog-mode sqlplus-mode org-mode java-mode sly-mrepl-mode))
+   (dolist (m '(prog-mode sqlplus-mode org-mode java-mode sly-mrepl-mode typescript-mode))
      (let ((hook (intern (format "%s-hook" m))))
        (add-hook hook (lambda () (setq-local corfu-auto t)))))
    (global-corfu-mode 1)
