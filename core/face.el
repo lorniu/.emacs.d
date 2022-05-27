@@ -87,6 +87,18 @@
 (defvar my-dedicate-mode-line
   '(:eval (if (window-dedicated-p) (propertize " 🮻" 'face 'font-lock-warning-face) "")))
 
+;; custom buffer-name on mode-line
+(setq-default mode-line-buffer-identification
+              (list
+               (propertize "%12b"       ; buffer-name
+                           'face 'mode-line-buffer-id
+                           'help-echo '(format "%s" (or (buffer-file-name) default-directory))
+                           'mouse-face 'mode-line-highlight
+                           'local-map mode-line-buffer-identification-keymap)))
+(define-key mode-line-buffer-identification-keymap [mode-line mouse-1] #'im/yank-current-full-name)
+(define-key mode-line-buffer-identification-keymap [mode-line mouse-3] #'im/yank-current-dir-and-buffer-name)
+
+;; mode-line
 (setq-default mode-line-format
               `("%e"
                 (:eval my-dedicate-mode-line)  ; dedicated
@@ -101,6 +113,7 @@
                 mode-line-misc-info
                 mode-line-end-spaces))
 
+;; theme
 (aif (f/get :theme) (load-theme it t))
 
 

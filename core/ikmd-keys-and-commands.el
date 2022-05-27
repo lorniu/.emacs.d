@@ -593,6 +593,22 @@
     (kill-new buffname)
     (message "Yanked: %s" buffname)))
 
+(defun im/yank-current-full-name ()
+  (interactive)
+  (let ((filename (buffer-file-name)) r)
+    (if filename (setq r filename)
+      (setq r (buffer-name)))
+    (kill-new r)
+    (message "Yanked: %s" r)))
+
+(defun im/yank-current-dir-and-buffer-name ()
+  (interactive)
+  (let ((bn (buffer-name))
+        (dn default-directory))
+    (kill-new bn)
+    (kill-new dn)
+    (message "Yanked: %s - %s" bn dn)))
+
 (defun im/set-lisp-indent-function-buffer-local ()
   "Toggle the current indent-function."
   (interactive)
