@@ -8,20 +8,21 @@
 
 (x corfu
    :ref "minad/corfu"
+   :bind
+   ((corfu-map ([tab] . %first-yas-then-complete)))
    :init
    (setq corfu-auto nil)
    (setq corfu-auto-delay 0)
    (setq corfu-auto-prefix 1)
    (setq corfu-quit-at-boundary t)
    (setq corfu-preview-current nil)
-   :bind
-   ((corfu-map ([tab] . %first-yas-then-complete)))
-   :init
+
    (dolist (m '(prog-mode sqlplus-mode org-mode java-mode sly-mrepl-mode typescript-mode))
      (let ((hook (intern (format "%s-hook" m))))
        (add-hook hook (lambda () (setq-local corfu-auto t)))))
    (global-corfu-mode 1)
 
+   (require 'corfu-kind-grouping)
    (require 'kind-all-the-icons)
    (add-to-list 'corfu-margin-formatters #'kind-all-the-icons-margin-formatter))
 
