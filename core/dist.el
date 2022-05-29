@@ -83,6 +83,7 @@
   websocket know-your-http-well ; http
   restclient ob-restclient httprepl ; rest
   c-eldoc ; c/c++
+  rust-mode ; rust
   php-mode ; php
   go-mode ; go
   robe ; ruby

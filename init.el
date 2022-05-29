@@ -42,6 +42,7 @@
        (imload 'icod-lsp)
        (imload 'icod-tags)
        (imload 'icod-cc)
+       (imload 'icod-rust)
        (imload 'icod-jvm)
        (imload 'icod-dotnet)
        (imload 'icod-lisp)
