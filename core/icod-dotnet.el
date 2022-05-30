@@ -8,28 +8,30 @@
 ;; LSP Server:
 ;;
 ;;  1. yay -S omnisharp-roslyn-bin
-;;  2. dotnet tool install --glboal csharp-ls
+;;  2. dotnet tool install -g csharp-ls
 ;;
 ;; Bug:
 ;;
 ;;  - https://github.com/OmniSharp/omnisharp-roslyn/issues/2238 (textDocument/definition URI is incompatible with (...)ExternalSourceService cache)
-;;  - https://github.com/razzmatazz/csharp-language-server/issues/12 (Doesn't work with latest Emacs git master)
 ;;
 
 ;;; Code:
 
 (x csharp-mode
    :ref ("babel: samwdp/ob-csharp"
-         "Server: https://github.com/OmniSharp/omnisharp-roslyn/releases")
+         "Server: OmniSharp/omnisharp-roslyn/releases"
+         "Server: razzmatazz/csharp-language-server")
    :init
    (defun:hook csharp-mode-hook()
      (electric-pair-local-mode 1)
      (local-set-key (kbd "C-c C-c") 'recompile))
    :defer-config
-   ;;(setq lsp-csharp-server-path (executable-find "csharp-ls"))
-   ;;(eglot-set-server csharp-mode "/usr/bin/env" "--default-signal" "csharp-ls")
-   (setq lsp-csharp-server-path (executable-find "omnisharp"))
-   (eglot-set-server csharp-mode "omnisharp" "-lsp"))
+   ;; Prefer use csharp-ls
+   (if-let ((s (executable-find "csharp-ls")))
+       (progn (setq lsp-csharp-server-path s)
+              (eglot-set-server csharp-mode "csharp-ls"))
+     (setq lsp-csharp-server-path (executable-find "omnisharp"))
+     (eglot-set-server csharp-mode "omnisharp" "-lsp")))
 
 (x fsharp-mode
    :defer-config
