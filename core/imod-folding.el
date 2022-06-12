@@ -27,15 +27,12 @@
            ([(M-mouse-1)] . hs-mouse-toggle-hiding)))
    :init
    (setq hs-allow-nesting t)
-
    :defer-config
-
    (defvar %hs-display-line-overlay-map
      (let ((m (make-sparse-keymap)))
        (define-key m [return] 'hs-show-block)
        (define-key m [mouse-1] 'hs-show-block)
        m))
-
    (defun %hs-display-line-counts (ov)
      (when (eq 'code (overlay-get ov 'hs))
        (let ((s (overlay-start ov)) pre)
@@ -49,7 +46,10 @@
                               (propertize
                                (format "...%d..." (count-lines (overlay-start ov) (overlay-end ov)))
                                'face font-lock-warning-face 'cursor t 'pointer 'hand)))
-         (overlay-put ov 'keymap %hs-display-line-overlay-map))))
+         (overlay-put ov 'keymap %hs-display-line-overlay-map)))
+     (when (eq 'comment (overlay-get ov 'hs))
+       (overlay-put ov 'display "...")
+       (overlay-put ov 'keymap %hs-display-line-overlay-map)))
    (setq hs-set-up-overlay '%hs-display-line-counts))
 
 (x outline
