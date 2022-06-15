@@ -1,37 +1,24 @@
 ;;; icod-dotnet.el --- .Net -*- lexical-binding: t -*-
 
-;; Plans:
-;;
-;;  1. omnisharp-emacs (deprecated)
-;;  2. LSP/Eglot + omnisharp/csharp-ls
-;;
-;; LSP Server:
+;; LSP Server for CSharp:
 ;;
 ;;  1. yay -S omnisharp-roslyn-bin
 ;;  2. dotnet tool install -g csharp-ls
 ;;
-;; Bug:
-;;
-;;  - https://github.com/OmniSharp/omnisharp-roslyn/issues/2238 (textDocument/definition URI is incompatible with (...)ExternalSourceService cache)
-;;
 
 ;;; Code:
 
+(defreference dotnet
+  "babel: samwdp/ob-csharp"
+  "Server: OmniSharp/omnisharp-roslyn/releases"
+  "Server: razzmatazz/csharp-language-server"
+  "Decompile: https://github.com/icsharpcode/ILSpy")
+
 (x csharp-mode
-   :ref ("babel: samwdp/ob-csharp"
-         "Server: OmniSharp/omnisharp-roslyn/releases"
-         "Server: razzmatazz/csharp-language-server")
    :init
    (defun:hook csharp-mode-hook()
      (electric-pair-local-mode 1)
-     (local-set-key (kbd "C-c C-c") 'recompile))
-   :defer-config
-   ;; Prefer use csharp-ls
-   (if-let ((s (executable-find "csharp-ls")))
-       (progn (setq lsp-csharp-server-path s)
-              (eglot-set-server csharp-mode "csharp-ls"))
-     (setq lsp-csharp-server-path (executable-find "omnisharp"))
-     (eglot-set-server csharp-mode "omnisharp" "-lsp")))
+     (local-set-key (kbd "C-c C-c") 'recompile)))
 
 (x fsharp-mode
    :defer-config
@@ -51,7 +38,7 @@
       (switch-to-buffer-other-window b))))
 
 (transient-define-prefix imtt/transient-csharp-mode ()
-  [ ("m" "Csharp Repl" im/csharp-repl) ]
+  [ ("m" "CSharp Repl" im/csharp-repl) ]
   (interactive)
   (if (eq major-mode 'csharp-mode)
       (transient-setup 'imtt/transient-csharp-mode)

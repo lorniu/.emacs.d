@@ -15,7 +15,14 @@
 
 
 
-(x eglot)
+(x eglot
+   :init
+   (setq eglot-events-buffer-size 0)
+   ;;(setq eglot-stay-out-of `(flymake))
+   :defer-config
+   (require 'eglot-jdt)
+   (require 'eglot-cls)
+   (require 'eglot-fsac))
 
 (defmacro eglot-set-server (mode bin &rest args)
   `(with-eval-after-load 'eglot
@@ -23,16 +30,19 @@
        (add-to-list 'eglot-server-programs '(,mode . (,bin ,@args)))
        (cons ',mode ',bin))))
 
-;; event-log switcher
-(defvar eglot-log-event-p nil)
-(defun:around jsonrpc--log-event$toggle-event-log (f &rest args)
-  (when (and eglot-log-event-p
-             (ignore-errors (eq (type-of (car args)) 'eglot-lsp-server)))
-    (apply f args)))
-(defun im/toggle-eglot-event-log ()
+(defun im/eglot-events-buffer-size ()
   (interactive)
-  (message "EGLOG event log is current: %s"
-           (if (setq eglot-log-event-p (not eglot-log-event-p)) "ON" "OFF")))
+  (require 'eglot)
+  (let* ((cs (number-to-string eglot-events-buffer-size))
+         (pt (format "Events buffer size (%s): " cs))
+         (cands (cl-remove-duplicates `("0" "2000000" ,cs) :test #'string=))
+         (cand (completing-read pt cands))
+         (n (ignore-errors (string-to-number cand))))
+    (if (or (null n) (string= cs cand))
+        (user-error "Nothing changed.")
+      (setq eglot-events-buffer-size n)
+      (ignore-errors (eglot-reconnect (eglot-current-server)))
+      (message "`eglot-events-buffer-size' changed to %s." n))))
 
 
 
@@ -67,8 +77,7 @@
    :commands (lsp-bridge-mode global-lsp-bridge-mode)
    :defer-config
    (require 'lsp-bridge)
-   (require 'lsp-bridge-jdtls)
-   (setq lsp-bridge-completion-provider 'corfu))
+   (require 'lsp-bridge-jdtls))
 
 (provide 'icod-lsp)
 

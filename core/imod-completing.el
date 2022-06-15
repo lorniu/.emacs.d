@@ -129,22 +129,24 @@
 
 (defvar consult--my-source-buffer
   `(:name "Buffer"
-          :narrow   ?b
-          :category buffer
-          :face     consult-buffer
-          :history  buffer-name-history
-          :state    ,#'consult--buffer-state
-          :default  t
-          :items
-          ,(lambda ()
-             (let ((filter (consult--regexp-filter consult-buffer-filter)))
-               (seq-remove (lambda (x)
-                             (or (with-current-buffer x
-                                   (or
-                                    (equal major-mode 'erc-mode)
-                                    (equal major-mode 'eaf-mode)))
-                                 (string-match-p filter x)))
-                           (mapcar #'buffer-name (consult--buffer-query)))))))
+    :narrow   ?b
+    :category buffer
+    :face     consult-buffer
+    :history  buffer-name-history
+    :state    ,#'consult--buffer-state
+    :default  t
+    :items
+    ,(lambda ()
+       (mapcar #'buffer-name
+               (seq-remove
+                (lambda (b)
+                  (with-current-buffer b
+                    (or (string-match-p (consult--regexp-filter consult-buffer-filter) (buffer-name))
+                        (equal major-mode 'erc-mode)
+                        (equal major-mode 'eaf-mode)
+                        (ignore-errors
+                          (string-match-p "/.*ls-metadata/\\|/jdt.ls-java-project/" (buffer-file-name))))))
+                (consult--buffer-query))))))
 
 (defvar consult--my-source-erc-buffer
   `(:name "irc/matrix"

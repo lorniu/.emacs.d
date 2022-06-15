@@ -5,7 +5,7 @@
 (x project/e
    :init
    (defvar project-mode-line '(:eval (my-project-mode-line)))
-   (add-to-list 'project-find-functions #'my-project-try-flag-file t)
+   (add-to-list 'project-find-functions #'project-try-special-file t)
 
    (cl-defmethod project-root ((_project (eql nil))) nil)
    (cl-defmethod project-root ((project (head flg))) (cdr project)))
@@ -19,13 +19,14 @@
               (format "<%s>  " (file-name-nondirectory (directory-file-name pname))))))
     (propertize mname 'face (if (facep 'project-mode-line-face) 'project-mode-line-face 'font-lock-comment-face))))
 
-(defun my-project-try-flag-file (dir)
+(defun project-try-special-file (dir)
   (cl-flet ((files-match-p (regexp d) (cl-find-if (lambda (f) (string-match-p regexp f)) (directory-files d))))
     (cl-macrolet ((gor (&rest rest) `(let ((f (locate-dominating-file dir (lambda (d) (or ,@rest))))) (if f (cons 'flg f)))))
       (gor
        (file-exists-p (expand-file-name ".project" d))
        (file-exists-p (expand-file-name ".projectile" d))
-       (files-match-p "\\.csproj$" d)))))
+       (file-exists-p (expand-file-name ".idea" d))
+       (file-exists-p (expand-file-name ".vscode" d))))))
 
 (defun im/project-find-directory()
   (interactive)
