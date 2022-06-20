@@ -22,6 +22,7 @@
           (not (executable-find pdf-info-epdfinfo-program))
           (message "You should execute `M-x pdf-tools-install' to enable pdf-tools")))
    :defer-config
+   (require 'pdf-history)
    ;; fire when epdfinfo exists
    (when (executable-find pdf-info-epdfinfo-program)
      (add-to-list 'magic-mode-alist (cons "%PDF" 'pdf-view-mode))

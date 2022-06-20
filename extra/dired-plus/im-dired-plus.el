@@ -58,15 +58,14 @@
          (format "%s %s %s"
                  dired-listing-switches
                  (cadr (assoc (car dired-quick-sort-current) dired-quick-sort-list))
-                 (if (plusp (cdr dired-quick-sort-current)) "" "-r")))
-        (ls-lisp-dirs-first (plusp dired-quick-sort-group-dir)))
+                 (if (cl-plusp (cdr dired-quick-sort-current)) "" "-r")))
+        (ls-lisp-dirs-first (cl-plusp dired-quick-sort-group-dir)))
     (dired-sort-R-check switches)
     (setq dired-actual-switches switches)
     (when (eq major-mode 'dired-mode)
-      (setq mode-name (format "Dired by %s (%s)" (car dired-quick-sort-current) (if (plusp (cdr dired-quick-sort-current)) "u" "n")))
+      (setq mode-name (format "Dired by %s (%s)" (car dired-quick-sort-current) (if (cl-plusp (cdr dired-quick-sort-current)) "u" "n")))
       (force-mode-line-update))
     (revert-buffer)))
-
 
 (provide 'im-dired-plus)
 
