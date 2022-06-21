@@ -21,8 +21,11 @@
           (require 'pdf-tools)
           (not (executable-find pdf-info-epdfinfo-program))
           (message "You should execute `M-x pdf-tools-install' to enable pdf-tools")))
+   (defun:hook pdf-view-mode-hook ()
+     ;; double-click to select current word
+     (require 'pdf-sel)
+     (pdf-sel-mode 1))
    :defer-config
-   (require 'pdf-history)
    ;; fire when epdfinfo exists
    (when (executable-find pdf-info-epdfinfo-program)
      (add-to-list 'magic-mode-alist (cons "%PDF" 'pdf-view-mode))
@@ -32,6 +35,7 @@
    (setq pdf-annot-activate-created-annotations t)
    (setq pdf-view-resize-factor 1.1)
    ;; keymap
+   (require 'pdf-history)
    (define-key pdf-history-minor-mode-map (kbd "r") nil)
    (define-key pdf-history-minor-mode-map (kbd "l") nil)
    (define-key pdf-view-mode-map (kbd "r") 'image-rotate)
