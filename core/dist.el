@@ -42,8 +42,9 @@
   kubernetes docker dockerfile-mode ; container
 
   ;; complete, search and nav
-  vertico orderless consult marginalia embark
-  which-key embark-consult consult-eglot
+  vertico orderless consult marginalia
+  which-key consult-eglot
+  hyperbole embark embark-consult
 
   ;; project
   corfu cape

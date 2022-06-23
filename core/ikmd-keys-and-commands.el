@@ -73,7 +73,6 @@
   ( "C-M-,"         .  er/contract-region                          )
   ( "C-x n"         .  imtt/transient-narrow                       )
 
-  ( "C-h h"         .  imtt/transient-help                         )
   ( "C-h C-h"       .  imtt/transient-help                         )
   ( "C-h c"         .  quick-calc                                  )
   ( "C-h C-c"       .  calc                                        )
@@ -92,6 +91,22 @@
 
 (global-set-key [mouse-2] 'mouse-drag-region)
 (global-set-key [C-down-mouse-1] 'mouse-drag-region)
+
+
+
+(define-key im-keys-mode-map (kbd "M-<return>") #'im/smart-alt+return)
+(define-key im-keys-mode-map (kbd "C-<return>") #'im/smart-ctrl+return)
+
+(defun im/smart-alt+return ()
+  (interactive)
+  (cond ((equal major-mode 'inferior-fsharp-mode)
+         (call-interactively #'fsharp-comint-send))
+        (t (call-interactively #'hkey-either))))
+
+(defun im/smart-ctrl+return ()
+  (interactive)
+  (call-interactively
+   (if current-prefix-arg #'embark-dwim #'embark-act)))
 
 
 

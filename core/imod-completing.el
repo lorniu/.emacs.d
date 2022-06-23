@@ -1,6 +1,6 @@
 ;;; imod-completing.el --- Completing. -*- lexical-binding: t -*-
 
-;; vertico/orderless/consult/embark/marginalia
+;; vertico/orderless/consult/marginalia
 ;; 2021-10-30, migrate selectrum to vertico, and persist to orderless
 ;; 2021-12-06, migrate company to corfu/cape
 
@@ -29,17 +29,11 @@
 (x cape
    :ref "minad/cape"
    :init
-   (add-to-list 'completion-at-point-functions #'cape-file)
-   (add-to-list 'completion-at-point-functions #'cape-abbrev)
-   ;;(add-to-list 'completion-at-point-functions #'cape-dabbrev)
-   ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
-   ;;(add-to-list 'completion-at-point-functions #'cape-ispell)
-   ;;(add-to-list 'completion-at-point-functions #'cape-dict)
-   ;;(add-to-list 'completion-at-point-functions #'cape-symbol)
-   ;;(add-to-list 'completion-at-point-functions #'cape-line)
-   ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
-   ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
-   )
+   (dolist (v (list #'cape-file #'cape-abbrev
+                    ;; #'cape-dabbrev #'cape-keyword #'cape-ispell #'cape-dict
+                    ;; #'cape-symbol #'cape-line #'cape-sgml #'cape-rfc1345
+                    ))
+     (add-to-list 'completion-at-point-functions v)))
 
 (x orderless
    :ref "oantolin/orderless"
@@ -90,9 +84,6 @@
    :defer-config
    (setq consult-narrow-key "<") ;
    (setq consult-preview-key (list (kbd "C-o")))
-   (setq consult-project-root-function (lambda ()
-                                         (when-let (project (project-current))
-                                           (car (project-roots project)))))
    (setq consult-buffer-sources
          '(consult--source-hidden-buffer
            consult--my-source-buffer
@@ -102,22 +93,6 @@
            consult--source-recent-file
            consult--source-project-buffer
            consult--source-project-recent-file)))
-
-(x embark/e
-   :ref "oantolin/embark"
-   :bind
-   ((minibuffer-local-map
-     (("M-o" . embark-act)))
-    (embark-file-map
-     (("l"   . vlf)
-      ("C-j" . embark-dired-jump))))
-
-   :defer-config
-   (setq embark-prompter 'embark-completing-read-prompter))
-
-(x embark-consult/d
-   :after (embark consult)
-   :hook (embark-collect-mode-hook . embark-consult-preview-minor-mode))
 
 (x marginalia
    :ref "minad/marginalia"

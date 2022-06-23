@@ -30,6 +30,7 @@
        (imload 'imod-completing)
        (imload 'imod-snippet)
        (imload 'imod-folding)
+       (imload 'imod-tui-actions)
        (imload 'imod-internet)
        (imload 'imod-vcs)
        (imload 'imod-shell)
