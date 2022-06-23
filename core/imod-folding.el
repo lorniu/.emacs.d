@@ -24,7 +24,7 @@
            ("C-c C-f" . imtt/transient-fold))
           (hs-minor-mode-map
            ([(M-down-mouse-1)] . nil)
-           ([(M-mouse-1)] . hs-mouse-toggle-hiding)))
+           ([(M-mouse-1)] . nil)))
    :init
    (setq hs-allow-nesting t)
    :defer-config
