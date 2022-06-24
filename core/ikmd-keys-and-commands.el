@@ -206,10 +206,10 @@
 
 (defun im/backward-delete-word ()
   "Don't put into kill ring, don't delete too much."
-  (interactive "*")
-  (push-mark)
-  (im/backward-word)
-  (delete-region (point) (mark)))
+  (interactive)
+  (let ((p (point)))
+    (im/backward-word)
+    (delete-region (point) p)))
 
 (defun im/isearch-regexp ()
   "Isearch+, default with region word, enable regexp."

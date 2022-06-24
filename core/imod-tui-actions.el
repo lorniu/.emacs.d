@@ -34,14 +34,11 @@
 
 (defvar my-embark-scratch-buffer-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "i"
-      (defun my-say-hello nil
-        (interactive)
-        (message "Hello embark")))
+    (define-key map "i" #'ignore)
     map))
 
-(add-to-list 'embark-target-finders #'my-embark-target-scratch-buffer)
-(add-to-list 'embark-keymap-alist '(scratch . my-embark-scratch-buffer-map))
+;;(add-to-list 'embark-target-finders #'my-embark-target-scratch-buffer)
+;;(add-to-list 'embark-keymap-alist '(scratch . my-embark-scratch-buffer-map))
 
 (provide 'imod-tui-actions)
 
