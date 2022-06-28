@@ -26,47 +26,13 @@
 ;;
 ;; (@* "Custom variable" )
 ;;
-(defcustom ahs-modes
-  '( actionscript-mode
-     apache-mode
-     bat-generic-mode
-     c++-mode
-     c-mode
-     csharp-mode
-     css-mode
-     dos-mode
-     emacs-lisp-mode
-     ini-generic-mode
-     java-mode
-     javascript-mode
-     js-mode
-     lisp-interaction-mode
-     lua-mode
-     latex-mode
-     nxml-mode
-     nxhtml-mode
+(defcustom ahs-extra-modes
+  '( nxml-mode
      outline-mode
-     perl-mode cperl-mode
-     php-mode
-     python-mode
-     rc-generic-mode
-     reg-generic-mode
-     ruby-mode
-     squirrel-mode
-     tcl-mode
-     visual-basic-mode
-
-     js2-mode
-     rjsx-mode
-
-     lisp-mode
-
      web-mode
      html-mode
      sgml-mode
-     mhtml-mode
-     xml-mode
-     )
+     xml-mode )
   "Major modes `ahs-mode' can run on."
   :group 'ahs
   :type '(repeat symbol))
@@ -1171,7 +1137,8 @@ This variable can be set in three different types.
 (defun ahs-mode-maybe ()
   "Fire up `ahs-mode' if major-mode in ahs-modes."
   (if (and (not (minibufferp (current-buffer)))
-           (memq major-mode ahs-modes))
+           (or (derived-mode-p 'prog-mode)
+               (member major-mode ahs-extra-modes)))
       (ahs-mode t)))
 
 (defun ahs-init-lighter ()
