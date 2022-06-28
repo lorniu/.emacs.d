@@ -22,7 +22,7 @@
   :type 'list)
 
 (defun f/get (item &optional default)
-  (let* ((faces-default (list :title "hi" :theme nil :font nil :font-unicode nil :font-mono '("Ubuntu Mono" "隶书") :font-emoji "Emoji"))
+  (let* ((faces-default (list :title nil :theme nil :font nil :font-unicode nil :font-mono '("Ubuntu Mono" "隶书") :font-emoji "Emoji"))
          (faces-merged (plist-merge faces-default ic/faces)))
     (or (plist-get faces-merged item) default)))
 
@@ -131,13 +131,19 @@
       (message "%s local to: %s" face-or-faces args))))
 
 
+;;; Title
+
+(setq frame-title-format
+      (if-let ((ttl (f/get :title))) ttl
+        `((:eval "%b"))))
+
+
 ;;; Windows
 
 (when IS-WIN
   (setq default-frame-alist
         (append
-         `((title  . ,(f/get :title))
-           (alpha  . ,(f/get :alpha 100))
+         `((alpha  . ,(f/get :alpha 100))
            (menu-bar-lines . 0)
            (tool-bar-lines . 0)
            (scroll-bar . nil)
@@ -156,8 +162,7 @@
 
 (when IS-LINUX
   (setq default-frame-alist
-        `((title  . ,(f/get :title))
-          (height . ,(f/get :height 35))
+        `((height . ,(f/get :height 35))
           (width  . ,(f/get :width 110))
           (alpha  . ,(f/get :alpha 100))
           (menu-bar-lines . 0)
