@@ -108,7 +108,7 @@
 
    ;; babel switcher
    (cl-loop for l in '(shell typescript
-                       lisp python ruby haskell java js csx csharp
+                       lisp python ruby haskell java js csx csharp fsharp
                        sql sqlite
                        gnuplot ditaa dot plantuml calc
                        restclient latex)

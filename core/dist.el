@@ -91,7 +91,7 @@
   erlang ; erlang
   alchemist ; elixir
   haskell-mode hindent attrap ; haskell
-  csharp-mode csproj-mode fsharp-mode sharper ; dotnet
+  csharp-mode csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
   kotlin-mode clojure-mode groovy-mode ; jvm
   lsp-java ; better than ever
   scala-mode ; scala
@@ -103,6 +103,7 @@
   systemd
   sql-indent ; sql
   powershell
+  json-mode
 
   ;; miscellanueous
   sx ; stackoverflow
