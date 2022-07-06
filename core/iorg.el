@@ -107,7 +107,7 @@
     });\n</script>\n<script src=\"%PATH\" async></script>")
 
    ;; babel switcher
-   (cl-loop for l in '(shell typescript
+   (cl-loop for l in '(shell powershell typescript
                        lisp python ruby haskell java js csx csharp fsharp
                        sql sqlite
                        gnuplot ditaa dot plantuml calc
@@ -120,12 +120,17 @@
                             ("html" . mhtml)
                             ("cs" . csharp)
                             ("csx" . csharp)
-                            ("tikz" . latex))
+                            ("tikz" . latex)
+                            ("ps" . powershell))
             for s in setups do (cl-pushnew s org-src-lang-modes))
 
-   ;; fixup for csharp
+   ;; use cs as shortcut of csharp
    (defvar org-babel-default-header-args:cs '())
    (defun org-babel-execute:cs (body params) (org-babel-execute:csharp body params))
+
+   ;; use ps as shortcut of powershell
+   (defvar org-babel-default-header-args:ps '())
+   (defun org-babel-execute:ps (body params) (org-babel-execute:powershell body params))
 
    ;; fixup image display
    (add-hook 'org-babel-after-execute-hook 'org-display-inline-images 'append)

@@ -102,8 +102,9 @@
   cmake-mode
   systemd
   sql-indent ; sql
-  powershell
+  powershell ob-powershell
   json-mode
+  csv-mode
 
   ;; miscellanueous
   sx ; stackoverflow
