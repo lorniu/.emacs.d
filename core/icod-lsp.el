@@ -21,7 +21,7 @@
    ;;(setq eglot-stay-out-of `(flymake))
    :defer-config
    (require 'eglot-jdt)
-   (require 'eglot-cls)
+   (unless (and IS-WIN (executable-find "omnisharp")) (require 'eglot-cls)) ; cls not working on windows, strange.
    (require 'eglot-fsac))
 
 (defmacro eglot-set-server (mode bin &rest args)
