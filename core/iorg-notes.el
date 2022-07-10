@@ -47,12 +47,11 @@
     (thread-first
       (with-current-buffer (find-file-read-only note-directory) ; for .dir-locals
         (sit-for 0.3) ; have to sleep for a while? waiting .dir-locals ready...
-        (let ((backup-inhibited t)
-              (case-fold-search nil)
+        (let ((case-fold-search nil)
+              (backup-inhibited t)
               (auto-save-default nil)
               (file-name-handler-alist nil)
               (default-directory note-directory)
-              (org-mode-hook nil)
               (org-startup-folded 'showeverything)
               (org-html-head (if (cl-plusp (length org-html-head)) org-html-head (im-note-publish-html-head--suggest)))
               (org-publish-project-alist (or org-publish-project-alist (im-note-publish-project-alist note-directory note-publish-directory)))

@@ -2,6 +2,8 @@
 
 ;; http://orgmode.org/manual/index.html
 
+;; try and uninstall `org-transclusion', IMO, it's a enhanced #+INCLUDE. not perfect now, maybe try another day. 2022-07-10
+
 ;;; Code:
 
 (setq org-startup-folded t)
@@ -16,9 +18,14 @@
 (setq org-use-sub-superscripts '{})
 (setq org-export-with-sub-superscripts '{})
 (setq org-blank-before-new-entry '((heading . t) (plain-list-item . nil)))
-(setq org-id-link-to-org-use-id t)
 (setq org-catch-invisible-edits 'show)
+
+(setq org-id-link-to-org-use-id 'create-if-interactive)
+(setq org-id-method 'ts)
+(setq org-id-locations-file (locc ".org-id-locations"))
 (setq org-attach-store-link-p t)
+(setq org-attach-id-to-path-function-list '(org-attach-id-ts-folder-format org-attach-id-uuid-folder-format))
+
 (setq org-html-html5-fancy t)
 (setq org-html-doctype "html5")
 (setq org-html-container-element "section")
@@ -27,7 +34,6 @@
 (setq org-html-head-include-scripts nil)
 (setq org-publish-list-skipped-files nil)
 (setq org-publish-timestamp-directory (locc "org-publish-timestamp/"))
-(setq org-id-locations-file (locc ".org-id-locations"))
 (setq org-confirm-babel-evaluate nil)
 (setq org-src-window-setup 'current-window)
 (setq org-link-abbrev-alist `(("google"  . "https://www.google.com/search?q=")
@@ -82,6 +88,8 @@
    :commands (org-time-stamp org-time-stamp-inactive)
    :bind ((org-mode-map ("×"       . "*")
                         ("C-c \""  . im/org-edit-special-with-wc-setup)
+                        ("M-."     . org-open-at-point)
+                        ("M-,"     . org-mark-ring-goto)
                         ("C-,"     . nil)
                         ("M-h"     . nil)
                         ("C-x n"   . nil)
@@ -340,6 +348,14 @@
                       (c-date (calendar-chinese-from-absolute a-date)))
                  (+ (* 100 (car c-date)) (cadr c-date)))))
   (diary-chinese-anniversary lunar-month lunar-day year mark))
+
+(defun im/org-update-id-locations ()
+  "Hack `org-id-update-id-locations', origin one not working on all org files"
+  (interactive)
+  (let ((dir (read-directory-name
+              "Update org files under: "
+              (file-name-as-directory note-directory) nil t)))
+    (org-id-update-id-locations (directory-files-recursively dir ".org"))))
 
 
 ;;; PlugIns
