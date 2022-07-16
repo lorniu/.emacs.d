@@ -186,6 +186,21 @@
     (switch-to-buffer-other-window "*Pp Macroexpand Output*")
     (local-set-key "q" #'delete-window)))
 
+(transient-define-prefix imtt/transient-debugger-mode ()
+  [[ ("d" "debugger-step-through" debugger-step-through)
+     ("c" "debugger-continue" debugger-continue)
+     ("j" "debugger-jump" debugger-jump) ]
+   [ ("e" "debugger-eval-expression" debugger-eval-expression)
+     ("r" "debugger-return-value" debugger-return-value)
+     ("R" "debugger-record-expression" debugger-record-expression) ]
+   [ ("b" "debugger-frame" debugger-frame)
+     ("u" "debugger-frame-clear" debugger-frame-clear)
+     ("l" "debugger-list-functions" debugger-list-functions) ]]
+  (interactive)
+  (if (eq major-mode 'debugger-mode)
+      (transient-setup 'imtt/transient-debugger-mode)
+    (user-error "Sorry, but this is not debugger-mode")))
+
 (provide 'icod-lisp)
 
 ;;; icod-lisp.el ends here
