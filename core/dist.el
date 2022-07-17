@@ -29,6 +29,7 @@
   macrostep
   bbdb
   hide-lines
+  nhexl-mode ; binary
   vlf ; view-large-file
   ztree ; dir diff
   memory-usage

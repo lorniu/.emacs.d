@@ -1,8 +1,17 @@
 ;;; icod-hexl.el --- Hexl Edit -*- lexical-binding: t -*-
 
+;; nhexl is enhanced hexl-mode located in elpa:
+;; - <INS> toggle override/insert-mode
+;; - nhexl-nibble-edit-mode, edit by per 4-bit
+;; - nhexl-mode overrides C-u to use hexadecimal, so you can do C-u a 4 C-f to advance by #xa4 characters
+
 ;;; Code:
 
-(x hexl)
+(x hexl
+   :ref ("https://elpa.gnu.org/packages/nhexl-mode.html"))
+
+(x nhexl-mode
+   "Can insert/search/nibbie-edit and so on.")
 
 (transient-define-prefix imtt/transient-hexl-mode ()
   [:hide
