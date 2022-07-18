@@ -4,7 +4,7 @@
 
 ;;; Code:
 
-;; If not set here, issue occurs on Windows.
+;; If not set here, error raised on Windows.
 ;; Maybe a BUG, someday test and remove it.
 (setq package-user-dir (loce "elpa"))
 
@@ -104,14 +104,16 @@
   systemd
   sql-indent ; sql
   powershell ob-powershell
-  json-mode
   csv-mode
+
+  ;; freelazy
+  go-translate
+  ox-spectacle
 
   ;; miscellanueous
   sx ; stackoverflow
   uuidgen
   udev-mode
-  go-translate
   package-lint)
 
 
