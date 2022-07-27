@@ -60,8 +60,8 @@ start() {
     if pgrep -xa Xephyr |grep -q my_xephyr_$DSP >/dev/null 2>&1; then
         errorout "Xephyr on :$DSP is already started..."
     fi
-    # "$XEPHYR" -name xephyr_$DSP -ac -br -noreset -screen "$SIZE" :$DSP >/dev/null 2>&1 &
-    "$XEPHYR" -name my_xephyr_$DSP -ac -br -noreset -resizeable -dpi 96 -screen "$SIZE" :$DSP >/dev/null 2>&1 &
+    # "$XEPHYR" -name xephyr_$DSP -ac -br -noreset -no-host-grab -screen "$SIZE" :$DSP >/dev/null 2>&1 &
+    "$XEPHYR" -name my_xephyr_$DSP -ac -br -noreset -no-host-grab -resizeable -dpi 96 -screen "$SIZE" :$DSP >/dev/null 2>&1 &
     sleep 1
     DISPLAY=:$DSP.0 "$WMCOMMAND" >/dev/null 2>&1 &
     sleep 1

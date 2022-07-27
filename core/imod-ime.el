@@ -80,7 +80,13 @@ To enable, set ic/ism-default like:\n
   "patch:
   menu/page_size: 5
   switcher/hotkeys:
-    - Control+grave
+    - Control+Shift+F8
+  key_binder/bindings:
+    __patch:
+      - key_bindings:/emacs_editing
+      - key_bindings:/move_by_word_with_tab
+      - key_bindings:/paging_with_minus_equal
+      - key_bindings:/paging_with_comma_period
   ascii_composer/switch_key:
     Caps_Lock: clear
     Shift_L: commit_code
