@@ -31,7 +31,6 @@
        (imload 'imod-snippet)
        (imload 'imod-folding)
        (imload 'imod-tui-actions)
-       (imload 'imod-internet)
        (imload 'imod-vcs)
        (imload 'imod-shell)
        (imload 'imod-ime)
@@ -60,6 +59,7 @@
        (imload 'icod-frontend)
        (imload 'icod-markdown)
 
+       (imload 'iwww)
        (imload 'iwww-irc)
        (imload 'iwww-gnus)
 

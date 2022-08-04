@@ -1,6 +1,13 @@
-;;; imod-internet.el --- Network -*- lexical-binding: t -*-
+;;; iwww.el --- Network -*- lexical-binding: t -*-
 
 ;;; Code:
+
+(defreference fnet
+  "v2fly/v2ray-core/releases"
+  "v2fly/v2ray-examples"
+  "https://[youthedomain]/fnet")
+
+
 
 (x eww
    :init
@@ -73,11 +80,28 @@
 
 
 
-(defreference fnet
-  "v2fly/v2ray-core/releases"
-  "v2fly/v2ray-examples"
-  "https://[youthedomain]/fnet")
+(defun im/wifi-nmcli (&optional initial-input)
+  "Connect to wifi network."
+  (interactive)
+  (shell-command "nmcli device wifi rescan")
+  (let* ((networks (cl-remove-if-not
+                    (lambda (l) (string-match-p ":" l))
+                    (split-string (shell-command-to-string "nmcli device wifi list") "\n")))
+         (line (completing-read "Select network: " networks nil t initial-input)))
+    (if (> (length line) 0)
+        (pcase-let ((`(,ssid ,name) (split-string (string-trim (string-remove-prefix "*" line)) " " t)))
+          (message "Connecting to '%s' (%s)..." ssid name)
+          (let ((resp (shell-command-to-string (format "nmcli device wifi connect %s" ssid))))
+            (cond ((string-match-p "ERROR:.*Secrets were required" resp)
+                   (let* ((pwd (read-passwd (format "password for %s: " ssid)))
+                          (cmd (format "nmcli device wifi connect %s password %s" ssid pwd)))
+                     (async-shell-command cmd)
+                     (message "%s..." cmd)))
+                  (t (message
+                      "%s"
+                      (replace-regexp-in-string "^.*" "" (string-trim resp)))))))
+      (user-error "No connection selected"))))
 
-(provide 'imod-internet)
+(provide 'iwww)
 
-;;; imod-internet.el ends here
+;;; iwww.el ends here
