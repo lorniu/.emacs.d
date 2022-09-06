@@ -9,9 +9,9 @@
 (setq package-user-dir (loce "elpa"))
 
 (p/loads leaf leaf-keywords
-  ;; looking
-  blackout ; dim lighter
-  rainbow-mode rainbow-delimiters
+  ;; face
+  blackout ; lighter
+  rainbow-mode rainbow-delimiters ; colorful
   page-break-lines
   xterm-color
   erc-hl-nicks
@@ -19,44 +19,50 @@
   posframe ; childframe
   nano-theme modus-themes gruvbox-theme srcery-theme ; themes
 
-  ;; edit and utils
+  ;; utils
+  bbdb
   vundo
   session
   syntax-subword
   wgrep
+  rg ; ripgrep
   dired-dups
+  ztree ; dir diff
   engine-mode
   macrostep
-  bbdb
-  hide-lines
-  nhexl-mode ; binary
-  vlf ; view-large-file
-  ztree ; dir diff
+  hide-lines ; like occur
+  vlf ; view large file
   memory-usage
-  pdf-tools org-noter org-noter-pdftools nov ; read & note
   pyim pyim-basedict rime sis ; ime
-  rg ; search
   mpv emms ; media
   keycast ; show key-pressed
   evil ; viper -> evil-local-mode
   cowsay ;; figlet ; ascii art
   kubernetes docker dockerfile-mode ; container
+  magit git-timemachine ssh-agency git-modes ; git
+  uuidgen
+  htmlize
+  package-lint
+  sx ; stackoverflow
 
-  ;; complete, search and nav
-  vertico orderless consult marginalia
-  which-key consult-eglot
-  hyperbole embark embark-consult
-
-  ;; project
+  ;; complete, search, nav and project
   corfu cape
+  hyperbole embark embark-consult
+  vertico orderless consult marginalia
+  which-key
   yasnippet
   treemacs
-  magit git-timemachine ssh-agency git-modes ; git
   ace-window
   gitignore-templates license-templates ; templates
   citre ; ctags
   editorconfig
-  htmlize
+
+  ;; org
+  org org-contrib
+  org-present
+  org-roam org-roam-ui
+  ox-pandoc
+  pdf-tools org-noter org-noter-pdftools nov ; read & note
 
   ;; exporting
   gnuplot
@@ -64,57 +70,43 @@
   plantuml-mode
   auctex ; latex
 
-  ;; org
-  org org-contrib
-  ox-pandoc
-  org-present
-  org-roam org-roam-ui
-
   ;; lsp
-  lsp-mode dap-mode lsp-treemacs lsp-ui ; too complex too slow
-  eglot ; better
+  eglot consult-eglot
+  lsp-mode dap-mode lsp-treemacs lsp-ui
 
   ;; mmm
   web-mode edit-indirect
   polymode poly-org poly-markdown
 
   ;; modes
+  nhexl-mode ; binary
   emmet-mode web-beautify sass-mode ; html
   typescript-mode ob-typescript ; typescript
-  yaml-mode
   websocket know-your-http-well ; http
   restclient ob-restclient httprepl ; rest
-  c-eldoc ; c/c++
+  c-eldoc cmake-mode ; c/c++
   rust-mode ; rust
   php-mode ; php
   go-mode ; go
   robe ; ruby
   erlang ; erlang
   alchemist ; elixir
+  lua-mode ; lua
   haskell-mode hindent attrap ; haskell
   csharp-mode csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
-  kotlin-mode clojure-mode groovy-mode ; jvm
+  kotlin-mode clojure-mode groovy-mode scala-mode ; jvm
   lsp-java ; better than ever
-  scala-mode ; scala
   jdecomp ; java decompile, use idea's fernflower.jar
   android-mode ; easy to run android tools
-  lua-mode
   markdown-mode markdown-toc ; md
-  cmake-mode
-  systemd
+  yaml-mode csv-mode
   sql-indent ; sql
   powershell ob-powershell
-  csv-mode
+  systemd udev-mode ; for linux
 
   ;; freelazy
   go-translate
-  ox-spectacle
-
-  ;; miscellanueous
-  sx ; stackoverflow
-  uuidgen
-  udev-mode
-  package-lint)
+  ox-spectacle)
 
 
 ;;; x
