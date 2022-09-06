@@ -178,26 +178,26 @@ This variable can be set in three different types.
 ;;
 (defface ahs-face
   `((t (:background
-        ,(condition-case nil (color-darken-name (face-attribute 'default :background) 10) (error nil))
+        ,(condition-case nil (color-darken-name (face-attribute 'default :background) 10) (error 'unspecified))
         :underline nil :slant normal)))
   "Highlight the symbol using this face."
   :group 'ahs)
 
 (defface ahs-range-buffer-face
-  `((((background dark)) (:background nil :underline "orange"))
-    (t (:background nil :underline "orangered")))
+  `((((background dark)) (:background unspecified :underline "orange"))
+    (t (:background unspecified :underline "orangered")))
   "Face used in `whole buffer' range."
   :group 'ahs)
 
 (defface ahs-range-defun-face
-  `((((background dark)) (:background nil :underline "limegreen"))
-    (t (:background nil :underline "darkgreen")))
+  `((((background dark)) (:background unspecified :underline "limegreen"))
+    (t (:background unspecified :underline "darkgreen")))
   "Face used in `beginning of defun' range."
   :group 'ahs)
 
 (defface ahs-range-page-face
-  `((((background dark)) (:background nil :underline "gray"))
-    (t (:background nil :underline "dimgray")))
+  `((((background dark)) (:background unspecified :underline "gray"))
+    (t (:background unspecified :underline "dimgray")))
   "Face used in `display' range."
   :group 'ahs)
 
