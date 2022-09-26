@@ -168,8 +168,6 @@
    ;; lighter
    (blackout 'org-indent-mode nil)
 
-   ;; (org-set-emph-re 'org-emphasis-regexp-components ...)
-
    ;; mono-font
    (when IS-G
      (let ((f/font-face-family (f/get :font-mono)))
@@ -200,9 +198,18 @@
    ;; Open directory links in dired
    (add-to-list 'org-file-apps '(directory . emacs))
 
-   ;; Remove zero-width chars when publishing
+   ;; Emphasis Hack for Chinese (ToBeImproved)
+   (setq org-emphasis-regexp-components
+         (list
+          "-[:space:]('\"{"                                    ;; prematch
+          (concat "-[:space:].,:!?;'\")}\\[" "[:nonascii:]")   ;; postmatch
+          "[:space:]"                                          ;; border(forbidden)
+          "."                                                  ;; body-regexp
+          1))
+   (org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
+   (org-element-update-syntax)
    (add-to-list 'org-export-filter-final-output-functions
-                (defun my/org-publish-remove-zero-width-space (text _backend _info)
+                (defun my/org-publish-remove-zero-width-spaces-maybe (text _backend _info)
                   (unless (org-export-derived-backend-p 'org)
                     (replace-regexp-in-string "\u200b" "" text))))
 

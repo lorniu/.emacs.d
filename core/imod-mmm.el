@@ -11,8 +11,8 @@
    :init
    (push '("\\.org$" . org-mode) auto-mode-alist)
    (push '("\\.md$" . markdown-mode) auto-mode-alist)
-   (eval-after-load 'org '(require 'poly-org))
-   (eval-after-load 'markdown-mode '(require 'poly-markdown))
+   ;;(eval-after-load 'org '(require 'poly-org))
+   ;;(eval-after-load 'markdown-mode '(require 'poly-markdown))
    :commands (poly-html-mode poly-vue-mode))
 
 (x edit-indirect
