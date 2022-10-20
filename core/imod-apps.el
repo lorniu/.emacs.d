@@ -71,14 +71,14 @@
 (x emms
    "Play music in emacs.
    "
-   "First, install a player:
+   "Make sure some player in your PATH (brew install mpv/vls...)
    "
-   ": brew install mpv/vls...
+   "To edit tags, install mid3v2 first (pacman -S python-mutagen)
    "
    :commands emms
    :init
    (setq emms-show-formatoo "Playing: %s")
-   (setq emms-source-file-default-directory "~/playing/")
+   (setq emms-source-file-default-directory (cl-find-if #'file-exists-p '("~/playing/" "~/music" "~/Downloads/music" "~/Downloads/")))
    (setq emms-directory (locc "emms"))
    (make-directory emms-directory t)
    :defer-config
