@@ -39,7 +39,7 @@
   evil ; viper -> evil-local-mode
   cowsay ;; figlet ; ascii art
   kubernetes docker dockerfile-mode ; container
-  magit git-timemachine ssh-agency git-modes ; git
+  magit git-timemachine ssh-agency git-modes ghub forge ; git
   uuidgen
   htmlize
   package-lint

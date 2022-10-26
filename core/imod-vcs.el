@@ -19,13 +19,26 @@
    :commands (im/git-commit im/git-commit-and-push))
 
 (x magit/i
-   :ref "magit/magit"
-   :if (executable-find "git")
+   "To use ghub/forge, add something like below in ~/.authinfo:
 
+machine api.github.com login USER^forge password TOKEN
+machine gitlab.com/api/v4 login USER^forge password TOKEN
+"
+   :if (executable-find "git")
+   :ref ("magit/magit"
+         "magit/ghub"
+         "magit/forge"
+         "Github API: https://docs.github.com/en/rest"
+         "Github Token: https://github.com/settings/tokens")
    :init
+   ;; git
+   (modify-coding-system-alist 'process "git" 'utf-8)
+   ;; magit
    (setq magit-no-message '("Turning on magit-auto-revert-mode..."))
    (setq magit-wip-mode-lighter "")
-   (modify-coding-system-alist 'process "git" 'utf-8)
+   ;; forge
+   (setq forge-database-file (locc "forge-database.sqlite"))
+   (setq forge-post-heading-format "%-25a\t%-15C\t(%c)\n")
 
    :defer-config
    (transient-append-suffix 'magit-log "i" '("w" "Wip" magit-wip-log-current))
