@@ -12,7 +12,6 @@
          (browse-url (concat "http://php.net/manual-lookup.php?pattern=" (symbol-name symbol))))))
 
    (defun:hook php-mode-hook ()
-     (flycheck-mode 1)
      (electric-pair-local-mode 1)
      (local-set-key (kbd "C-h d") 'my-php-lookup)))
 

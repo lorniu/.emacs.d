@@ -32,8 +32,8 @@
 
 ;;; Publishing
 
-(defcustom note-publish-directory "~/.cache/_notes/"
-  "Where to publish the notes. Default: ~/.notes -> ~/.cache/_notes."
+(defcustom note-publish-directory (locc "_notes")
+  "Where to publish the notes."
   :type 'string :group 'imfine)
 
 (defcustom note-publish-exclude-expr "^[a-z_.].*/\\|/[._]"
@@ -118,9 +118,11 @@
 
 (defun im-note-publish-project-alist (note-dir note-pub-dir &optional exclude)
   "Generate `org-publish-project-alist' from NOTE-DIR and NOTE-PUB-DIR."
-  (if (or (not (file-exists-p note-dir))
-          (not (file-writable-p note-pub-dir)))
-      (error "Please give correct directory names."))
+  (when (and (not (file-exists-p note-pub-dir)) (file-exists-p (file-name-parent-directory note-pub-dir)))
+    (make-directory note-pub-dir))
+  (when (or (not (file-exists-p note-dir))
+            (not (file-writable-p note-pub-dir)))
+    (error "Please give correct directory names."))
   (let* ((prefix (if (string-match "^.*/\\([^/]+\\)/*$" note-dir) (match-string 1 note-dir)))
          (org-name (concat prefix "-org"))
          (asset-name (concat prefix "-asset"))

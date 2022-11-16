@@ -64,7 +64,6 @@
 (defun:hook web-mode-hook/per-file-type-config ()
   (pcase (file-name-extension (or (buffer-file-name) ""))
     ("jsx"
-     (flycheck-mode 1)
      (electric-pair-local-mode 1)
      (setq-local web-mode-enable-auto-quoting nil))
     ("tsx"

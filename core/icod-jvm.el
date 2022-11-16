@@ -57,7 +57,6 @@
    (defun:hook java-mode-hook ()
      (require 'lsp-java)
      (require 'dap-java)
-     (flycheck-mode 1)
      (c-set-style "my-java")))
 
 (x scala-mode
