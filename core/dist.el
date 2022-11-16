@@ -30,6 +30,7 @@
   ztree ; dir diff
   engine-mode
   macrostep
+  aes ; encrypt
   hide-lines ; like occur
   vlf ; view large file
   memory-usage

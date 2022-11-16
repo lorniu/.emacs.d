@@ -1,4 +1,4 @@
-;;; imod-auth.el --- Auth -*- lexical-binding: t -*-
+;;; imod-security.el --- Auth/Cipher -*- lexical-binding: t -*-
 
 ;; Get password from .authinfo:
 ;;
@@ -20,6 +20,10 @@
    :if IS-WIN
    :after magit)
 
+(x aes/e
+   "Builtin: (secure-hash 'sha256 obj)"
+   :ref "Sauermann/emacs-aes")
+
 
 
 (cl-defun lookup-password (&rest params &key _user _host _port &allow-other-keys)
@@ -35,6 +39,6 @@
             secret))
       (user-error "Password not found for %S" params))))
 
-(provide 'imod-auth)
+(provide 'imod-security)
 
-;;; imod-auth.el ends here
+;;; imod-security.el ends here
