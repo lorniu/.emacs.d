@@ -20,9 +20,9 @@
    (setq eglot-events-buffer-size 0)
    ;;(setq eglot-stay-out-of `(flymake))
    :defer-config
-   (require 'eglot-jdt)
-   (unless (and IS-WIN (executable-find "omnisharp")) (require 'eglot-cls)) ; cls not working on windows, strange.
-   (require 'eglot-fsac))
+   (require 'eglot-cls)  ; use csharp-ls for C# dev:      dotnet tool install -g csharp-ls
+   (require 'eglot-fsac) ; use fsautocomplete for F# dev: dotnet tool install -g fsautocomplete
+   (require 'eglot-jdt))
 
 (defmacro eglot-set-server (mode bin &rest args)
   `(with-eval-after-load 'eglot
