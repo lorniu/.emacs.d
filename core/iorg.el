@@ -100,6 +100,7 @@
    (require 'org-special-block-extras)
    (require 'org-clock)
    (require 'org-timer)
+   (require 'org-re-reveal)
 
    ;; mathjax
    (setf (cadr (assoc 'path org-html-mathjax-options))
@@ -435,6 +436,12 @@
      (org-remove-inline-images)
      (org-present-show-cursor)
      (org-present-read-write)))
+
+(x org-re-reveal
+   :ref "https://gitlab.com/oer/org-re-reveal"
+   :defer-config
+   (setq org-re-reveal-root "https://cdn.bootcdn.net/ajax/libs/reveal.js/3.9.2/"
+         org-re-reveal-revealjs-version "3.8"))
 
 (x org-crypt
    :commands

@@ -60,7 +60,7 @@
 
   ;; org
   org org-contrib
-  org-present
+  org-present org-re-reveal
   org-roam org-roam-ui
   ox-pandoc
   pdf-tools org-noter org-noter-pdftools nov ; read & note
