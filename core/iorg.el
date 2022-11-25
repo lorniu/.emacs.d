@@ -176,10 +176,9 @@
        (f/font-face 'org-column)))
 
    ;; keywords
-   (defun:hook org-mode-hook/keyword ()
-     (font-lock-add-keywords
-      nil '(("\\\\\\\\$" 0 'org-meta-line)
-            ("\\<\\(FIXME\\|NOTE\\|AIA\\|TODO\\):" 1 'font-lock-warning-face prepend))))
+   (font-lock-add-keywords 'org-mode
+                           '(("\\\\\\\\$" 0 'org-meta-line)
+                             ("\\<\\(FIXME\\|NOTE\\|AIA\\|TODO\\):" 1 'font-lock-warning-face prepend)))
 
    ;; Display full link in minibuffer when cursor/mouse is over it
    (defun:before-until org-eldoc-documentation-function$ (&rest _)
