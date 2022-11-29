@@ -14,9 +14,10 @@
 (defvar p/elpa-repos
   '(:origin
     (setq package-archives
-          `(("elpa"   . "https://elpa.gnu.org/packages/")
-            ("nongnu" . "https://elpa.nongnu.org/nongnu/")
-            ("melpa"  . "https://melpa.org/packages/")))
+          `(("elpa"       . "https://elpa.gnu.org/packages/")
+            ("nongnu"     . "https://elpa.nongnu.org/nongnu/")
+            ("nongnu-dev" . "https://elpa.nongnu.org/nongnu-devel/")
+            ("melpa"      . "https://melpa.org/packages/")))
     :emacs-china
     (setq package-archives
           `(("gnu"    . "http://elpa.zilongshanren.com/gnu/")
@@ -51,7 +52,9 @@
   (declare (indent 2))
   `(let ((tip "\n(progn\n  (im/proxy (quote SOCK))\n  (setq package-check-signature nil)\n  (p/repo :origin)\n  (p/install)\n)\n"))
      (defun p/packages ()
-       (cl-remove-if (lambda (p) (package-disabled-p p nil)) ',packages-required))
+       (cl-loop for o in ',packages-required
+                for p = (if (listp o) (if (eval (cadr o)) (car o)) o)
+                if (and p (not (package-disabled-p p nil))) collect p))
      (defun p/packages-lacks ()
        (cl-remove-if #'package-installed-p (p/packages)))
      (defun p/install ()

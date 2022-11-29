@@ -51,10 +51,9 @@
   hyperbole embark embark-consult
   vertico orderless consult marginalia
   which-key
-  yasnippet
+  yasnippet gitignore-templates license-templates ; templates
   treemacs
   ace-window
-  gitignore-templates license-templates ; templates
   citre ; ctags
   editorconfig
 
@@ -72,7 +71,7 @@
   auctex ; latex
 
   ;; lsp
-  eglot consult-eglot
+  (eglot (< emacs-major-version 29)) consult-eglot
   lsp-mode dap-mode lsp-treemacs lsp-ui
 
   ;; mmm
@@ -94,7 +93,7 @@
   alchemist ; elixir
   lua-mode ; lua
   haskell-mode hindent attrap ; haskell
-  csharp-mode csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
+  (csharp-mode (< emacs-major-version 29)) csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
   kotlin-mode clojure-mode groovy-mode scala-mode ; jvm
   lsp-java ; better than ever
   jdecomp ; java decompile, use idea's fernflower.jar
