@@ -1,45 +1,20 @@
 ;;; imod-shell.el --- Shells -*- lexical-binding: t -*-
 
 ;; - 2021.05.17, remove `vterm` completely. It's so annoying.
+;; - 2022.11.29, maybe `eat` + `eshell` is what I wanted!
 
 ;;; Code:
 
-(x term
+(x eat
+   "Eat EShell."
+   :ref ("https://codeberg.org/akib/emacs-eat")
    :init
-   (setenv "TERM" "xterm-256color")
-
-   :defer-config
-   (defun my-term-send-forward-word () (interactive) (term-send-raw-string "\ef"))
-   (defun my-term-send-backward-word () (interactive) (term-send-raw-string "\eb"))
-   (define-key term-raw-map [C-left] 'my-term-send-backward-word)
-   (define-key term-raw-map [C-right] 'my-term-send-forward-word)
-
-   (defun:hook term-mode-hook ()
-     (goto-address-mode 1))
-
-   (defun:after term-handle-exit$ (&rest _)
-     (use-local-map (let ((map (make-sparse-keymap))) (define-key map "q" #'kill-current-buffer) map))))
-
-(x shell
-   :init
-   (when (and IS-WIN (executable-find "bash"))
-     ;; use bash.exe as default process if possible
-     (setenv "PS1" "\\u@\\h \\w $ ")
-     (setq explicit-shell-file-name (executable-find "bash"))
-     (setq explicit-bash.exe-args '("--login" "-i")))
-
-   (defun:hook shell-mode-hook ()
-     (setq-local corfu-auto-delay 1.2)
-     (when (and IS-WIN ;; cmd/powershell on windows, should be gbk encoding
-                (not (string-match-p "bash" (or explicit-shell-file-name ""))))
-       (im/local-encoding 'cp936-dos))
-     (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil))
-
-   :defer-config
-   (defun:around sh-set-shell$ (orig-fun &rest args)
-     "Dont show message: Indentation setup for shell type bash"
-     (cl-letf (((symbol-function 'message) #'ignore))
-       (apply orig-fun args))))
+   (setq eat-enable-blinking-text t
+         eat-enable-yank-to-terminal t
+         eat-enable-kill-from-terminal t
+         eat-kill-buffer-on-exit t)
+   (add-hook 'eshell-first-time-mode-hook #'eat-eshell-visual-command-mode)
+   (add-hook 'eshell-first-time-mode-hook #'eat-eshell-mode))
 
 (x eshell/i
    :init
@@ -49,30 +24,9 @@
          comint-scroll-show-maximum-output nil
          eshell-scroll-show-maximum-output nil
          eshell-destroy-buffer-when-process-dies t)
-
-   ;; Visual Commands
-   (setq eshell-visual-commands '("vim" "vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm"))
-   (setq eshell-visual-subcommands '(("sudo" "vi" "visudo")
-                                     ("git" "log" "diff" "show" "reflog")
-                                     ("sbt")))
-   (setq eshell-visual-options '(("git" "--amend")))
-
-   ;; Detach
-   (defun:hook eshell-mode-hook/detach ()
-     (if (not (executable-find "dtach"))
-         (cl-loop for key in '("C-c C-z" "C-<return>" "S-<return>")
-                  with fn = (lambda () (interactive) (message "Please ensure 'dtach' installed."))
-                  do (define-key eshell-mode-map (kbd key) fn))
-       (require 'eshell-detach)
-       (define-key eshell-mode-map (kbd "C-c C-z") 'eshell-detach-stop)
-       (define-key eshell-mode-map (kbd "S-<return>") 'eshell-detach-send-input)
-       (define-key eshell-mode-map (kbd "C-<return>") 'eshell-detach-attach)))
-
-   ;; Patch (make `git log` and others work normally)
-   (defun:around eshell-term-sentinel$avoid-sudden-quit (f &rest arg)
-     (let (eshell-destroy-buffer-when-process-dies) (apply f arg)))
-
    :defer-config
+   ;; (setq eshell-visual-commands ...)
+
    (with-eval-after-load 'em-hist
      (define-key eshell-hist-mode-map [(meta ?s)] nil))
 
@@ -95,45 +49,65 @@
                                   (ring-elements eshell-history-ring))))
             (command (completing-read "Command: " hists nil nil nil nil (if (cl-plusp (length input)) input (car hists)))))
        (setf (buffer-substring start-pos end-pos) command)
-       (end-of-line)))
-
-   (defun eshell/ssh (&rest args)
-     "Secure shell."
-     (let ((cmd (eshell-flatten-and-stringify (cons "ssh" args)))
-           (display-type (framep (selected-frame))))
-       (cond
-        ((and (eq display-type 't) (getenv "STY"))
-         (send-string-to-terminal (format "\033]83;screen %s\007" cmd)))
-        (t (apply 'eshell-exec-visual (cons "ssh" args)))))))
+       (end-of-line))))
 
 
 
-(defun im/popup-shell (&optional _)
-  (interactive "P")
-  (if (eq major-mode 'shell-mode)
-      (bury-buffer)
-    (let ((curr-dir default-directory))
-      (shell "+shell+")
-      (ring-insert comint-input-ring
-                   (concat "cd " (shell-quote-argument curr-dir))))))
+(x term
+   "Use EShell + Eat instead."
+   :init (setenv "TERM" "xterm-256color"))
 
-(defun im/popup-eshell (&optional arg)
-  (interactive "P")
-  (if (eq major-mode 'eshell-mode)
-      (bury-buffer)
-    (let ((last-file (or dired-directory (buffer-file-name))))
-      (eshell arg)
-      (if last-file (eshell-add-to-dir-ring (file-name-directory last-file))))))
+(x shell
+   :init
+   (when (and IS-WIN (executable-find "bash"))
+     ;; use bash.exe as default process if possible
+     (setenv "PS1" "\\u@\\h \\w $ ")
+     (setq explicit-shell-file-name (executable-find "bash"))
+     (setq explicit-bash.exe-args '("--login" "-i")))
+
+   (defun:hook shell-mode-hook ()
+     (setq-local corfu-auto-delay 1.2)
+     (when (and IS-WIN ;; cmd/powershell on windows, should be gbk encoding
+                (not (string-match-p "bash" (or explicit-shell-file-name ""))))
+       (im/local-encoding 'cp936-dos))
+     (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil))
+
+   :defer-config
+   (defun:around sh-set-shell$ (orig-fun &rest args)
+     "Dont show messages: Indentation setup for shell type bash"
+     (cl-letf (((symbol-function 'message) #'ignore))
+       (apply orig-fun args))))
+
+
+
+(defun im/toggle-eat-buffer ()
+  "Toggle show the *eat* buffer."
+  (interactive)
+  (im/hide-or-show-buffer "*eat*"
+    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom) (direction . right)))))
+      (eat (or explicit-shell-file-name (getenv "ESHELL") shell-file-name)))))
+
+(defun im/toggle-eshell-buffer ()
+  "Toggle show the *EShell* buffer."
+  (interactive)
+  (im/hide-or-show-buffer "*eshell*"
+    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom) (direction . right)))))
+      (call-interactively 'eshell))))
 
 (defun im/popup-xshell ()
   (interactive)
-  (let ((type (completing-read "Shell: " '(powershell system-default) nil t)))
-    (if (string= type "powershell")
-        (powershell)
-      (let ((explicit-shell-file-name (getenv "SHELL")))
-        (shell "+shell+")))))
+  (let* ((vertico-sort-function nil)
+         (type (completing-read "Open: " '(eat term shell eshell powershell system-default) nil t)))
+    (pcase (intern type)
+      ('eat (eat (or explicit-shell-file-name (getenv "ESHELL") shell-file-name)))
+      ('shell (call-interactively 'shell))
+      ('eshell (call-interactively 'eshell))
+      ('powershell (call-interactively 'powershell))
+      ('term (call-interactively 'term))
+      ('system-default (im/popup-system-terminal)))))
 
 (defun im/popup-system-terminal ()
+  "Open system terminal."
   (interactive)
   (if ic/system-terminal
       (let ((d (or default-directory "~/")))

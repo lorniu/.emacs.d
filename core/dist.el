@@ -45,6 +45,7 @@
   htmlize
   package-lint
   sx ; stackoverflow
+  (vterm nil) eat ; terminal emulator
 
   ;; complete, search, nav and project
   corfu cape

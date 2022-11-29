@@ -27,8 +27,6 @@
   ( [f8]            .  calendar                                    )
   ( [f9]            .  compile                                     )
   ( [f10]           .  im/silly                                    )
-  ( [f12]           .  im/popup-eshell                             )
-  ( [M-f12]         .  im/popup-xshell                             )
 
   ( "%"             .  his-match-paren                             )
   ( "C-#"           .  cua-rectangle-mark-mode                     )
@@ -76,10 +74,11 @@
   ( "C-h C-h"       .  imtt/transient-help                         )
   ( "C-h c"         .  quick-calc                                  )
   ( "C-h C-c"       .  calc                                        )
-  ( "C-h t"         .  im/popup-system-terminal                    )
-  ( "C-h C-t"       .  im/popup-system-terminal                    )
   ( "C-h g"         .  im/toggle-gnus                              )
   ( "C-h C-g"       .  im/toggle-gnus                              )
+  ( "C-h t"         .  im/popup-system-terminal                    )
+  ( "C-h C-t"       .  im/popup-system-terminal                    )
+  ( "C-h E"         .  im/toggle-eat-buffer                        )
   ( "C-h e"         .  im/toggle-eshell-buffer                     )
   ( "C-h C-e"       .  im/toggle-eshell-buffer                     )
   ( "C-h s"         .  im/toggle-scratch-or-ielm                   )
@@ -266,13 +265,6 @@
       (condition-case nil
           (call-interactively ic/lisp-dev)
         (error (%lisp/devenv-nofound))))))
-
-(defun im/toggle-eshell-buffer ()
-  "Toggle show the *EShell* buffer."
-  (interactive)
-  (im/hide-or-show-buffer "*eshell*"
-    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom) (direction . right)))))
-      (call-interactively 'eshell))))
 
 (defun im/toggle-diagnostics-buffer()
   "Show the error messages for flycheck or flymake."
