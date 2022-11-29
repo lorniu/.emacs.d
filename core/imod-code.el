@@ -2,6 +2,17 @@
 
 ;;; Code:
 
+(x treesit
+   "Should:
+ 1) install tree-sitter
+ 2) build emacs --with-tree-sitter
+ 3) compile emacs module for langs"
+   :ref ("https://github.com/tree-sitter"
+         "script to build modules: casouri/tree-sitter-module")
+   :if (executable-find "tree-sitter")
+   :init
+   (setq treesit-extra-load-path (list (locc "treesitter"))))
+
 (x prog-mode
    :bind
    ((prog-mode-map
