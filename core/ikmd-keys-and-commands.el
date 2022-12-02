@@ -27,6 +27,7 @@
   ( [f8]            .  calendar                                    )
   ( [f9]            .  compile                                     )
   ( [f10]           .  im/silly                                    )
+  ( [f12]           .  im/mode-spcific-action                      )
 
   ( "%"             .  his-match-paren                             )
   ( "C-#"           .  cua-rectangle-mark-mode                     )
@@ -754,6 +755,14 @@ ps. builtin `kill-matching-lines' almost do the same thing."
       (with-current-buffer result-buffer
         (local-set-key "q" #'bury-buffer)
         (display-buffer result-buffer)))))
+
+(defun im/mode-spcific-action ()
+  "Run the command define by `im/mode-action' method."
+  (interactive)
+  (im/mode-action major-mode))
+
+(cl-defmethod im/mode-action (_default)
+  (message "May you have a good day."))
 
 (provide 'ikmd-keys-and-commands)
 

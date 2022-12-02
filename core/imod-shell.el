@@ -13,8 +13,19 @@
          eat-enable-yank-to-terminal t
          eat-enable-kill-from-terminal t
          eat-kill-buffer-on-exit t)
+
    (add-hook 'eshell-first-time-mode-hook #'eat-eshell-visual-command-mode)
-   (add-hook 'eshell-first-time-mode-hook #'eat-eshell-mode))
+   (add-hook 'eshell-first-time-mode-hook #'eat-eshell-mode)
+
+   :defer-config
+   (cl-defmethod im/mode-action ((m (eql 'eat-mode)))
+     (if eat--semi-char-mode (eat-char-mode) (eat-semi-char-mode)))
+   (cl-defmethod im/mode-action ((m (eql 'eshell-mode)))
+     (if eat--eshell-semi-char-mode (eat-eshell-char-mode) (eat-eshell-semi-char-mode)))
+   (define-key eat-char-mode-map [f1] nil)
+   (define-key eat-char-mode-map [f12] nil)
+   (define-key eat-eshell-char-mode-map [f1] nil)
+   (define-key eat-eshell-char-mode-map [f12] nil))
 
 (x eshell/i
    :init
