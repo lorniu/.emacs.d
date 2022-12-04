@@ -313,7 +313,7 @@
                map)
      :initial word
      :history 'org-tags-history
-     :lookup (lambda (_input _cs cand)
+     :lookup (lambda (cand _cs _input)
                (let ((ext "org")
                      (arr (split-string cand)))
                  (when (and (cl-plusp (length arr))

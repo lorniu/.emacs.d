@@ -175,8 +175,8 @@
                  :require-match t
                  :sort nil
                  :history 'myc-pages+
-                 :lookup (lambda (_ ps p)
-                           (goto-char (cdr (assoc  p ps)))
+                 :lookup (lambda (p ps _input _nv)
+                           (goto-char (cdr (assoc p ps)))
                            (recenter-top-bottom 1))))
 
 
