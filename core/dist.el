@@ -82,7 +82,7 @@
   ;; modes
   nhexl-mode ; binary
   emmet-mode web-beautify sass-mode ; html
-  typescript-mode ob-typescript ; typescript
+  ob-typescript ; typescript
   websocket know-your-http-well ; http
   restclient ob-restclient httprepl ; rest
   c-eldoc cmake-mode ; c/c++

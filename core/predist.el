@@ -16,7 +16,6 @@
     (setq package-archives
           `(("elpa"       . "https://elpa.gnu.org/packages/")
             ("nongnu"     . "https://elpa.nongnu.org/nongnu/")
-            ("nongnu-dev" . "https://elpa.nongnu.org/nongnu-devel/")
             ("melpa"      . "https://melpa.org/packages/")))
     :emacs-china
     (setq package-archives

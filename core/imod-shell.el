@@ -8,6 +8,7 @@
 (x eat
    "Eat EShell."
    :ref ("https://codeberg.org/akib/emacs-eat")
+   :if IS-LINUX
    :init
    (setq eat-enable-blinking-text t
          eat-enable-yank-to-terminal t

@@ -28,7 +28,7 @@
 
 (x web-mode/i
    :ref "fxbois/web-mode"
-   :mode "\\.\\([xp]?html\\(.erb\\|.blade\\)?\\|[aj]sp\\|tpl\\|tsx\\|jsx\\|cshtml\\)\\'"
+   :mode "\\.\\(.erb\\|.blade\\|[aj]sp\\|tpl\\|cshtml\\)\\'"
    :defer-config
    (setq web-mode-enable-auto-indentation nil
          web-mode-markup-indent-offset    2
