@@ -8,8 +8,7 @@
 
 (x corfu
    :ref "minad/corfu"
-   :bind
-   ((corfu-map ([tab] . %first-yas-then-complete)))
+   :bind (:map corfu-map ([tab] . %first-yas-then-complete))
    :init
    (setq corfu-auto nil)
    (setq corfu-auto-delay 0)
@@ -42,7 +41,6 @@
          completion-styles '(substring orderless)
          completion-category-defaults nil
          completion-category-overrides '((file (styles . (partial-completion)))))
-   :require t
    :config
    (advice-add #'completion-all-completions :around #'%completion-flex-way))
 
@@ -81,7 +79,7 @@
          register-preview-function #'consult-register-format)
    (advice-add #'register-preview :override #'consult-register-window)
 
-   :defer-config
+   :config
    (setq consult-narrow-key "<") ;
    (setq consult-preview-key (list (kbd "C-o")))
    (setq consult-buffer-sources
@@ -96,60 +94,60 @@
 
 (x marginalia
    :ref "minad/marginalia"
-   :bind ((minibuffer-local-map ("M-t" . marginalia-cycle)))
+   :bind (:map minibuffer-local-map ("M-t" . marginalia-cycle))
    :init (marginalia-mode))
 
 
 ;;; Enhanced consult-buffer
 
 (defvar consult--my-source-buffer
-  `(:name "Buffer"
-    :narrow   ?b
-    :category buffer
-    :face     consult-buffer
-    :history  buffer-name-history
-    :state    ,#'consult--buffer-state
-    :default  t
-    :items
-    ,(lambda ()
-       (mapcar #'buffer-name
-               (seq-remove
-                (lambda (b)
-                  (with-current-buffer b
-                    (or (string-match-p (consult--regexp-filter consult-buffer-filter) (buffer-name))
-                        (equal major-mode 'erc-mode)
-                        (equal major-mode 'eaf-mode)
-                        (ignore-errors
-                          (string-match-p "/.*ls-metadata/\\|/jdt.ls-java-project/" (buffer-file-name))))))
-                (consult--buffer-query))))))
+  `( :name "Buffer"
+     :narrow   ?b
+     :category buffer
+     :face     consult-buffer
+     :history  buffer-name-history
+     :state    ,#'consult--buffer-state
+     :default  t
+     :items
+     ,(lambda ()
+        (mapcar #'buffer-name
+                (seq-remove
+                 (lambda (b)
+                   (with-current-buffer b
+                     (or (string-match-p (consult--regexp-filter consult-buffer-filter) (buffer-name))
+                         (equal major-mode 'erc-mode)
+                         (equal major-mode 'eaf-mode)
+                         (ignore-errors
+                           (string-match-p "/.*ls-metadata/\\|/jdt.ls-java-project/" (buffer-file-name))))))
+                 (consult--buffer-query)))) ))
 
 (defvar consult--my-source-erc-buffer
-  `(:name "irc/matrix"
-          :narrow   ?i
-          :category erc
-          :face     consult-buffer
-          :history  buffer-name-history
-          :state    ,#'consult--buffer-state
-          :default  t
-          :items
-          ,(lambda ()
-             (seq-filter (lambda (x)
-                           (with-current-buffer x (equal major-mode 'erc-mode)))
-                         (mapcar #'buffer-name (consult--buffer-query))))))
+  `( :name "irc/matrix"
+     :narrow   ?i
+     :category erc
+     :face     consult-buffer
+     :history  buffer-name-history
+     :state    ,#'consult--buffer-state
+     :default  t
+     :items
+     ,(lambda ()
+        (seq-filter (lambda (x)
+                      (with-current-buffer x (equal major-mode 'erc-mode)))
+                    (mapcar #'buffer-name (consult--buffer-query)))) ))
 
 (defvar consult--my-eaf-buffer
-  `(:name "eaf-qt"
-          :narrow   ?e
-          :category eaf
-          :face     consult-buffer
-          :history  buffer-name-history
-          :state    ,#'consult--buffer-state
-          :default  nil
-          :items
-          ,(lambda ()
-             (seq-filter (lambda (x)
-                           (with-current-buffer x (equal major-mode 'eaf-mode)))
-                         (mapcar #'buffer-name (consult--buffer-query))))))
+  `( :name "eaf-qt"
+     :narrow   ?e
+     :category eaf
+     :face     consult-buffer
+     :history  buffer-name-history
+     :state    ,#'consult--buffer-state
+     :default  nil
+     :items
+     ,(lambda ()
+        (seq-filter (lambda (x)
+                      (with-current-buffer x (equal major-mode 'eaf-mode)))
+                    (mapcar #'buffer-name (consult--buffer-query)))) ))
 
 
 

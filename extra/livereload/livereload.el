@@ -388,7 +388,7 @@ to it in the future.")
 " body livereload--listen-port)
     body))
 
-(defun liveload ()
+(defun livereload ()
   (interactive)
   ;; open websocket server.
   (livereload-mode 1)
@@ -399,10 +399,10 @@ to it in the future.")
                :body-decorator 'livereload--body-decorator)
   (message "Serving %s in port %s" default-directory livereload-port))
 
-(defun liveview ()
+(defun livereload-and-view ()
   (interactive)
   ;; open servers
-  (liveload)
+  (livereload)
   ;; open url and then ws connection made.
   (let* ((file (buffer-file-name))
          (ext (or (file-name-extension (or file "")) ""))

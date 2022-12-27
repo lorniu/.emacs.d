@@ -40,7 +40,7 @@
     (message "[repo:%s]" upstream)))
 
 (defmacro p/special (&rest pkg-list)
-  "(p/special (leaf . dir) (simple-httpd . (1 5 1)) (company . nil))"
+  "(p/special (delight . path) (simple-httpd . (1 5 1)) (company . nil))"
   `(progn ,@(cl-loop for (p . v) in pkg-list
                      if (consp v) collect `(add-to-list 'package--builtin-versions '(,p ,@v)) ; pretend installed
                      else if (stringp v) collect `(push ,v load-path) ; use this instead of elpa's one
@@ -48,7 +48,7 @@
                      else collect `',p)))
 
 (defmacro p/loads (&rest packages-required)
-  (declare (indent 2))
+  (declare (indent 1))
   `(let ((tip "\n(progn\n  (im/proxy (quote SOCK))\n  (setq package-check-signature nil)\n  (p/repo :origin)\n  (p/install)\n)\n"))
      (defun p/packages ()
        (cl-loop for o in ',packages-required

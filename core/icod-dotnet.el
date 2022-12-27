@@ -21,7 +21,7 @@
      (local-set-key (kbd "C-c C-c") 'recompile)))
 
 (x fsharp-mode
-   :defer-config
+   :config
    (when (executable-find "dotnet")
      (setq inferior-fsharp-program "dotnet fsi --readline-")))
 

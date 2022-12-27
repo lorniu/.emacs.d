@@ -27,7 +27,7 @@
                   (message "Set SSH_ASKPASS to %s." exe))
          (message "Error askpass file found, do nothing."))))
 
-   :defer-config
+   :config
    ;; fix a bug on FreeBSD: echo `uname -r` does not return a valid Lisp expression...
    (when IS-BSD
      (require 'tramp-sh)

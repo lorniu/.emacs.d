@@ -3,7 +3,7 @@
 ;;; Code:
 
 (x isearch
-   :defer-config
+   :config
    (setq isearch-lazy-count t) ; replace Anzu
    (setq isearch-allow-motion t)
    (define-key isearch-mode-map
@@ -16,7 +16,7 @@
                    (superword-mode -1)))))
 
 (x replace
-   :defer-config
+   :config
    (global-set-key (kbd "M-s o") ; Word at-point first
                    (defun im/occur (str)
                      (interactive (list (im-thing-at-region-or-point)))
@@ -39,7 +39,7 @@
    (setq rg-ignore-case 'smart)
    (setq rg-align-column-number-field-length 4)
 
-   :defer-config
+   :config
    (defun rg-rerun-toggle-group ()
      "Toggle show group in `rg-cur-search`."
      (interactive)

@@ -23,7 +23,7 @@
    ;;(define-key gts-prompt-for-translate-keymap [f5] #'exit-minibuffer)
    (setq gts-translate-list '(("en" "zh")))
 
-   :defer-config
+   :config
    (defvar my-engines-1 (list (gts-bing-engine) (gts-google-engine :parser (gts-google-summary-parser)) (gts-google-rpc-engine)))
    (defvar my-engines-2 (list (gts-bing-engine) (gts-google-engine :parser (gts-google-summary-parser)) (gts-google-rpc-engine :parser (gts-google-rpc-summary-parser))))
    (defvar my-translator-1 (gts-translator :picker (gts-noprompt-picker) :engines my-engines-1 :render (gts-buffer-render)))
@@ -58,7 +58,7 @@
 
 (x mpv
    :commands (mpv-extra-options)
-   :defer-config
+   :config
    (defun mpv-extra-options ()
      (interactive)
      (let ((s (read-from-minibuffer "MPV Options: "
@@ -81,7 +81,7 @@
    (setq emms-source-file-default-directory (cl-find-if #'file-exists-p '("~/playing/" "~/music" "~/Downloads/music" "~/Downloads/")))
    (setq emms-directory (locc "emms"))
    (make-directory emms-directory t)
-   :defer-config
+   :config
    (require 'emms-setup)
    (emms-all)
    (emms-default-players)

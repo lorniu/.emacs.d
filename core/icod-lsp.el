@@ -19,7 +19,7 @@
    :init
    (setq eglot-events-buffer-size 0)
    ;;(setq eglot-stay-out-of `(flymake))
-   :defer-config
+   :config
    (require 'eglot-cls)  ; use csharp-ls for C# dev:      dotnet tool install -g csharp-ls
    (require 'eglot-fsac) ; use fsautocomplete for F# dev: dotnet tool install -g fsautocomplete
    (require 'eglot-jdt))
@@ -53,7 +53,7 @@
    (setq lsp-diagnostic-package :auto)
    (setq lsp-completion-provider :none)
 
-   :defer-config
+   :config
    (x lsp-ui
       :init
       (setq lsp-ui-doc-enable t)
@@ -75,7 +75,7 @@
 
 (x lsp-bridge
    :commands (lsp-bridge-mode global-lsp-bridge-mode)
-   :defer-config
+   :config
    (require 'lsp-bridge)
    (require 'lsp-bridge-jdtls))
 

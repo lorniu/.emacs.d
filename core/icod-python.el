@@ -25,7 +25,7 @@
    (setq python-indent-guess-indent-offset t)
    (setq python-indent-guess-indent-offset-verbose nil)
 
-   :defer-config
+   :config
    (when (executable-find "python")
      (when IS-WIN
        (setq python-shell-completion-native-enable nil)

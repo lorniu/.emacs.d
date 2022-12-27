@@ -166,7 +166,7 @@
 
 ;;; Environments
 
-(setenv "TZ" "PRC")
+(setenv "TZ" "est-8")
 (setenv "LC_COLLATE" "C")
 (setenv "LC_ALL" "en_US.UTF-8")
 

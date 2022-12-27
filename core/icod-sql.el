@@ -65,7 +65,7 @@
             do (add-to-list 'favorites-default
                             (list (format "db: %s" (car conn)) conn '(imup))))
 
-   :defer-config
+   :config
    (add-hook 'sql-interactive-mode-hook 'f/font-face-buffer-local)
 
    ;; for SQLServer (yay -S mssql-tools)
@@ -129,13 +129,13 @@ Custom `ic/my-postgres' to specify the db used by `with-my-pg'.
    :init
    (if IS-WIN (setq sqlplus-process-encoding 'gbk) (setenv "NLS_LANG" "AMERICAN_AMERICA.UTF8"))
    (add-to-list 'auto-mode-alist '("\\.spl\\'" . sqlplus-mode))
-   :defer-config
+   :config
    (ignore-errors
      (f/font-face 'sqlplus-table-head-face 'sqlplus-table-odd-rows-face 'sqlplus-table-even-rows-face)))
 
 (x sql-indent
    :ref "alex-hhh/emacs-sql-indent"
-   :hook (sql-mode-hook . sqlind-minor-mode))
+   :hook (sql-mode . sqlind-minor-mode))
 
 
 

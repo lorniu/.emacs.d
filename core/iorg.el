@@ -86,15 +86,16 @@
 
 (x org
    :commands (org-time-stamp org-time-stamp-inactive)
-   :bind ((org-mode-map ("×"       . "*")
-                        ("C-c \""  . im/org-edit-special-with-wc-setup)
-                        ("M-."     . org-open-at-point)
-                        ("M-,"     . org-mark-ring-goto)
-                        ("C-,"     . nil)
-                        ("M-h"     . nil)
-                        ("C-x n"   . nil)
-                        ("C-c /"   . nil)))
-   :defer-config
+   :bind ( :map org-mode-map
+           ("×"       . "*")
+           ("C-c \""  . im/org-edit-special-with-wc-setup)
+           ("M-."     . org-open-at-point)
+           ("M-,"     . org-mark-ring-goto)
+           ("C-,"     . nil)
+           ("M-h"     . nil)
+           ("C-x n"   . nil)
+           ("C-c /"   . nil))
+   :config
    (require 'org-img)
    (require 'org-tempo) ; org-insert-structure-template
    (require 'org-special-block-extras)
@@ -102,25 +103,12 @@
    (require 'org-timer)
    (require 'ox-spectacle)
 
-   ;; mathjax
-   (setf (cadr (assoc 'path org-html-mathjax-options))
-         "https://cdn.bootcdn.net/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML")
-   (setq org-html-mathjax-template "\n<script type=\"text/x-mathjax-config\">
-    MathJax.Hub.Config({
-        displayAlign: \"%ALIGN\",
-        displayIndent: \"%INDENT\",
-        \"HTML-CSS\": { scale: %SCALE, linebreaks: { automatic: \"%LINEBREAKS\" }, webFont: \"%FONT\" },
-        SVG: {scale: %SCALE, linebreaks: { automatic: \"%LINEBREAKS\" }, font: \"%FONT\"},
-        NativeMML: {scale: %SCALE},
-        TeX: { equationNumbers: {autoNumber: \"%AUTONUMBER\"}, MultLineWidth: \"%MULTLINEWIDTH\", TagSide: \"%TAGSIDE\", TagIndent: \"%TAGINDENT\" }
-    });\n</script>\n<script src=\"%PATH\" async></script>")
-
    ;; babel switcher
    (cl-loop for l in '(shell powershell typescript
-                       lisp python ruby haskell java js csx csharp fsharp
-                       sql sqlite
-                       gnuplot ditaa dot plantuml calc
-                       restclient latex)
+                             lisp python ruby haskell java js csx csharp fsharp
+                             sql sqlite
+                             gnuplot ditaa dot plantuml calc
+                             restclient latex)
             unless (eq (elt (symbol-name l) 0) ?-) collect `(,l . t) into lst
             finally (org-babel-do-load-languages 'org-babel-load-languages lst))
 
@@ -167,7 +155,7 @@
          (funcall f arg info params))))
 
    ;; lighter
-   (blackout 'org-indent-mode nil)
+   (delight 'org-indent-mode nil)
 
    ;; mono-font
    (when IS-G
@@ -370,12 +358,12 @@
 (x ob-dot
    :ref "http://graphviz.org/"
    :if (executable-find "dot") ;; choco install graphviz
-   :defer-config (setcdr (assoc "dot" org-src-lang-modes) 'graphviz-dot))
+   :config (setcdr (assoc "dot" org-src-lang-modes) 'graphviz-dot))
 
 (x ob-ditaa
    :ref "http://ditaa.sourceforge.net/"
    :if (executable-find "java")
-   :defer-config (setq org-ditaa-jar-path (loce "share/ditaa.jar")))
+   :config (setq org-ditaa-jar-path (loce "share/ditaa.jar")))
 
 (x ob-plantuml
    :ref "Homepage: https://plantuml.com/zh/"
@@ -397,7 +385,7 @@
                  (insert "wget https://newcontinuum.dl.sourceforge.net/project/plantuml/plantuml.jar -O ~/.emacs.d/plantuml.jar")))))
        (if (called-interactively-p 'any)
            (message "plantuml.jar already exists."))))
-   :defer-config
+   :config
    (if (and (executable-find "java") (executable-find "dot"))
        (im/download-plantuml-jar)))
 
@@ -439,14 +427,14 @@
 (x org-crypt
    :commands
    (org-encrypt-entry org-encrypt-entries org-decrypt-entry org-decrypt-entries)
-   :defer-config
+   :config
    (setq org-tags-exclude-from-inheritance '("crypt")))
 
 (x org-noter
    :ref "weirdNox/org-noter")
 
 (x calendar
-   :defer-config
+   :config
    (require 'cal-china-x)
    (setq calendar-week-start-day 1
          mark-holidays-in-calendar t

@@ -128,7 +128,7 @@
       hscroll-margin 1)
 
 (x pixel-scroll
-   :emacs>= 29
+   :if (>= emacs-major-version 29)
    :init
    (setq pixel-scroll-precision-large-scroll-height 40)
    (setq pixel-scroll-precision-interpolation-factor 8.0)

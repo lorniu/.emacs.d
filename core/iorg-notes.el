@@ -235,21 +235,21 @@
 (x org-roam
    :ref ("org-roam/org-roam"
          "Roam Official: https://roamresearch.com/")
-   :blackout (org-roam-mode . " ❇")
+   :delight (org-roam-mode " ❇")
    :bind (("C-c n f" . org-roam-node-find)
           ("C-c n g" . org-roam-graph-show)
           ("C-c n r" . org-roam-node-random)
-          ((org-mode-map
-            ("C-c n i" . org-roam-node-insert)
-            ("C-c n o" . org-id-get-create)
-            ("C-c n t" . org-roam-tag-add)
-            ("C-c n a" . org-roam-alias-add)
-            ("C-c n l" . org-roam-buffer-toggle))))
+          :map org-mode-map
+          ("C-c n i" . org-roam-node-insert)
+          ("C-c n o" . org-id-get-create)
+          ("C-c n t" . org-roam-tag-add)
+          ("C-c n a" . org-roam-alias-add)
+          ("C-c n l" . org-roam-buffer-toggle))
    :init
    (setq org-roam-v2-ack t)
    (setq org-roam-tag-sources '(prop last-directory))
    (setq org-roam-completion-everywhere t)
-   :defer-config
+   :config
    (require 'org-roam-protocol)
    (org-roam-db-autosync-mode 1)
 
@@ -286,7 +286,7 @@
 (x org-roam-ui
    :ref "org-roam/org-roam-ui"
    :after org-roam
-   :defer-config
+   :config
    (setq org-roam-ui-follow t)
    (setq org-roam-ui-update-on-save t))
 

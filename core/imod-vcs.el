@@ -40,7 +40,7 @@ machine gitlab.com/api/v4 login USER^forge password TOKEN
    (setq forge-database-file (locc "forge-database.sqlite"))
    (setq forge-post-heading-format "%-25a\t%-15C\t(%c)\n")
 
-   :defer-config
+   :config
    (transient-append-suffix 'magit-log "i" '("w" "Wip" magit-wip-log-current))
    (transient-append-suffix 'magit-log "-A" '("-m" "Omit merge commits" "--no-merges"))
    (transient-append-suffix 'magit-pull "-r" '("-a" "Autostash" "--autostash"))

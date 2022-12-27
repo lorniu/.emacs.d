@@ -14,20 +14,21 @@
 ;;; Code:
 
 (x hideshow/e
-   "Use `hs-special-modes-alist' to set rules: (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC)"
-   :blackout hs-minor-mode
-   :hook ((prog-mode-hook nxml-mode-hook sgml-mode-hook web-mode-hook mhtml-mode-hook) . hs-minor-mode)
-   :bind ((im-keys-mode-map
+   "Use `hs-special-modes-alist' to set rules:
+ (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC)"
+   :delight hs-minor-mode
+   :hook ((prog-mode nxml-mode sgml-mode web-mode mhtml-mode) . hs-minor-mode)
+   :bind ( :map im-keys-mode-map
            ("C-c f"   . im/smart-folding)
            ("C-c F"   . im/smart-folding-all)
            ("C-c M-f" . (lambda () (interactive) (im/smart-folding-all 1)))
-           ("C-c C-f" . imtt/transient-fold))
-          (hs-minor-mode-map
+           ("C-c C-f" . imtt/transient-fold)
+           :map hs-minor-mode-map
            ([(M-down-mouse-1)] . nil)
-           ([(M-mouse-1)] . nil)))
+           ([(M-mouse-1)] . nil))
    :init
    (setq hs-allow-nesting t)
-   :defer-config
+   :config
    (defvar %hs-display-line-overlay-map
      (let ((m (make-sparse-keymap)))
        (define-key m [return] 'hs-show-block)
@@ -54,9 +55,9 @@
 
 (x outline
    "Use `outline-regexp' to set rule of buffer."
-   :blackout outline-minor-mode
-   :hook ((prog-mode-hook text-mode-hook conf-mode-hook) . outline-minor-mode)
-   :defer-config
+   :delight outline-minor-mode
+   :hook ((prog-mode text-mode conf-mode) . outline-minor-mode)
+   :config
    (defvar-local outline-fold-all-flag nil)
    (defvar-local outline-narrow-flag nil))
 

@@ -49,7 +49,7 @@
 
 (x treemacs
    :ref "Alexander-Miller/treemacs"
-   :defer-config
+   :config
    (setq treemacs-position 'left
          treemacs-persist-file (locc "treemacs-persist")
          treemacs-width 35

@@ -3,7 +3,7 @@
 ;;; Code:
 
 (x php-mode
-   :defer-config
+   :config
    (defun my-php-lookup ()
      (interactive)
      (let ((symbol (symbol-at-point)))

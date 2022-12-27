@@ -14,9 +14,7 @@
    (setq treesit-extra-load-path (list (locc "treesitter"))))
 
 (x prog-mode
-   :bind
-   ((prog-mode-map
-     ("C-c C-u" . backward-up-list)))
+   :bind (:map prog-mode-map ("C-c C-u" . backward-up-list))
    :init
    (defun:hook prog-mode-hook ()
      (setq-local show-trailing-whitespace (bound-and-true-p org-src-mode))

@@ -14,7 +14,7 @@
    (add-hook 'which-func-non-auto-modes 'css-mode))
 
 (x emmet-mode/d
-   :hook (web-mode-hook rjsx-mode-hook mhtml-mode-hook html-mode-hook)
+   :hook (web-mode rjsx-mode mhtml-mode html-mode)
    :init (setq emmet-move-cursor-between-quotes t))
 
 (x web-beautify
@@ -29,7 +29,7 @@
 (x web-mode/i
    :ref "fxbois/web-mode"
    :mode "\\.\\(.erb\\|.blade\\|[aj]sp\\|tpl\\|cshtml\\)\\'"
-   :defer-config
+   :config
    (setq web-mode-enable-auto-indentation nil
          web-mode-markup-indent-offset    2
          web-mode-css-indent-offset       4

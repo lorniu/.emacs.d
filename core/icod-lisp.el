@@ -116,7 +116,7 @@
 
 (x macrostep
    :ref "joddie/macrostep"
-   :defer-config
+   :config
    (setq macrostep-expand-in-separate-buffer nil))
 
 (defun im/dispatch-macroexpand (&optional arg)

@@ -6,10 +6,10 @@
 ;;; Code:
 
 (x ahs
-   :bind ((ahs-mode-map
+   :bind ( :map ahs-mode-map
            ("M-p" . ahs-backward)
            ("M-n" . ahs-forward)
-           ("M-r" . ahs-change-range)))
+           ("M-r" . ahs-change-range))
    :init
    (setq ahs-idle-interval 0.3
          ahs-case-fold-search nil
@@ -21,11 +21,11 @@
 (x vundo
    :ref "casouri/vundo"
    :bind (("C-x u" . vundo)
-          (vundo-mode-map
-           ("l" . vundo-forward)
-           ("h" . vundo-backward)
-           ("j" . vundo-next)
-           ("k" . vundo-previous))))
+          :map vundo-mode-map
+          ("l" . vundo-forward)
+          ("h" . vundo-backward)
+          ("j" . vundo-next)
+          ("k" . vundo-previous)))
 
 (x expand-region/i
    :ref "magnars/expand-region.el"

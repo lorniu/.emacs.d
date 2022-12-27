@@ -3,10 +3,10 @@
 ;;; Code:
 
 (x latex
-   :when (executable-find "latex")
+   :if (executable-find "latex")
    :init
    (setq-default TeX-engine 'xetex)
-   :defer-config
+   :config
    (defun:hook LaTeX-mode-hook/my-latex ()
      (setq TeX-command-default "LaTeX")
 

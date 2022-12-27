@@ -5,7 +5,7 @@
 ;;; Code:
 
 (x erlang
-   :defer-config
+   :config
    (unbind-key "M-q" erlang-mode-map))
 
 (provide 'icod-erlang)

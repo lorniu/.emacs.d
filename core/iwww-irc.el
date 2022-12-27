@@ -5,9 +5,7 @@
 ;;; Code:
 
 (x erc
-   :bind
-   ((erc-mode-map
-     ("M-m" . %erc-go-to-begin)))
+   :bind (:map erc-mode-map ("M-m" . %erc-go-to-begin))
    :init
    (setq erc-server "irc.libera.chat")
    ;; (erc-prompt "ERC>")
@@ -93,7 +91,7 @@
            (erc-fill-regarding-timestamp))
          (erc-restore-text-properties))))
 
-   :defer-config
+   :config
    (erc-log-mode)
    (with-eval-after-load 'which-func
      (add-to-list 'which-func-non-auto-modes 'erc-mode)))

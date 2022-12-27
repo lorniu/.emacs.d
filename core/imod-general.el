@@ -9,7 +9,7 @@
 
 (x winner
    :init (winner-mode 1)
-   :defer-config
+   :config
    (define-key winner-mode-map [C-left] 'winner-undo)
    (define-key winner-mode-map [C-right] 'winner-redo))
 
@@ -65,7 +65,7 @@
    (recentf-mode 1))
 
 (x ibuffer/e
-   :defer-config
+   :config
    (setq ibuffer-show-empty-filter-groups nil
          ibuffer-saved-filter-groups
          `(("default"
@@ -93,10 +93,10 @@
 (x flyspell/x
    :preface (setq ispell-program-name "ispell") ;; apt install ispell
    :if (executable-find ispell-program-name)
-   :hook ((text-mode-hook . flyspell-mode)
-          (prog-mode-hook . flyspell-prog-mode)
-          (rcirc-mode-hook . flyspell-mode))
-   :defer-config (ispell-change-dictionary "american" t))
+   :hook ((text-mode . flyspell-mode)
+          (prog-mode . flyspell-prog-mode)
+          (rcirc-mode . flyspell-mode))
+   :config (ispell-change-dictionary "american" t))
 
 (x calc
    :ref "info: https://www.gnu.org/software/emacs/manual/html_node/calc/index.html"
@@ -117,7 +117,7 @@
 (x which-func)
 
 (x repeat
-   :emacs> 29
+   :if (>= emacs-major-version 29)
    :init
    (repeat-mode 1))
 
@@ -125,13 +125,13 @@
 
 (x ace-window
    "Can `M-x windmove-swap-states-default-keybindings' then use S-M-arrow to swap."
-   :bind ("C-x w" . ace-window)
-   :defer-config
+   :bind (("C-x w" . ace-window))
+   :config
    (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
 
 (x alert
    :commands (alert)
-   :defer-config
+   :config
    (setq alert-default-fade-time 8)
    (setq alert-default-style (cond ((executable-find "dunstify") 'dunstify)
                                    ((executable-find "notify-send") 'libnotify)
@@ -143,7 +143,7 @@
    :init
    (setq page-break-lines-lighter "")
    (global-page-break-lines-mode 1)
-   :defer-config
+   :config
    (nconc page-break-lines-modes '(web-mode css-mode conf-mode powershell-mode prog-mode)))
 
 (x all-the-icons/i
@@ -158,16 +158,15 @@
 
 (x view
    :bind
-   ((view-mode-map
-     ( "h"       .  backward-char )
-     ( "l"       .  forward-char  )
-     ( "j"       .  next-line     )
-     ( "k"       .  previous-line )
-     ( "%"       .  his-match-paren )
-     ( "<DEL>"   .  nil )))
+   ( :map view-mode-map
+	 ( "h"       .  backward-char )
+	 ( "l"       .  forward-char  )
+	 ( "j"       .  next-line     )
+	 ( "k"       .  previous-line )
+	 ( "%"       .  his-match-paren )
+	 ( "<DEL>"   .  nil ))
    :init
-   (defun:hook edebug-mode-hook ()
-     (view-mode -1)))
+   (defun:hook edebug-mode-hook () (view-mode -1)))
 
 (x so-long
    :init

@@ -9,7 +9,7 @@
 
 (x cc-mode/i
    "For C family languages, such as Java/C/Cpp..."
-   :defer-config
+   :config
    (setq-default c-basic-offset 4
                  gdb-many-windows t gdb-show-main t)
 
@@ -81,7 +81,7 @@
 
 (x semantic
    :after (cc-mode)
-   :defer-config
+   :config
    (global-semanticdb-minor-mode 1)
    (global-semantic-idle-scheduler-mode 1)
    (global-semantic-stickyfunc-mode 1))

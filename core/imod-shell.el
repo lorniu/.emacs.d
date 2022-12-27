@@ -18,7 +18,7 @@
    (add-hook 'eshell-first-time-mode-hook #'eat-eshell-visual-command-mode)
    (add-hook 'eshell-first-time-mode-hook #'eat-eshell-mode)
 
-   :defer-config
+   :config
    (cl-defmethod im/mode-action ((m (eql 'eat-mode)))
      (if eat--semi-char-mode (eat-char-mode) (eat-semi-char-mode)))
    (cl-defmethod im/mode-action ((m (eql 'eshell-mode)))
@@ -36,7 +36,7 @@
          comint-scroll-show-maximum-output nil
          eshell-scroll-show-maximum-output nil
          eshell-destroy-buffer-when-process-dies t)
-   :defer-config
+   :config
    ;; (setq eshell-visual-commands ...)
 
    (with-eval-after-load 'em-hist
@@ -84,7 +84,7 @@
        (im/local-encoding 'cp936-dos))
      (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil))
 
-   :defer-config
+   :config
    (defun:around sh-set-shell$ (orig-fun &rest args)
      "Dont show messages: Indentation setup for shell type bash"
      (cl-letf (((symbol-function 'message) #'ignore))

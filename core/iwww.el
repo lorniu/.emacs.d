@@ -54,13 +54,14 @@
      (insert (format "<h1>%s</h1>" (time-str)))))
 
 (x livereload
-   :commands (liveview liveload))
+   ;;:commands (liveview liveload)
+   )
 
 
 
 (x engine-mode
    :init (engine-mode 1)
-   :defer-config
+   :config
    (require 'format-spec)
 
    (defengine google         "https://google.com/search?q=%s")

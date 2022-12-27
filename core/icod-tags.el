@@ -12,7 +12,7 @@
    (global-set-key (kbd "C-x c p") 'citre-ace-peek)
    (global-set-key (kbd "C-x c u") 'citre-update-this-tags-file)
 
-   :defer-config
+   :config
    (setq citre-default-create-tags-file-location 'global-cache)
    (setq citre-auto-enable-citre-mode-modes '(prog-mode))
 

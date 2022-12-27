@@ -24,7 +24,7 @@
 (x haskell
    ""
    :ref ("LSP Server: https://github.com/haskell/haskell-language-server/releases")
-   :blackout interactive-haskell-mode
+   :delight interactive-haskell-mode
    :init
    (setq haskell-tags-on-save nil
          haskell-process-log t
@@ -35,7 +35,7 @@
    (defun:hook haskell-mode-hook ()
      (interactive-haskell-mode))
 
-   :defer-config
+   :config
    (define-key haskell-interactive-mode-map (kbd "C-c M-o") 'haskell-interactive-mode-clear)
    (define-key haskell-interactive-mode-map (kbd "C-a") 'haskell-interactive-mode-beginning))
 

@@ -4,7 +4,7 @@
 
 (x markdown-mode/i
    :ref "jrblevin/markdown-mode"
-   :bind ((markdown-mode-map ("C-c l" . im/markdown-hide-levels)))
+   :bind (:map markdown-mode-map ("C-c l" . im/markdown-hide-levels))
    :init
    (setq markdown-hide-markup nil)
    (setq markdown-fontify-code-blocks-natively nil)

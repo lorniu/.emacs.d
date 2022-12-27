@@ -3,7 +3,7 @@
 ;;; Code:
 
 (x alchemist/x
-   :defer-config
+   :config
    (setq alchemist-hooks-test-on-save nil)
    (setq alchemist-hooks-compile-on-save nil))
 

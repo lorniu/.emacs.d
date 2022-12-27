@@ -7,18 +7,17 @@
 (x hyperbole/d
    :ref ("https://tilde.town/~ramin_hal9001/articles/intro-to-hyperbole.html")
    :init (setq hkey-init nil) ; inhibit default keybinds
-   :bind ((im-keys-mode-map ("C-h h" . hyperbole))) ; C-RET to call hkey-either
+   :bind (:map im-keys-mode-map ("C-h h" . hyperbole)) ; C-RET to call hkey-either
    :commands (hkey-either))
 
 
 
 (x embark/e
    :ref "oantolin/embark"
-   :bind
-   ((embark-file-map (("l"   . vlf))))
+   :bind (:map embark-file-map (("l"   . vlf)))
    :init
    (setq embark-cycle-key (kbd "C-<return>")) ; C-RET to call `embark-act'
-   :defer-config
+   :config
    (require 'embark-consult)
    (define-key embark-region-map "f" #'gts-do-translate)
    (define-key embark-collect-mode-map (kbd "C-l") #'consult-preview-at-point)

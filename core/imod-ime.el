@@ -28,7 +28,7 @@
 
 (x pyim
    :ref "tumashu/pyim"
-   :defer-config
+   :config
    (when IS-G
      (setq pyim-page-tooltip 'posframe)
      (setq pyim-posframe-border-width 6))
@@ -39,9 +39,9 @@
    :ref ("DogLooksGood/emacs-rime"
          "Install: DogLooksGood/emacs-rime/blob/master/INSTALLATION.org"
          "Rime Guide: rime/home/wiki/CustomizationGuide")
-   :bind ((rime-active-mode-map ("<tab>" . rime-inline-ascii)))
+   :bind (:map rime-active-mode-map ("<tab>" . rime-inline-ascii))
    :custom
-   (rime-title . "R ")
+   (rime-title "R ")
    :init
    (when IS-LINUX
      (setq rime-user-data-dir "~/.local/share/fcitx5/rime/"))

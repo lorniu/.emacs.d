@@ -6,11 +6,11 @@
 ;;; Code:
 
 (x ruby-mode
-   :hook ((ruby-mode-hook . inf-ruby-minor-mode)
-          (ruby-mode-hook . robe-mode))
-   :defer-config
+   :hook ((ruby-mode . inf-ruby-minor-mode)
+          (ruby-mode . robe-mode))
+   :config
    (x inf-ruby
-      :defer-config
+      :config
       (define-key inf-ruby-minor-mode-map (kbd "C-c C-s")
                   (lambdai  ;; open rails console, fails then irb
                    (or (ignore-errors (inf-ruby-console-auto))

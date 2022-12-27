@@ -5,7 +5,7 @@
 (x image-mode
    :init
    (add-to-list 'auto-mode-alist '("\\.otf\\'" . image-mode))
-   :defer-config
+   :config
    (define-key image-mode-map "c" 'im/yank-current-buffer-name))
 
 
@@ -25,7 +25,7 @@
      ;; double-click to select current word
      (require 'pdf-sel)
      (pdf-sel-mode 1))
-   :defer-config
+   :config
    ;; fire when epdfinfo exists
    (when (executable-find pdf-info-epdfinfo-program)
      (add-to-list 'magic-mode-alist (cons "%PDF" 'pdf-view-mode))

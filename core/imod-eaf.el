@@ -8,7 +8,7 @@
    :init
    (setq eaf-kill-process-after-last-buffer-closed nil)
    (setq eaf-start-python-process-when-require t)
-   :defer-config
+   :config
    (let ((ms '(eaf eaf-browser eaf-pdf-viewer eaf-rss-reader
                    eaf-music-player eaf-video-player eaf-image-viewer
                    eaf-file-sender eaf-file-manager eaf-airshare

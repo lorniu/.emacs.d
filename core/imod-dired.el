@@ -12,14 +12,14 @@
    "  export LC_COLLATE=C
    "
    :bind
-   ((dired-mode-map
-     ( "6" . dired-up-directory )
-     ( "^" . im/dired-up-directory-follow-symlink )
-     ( "e" . wdired-change-to-wdired-mode )
-     ( "z" . idp/dired-du-size )
-     ( "Y" . idp/dired-rsync )
-     ( "," . im-dired--toggle-collapse )
-     ( "C-c m" . imtt/transient-dired)))
+   ( :map dired-mode-map
+	 ( "6" . dired-up-directory )
+	 ( "^" . im/dired-up-directory-follow-symlink )
+	 ( "e" . wdired-change-to-wdired-mode )
+	 ( "z" . idp/dired-du-size )
+	 ( "Y" . idp/dired-rsync )
+	 ( "," . im-dired--toggle-collapse )
+	 ( "C-c m" . imtt/transient-dired))
    :config
    (setq wgrep-enable-key "e")
    (setq dired-dwim-target t)
@@ -35,17 +35,17 @@
    (defvar ls-lisp-xid-shorten-threshold (if IS-WIN 8)
      "Shorten display the Uid/Gid column, eg, Administrators is toooooo long.")
    (defun:before ls-lisp-format$shorten (_fn file-attr _fs _sw _ti)
-     (when ls-lisp-xid-shorten-threshold
-       (cl-labels ((norm (file n &optional
-                               (threshold ls-lisp-xid-shorten-threshold)
-                               (len (- ls-lisp-xid-shorten-threshold 3)))
-                     (let ((item (nth n file)))
-                       (when (and (stringp item) (> (length item) threshold))
-                         (setf (nth n file)
-                               (propertize (format "%s~" (upcase (cl-subseq item 0 len)))
-                                           'help-echo item))))))
-         (norm file-attr 2)
-         (norm file-attr 3)))))
+	 (when ls-lisp-xid-shorten-threshold
+	   (cl-labels ((norm (file n &optional
+					           (threshold ls-lisp-xid-shorten-threshold)
+					           (len (- ls-lisp-xid-shorten-threshold 3)))
+				     (let ((item (nth n file)))
+				       (when (and (stringp item) (> (length item) threshold))
+				         (setf (nth n file)
+					           (propertize (format "%s~" (upcase (cl-subseq item 0 len)))
+						                   'help-echo item))))))
+		 (norm file-attr 2)
+		 (norm file-attr 3)))))
 
 (x dired-collapse
    :init
@@ -75,7 +75,7 @@
 (x ztree
    "Use `ztree-diff' to diff directories."
    :ref "fourier/ztree"
-   :defer-config
+   :config
    (setq ztree-draw-unicode-lines t)
    (setq ztree-diff-additional-options nil) ; '("-w" "-i")
    (add-to-list 'ztree-diff-filter-list "^~"))

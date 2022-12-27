@@ -150,7 +150,7 @@
    ;;(gnus-group-charset-alist '(("\\(^\\|:\\)hk\\|\\(^\\|:\\)tw" big5) ("\\(^\\|:\\)cn" gbk)))
    (setq gnus-newsgroup-ignored-charsets '(unknown-8bit x-unknown iso-8859-1 unknown-8bit x-unknown))
 
-   :defer-config
+   :config
    ;; Scan news every 30 Minutes (invoke 'gnus-demon-init to active it)
    (gnus-demon-add-handler 'gnus-demon-scan-news 30 30)
 

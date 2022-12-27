@@ -3,7 +3,7 @@
 ;;; Code:
 
 (x abbrev/d
-   :defer-config
+   :config
    (if (file-exists-p abbrev-file-name)
        (quietly-read-abbrev-file)))
 
@@ -29,9 +29,7 @@
 (x yasnippet/ed
    :ref ("joaotavora/yasnippet"
          "DOC: https://joaotavora.github.io/yasnippet/index.html")
-   :bind
-   ((yas-keymap
-     ("C-m" . yas-next-field-or-maybe-expand)))
+   :bind (:map yas-keymap ("C-m" . yas-next-field-or-maybe-expand))
    :init
    (setq yas-verbosity 2
          yas--basic-extras '(fundamental-mode)
@@ -44,7 +42,7 @@
          (yas-deactivate-extra-mode mode))))
 
    (defun:hook yas-minor-mode-hook ()
-     (blackout 'yas-minor-mode)
+     (delight 'yas-minor-mode)
      (mapc 'yas-activate-extra-mode yas--basic-extras))
 
    (defun:override yas--prompt-for-template$pp (templates &optional prompt)
