@@ -112,6 +112,7 @@
                 "  " mode-line-modes " "        ; modeline
                 mode-line-misc-info
                 mode-line-end-spaces))
+(defun resume-mode-line () (interactive) (setq mode-line-format (default-value 'mode-line-format)))
 
 ;; theme
 (aif (f/get :theme) (load-theme it t))
