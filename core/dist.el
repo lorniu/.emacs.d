@@ -42,6 +42,7 @@
   package-lint
   sx ; stackoverflow
   (vterm nil) eat ; terminal emulator
+  simple-httpd
 
   corfu cape
   hyperbole embark embark-consult

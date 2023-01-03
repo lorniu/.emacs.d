@@ -44,18 +44,17 @@
    :init
    (defun im/httpd-here (&optional arg)
      (interactive "P")
-     (let ((root default-directory)
-           (port (if arg (read-number "Port: " 5555) 5555)))
-       (httpd-start :port port :root root)
-       (message "http://localhost:%s | %s" port root)))
+     (let ((httpd-root default-directory)
+           (httpd-port (if arg (read-number "Port: " 5555) 5555)))
+       (httpd-start)
+       (message "http://localhost:%s | %s" httpd-port httpd-root)))
 
    :config
    (defservlet time text/html ()
      (insert (format "<h1>%s</h1>" (time-str)))))
 
-(x livereload
-   ;;:commands (liveview liveload)
-   )
+(x liveload
+   :commands (liveload liveload-and-view))
 
 
 
