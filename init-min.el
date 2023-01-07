@@ -2,10 +2,12 @@
 
 ;;; Code:
 
-(prog1 :mini
+(prog1 :basic
+  (setq debug-on-error t)
+  (setq custom-file (make-temp-file "custom-file-" nil ".el"))
   (package-initialize)
   (add-to-list 'load-path (locate-user-emacs-file "core"))
-  (setq debug-on-error t)
+  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
   (tool-bar-mode -1))
 
 (prog1 :vertico
@@ -17,9 +19,5 @@
   (setq corfu-auto t)
   (setq corfu-auto-prefix 1)
   (corfu-mode 1))
-
-(prog1 :package
-  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
-  (package-refresh-contents))
 
 ;;; mini-init.el ends here

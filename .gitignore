@@ -2,9 +2,9 @@
 !README.md
 !CHANGELOG.md
 !.gitignore
-!init.el
 !early-init.el
-!mini-init.el
+!init.el
+!init-min.el
 !Makefile
 !/bin
 !/core

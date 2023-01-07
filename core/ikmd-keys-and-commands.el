@@ -6,7 +6,7 @@
 (global-unset-key (kbd "C-x C-z"))
 (global-unset-key (kbd "C-x C-k"))
 
-(bind-keys*
+(bind-keys
  ( "C-x i"         .  imtt/transient-goto                         )
  ( "C-c i"         .  imtt/transient-act                          )
  ( "C-c p"         .  imtt/transient-tpl                          )
@@ -215,10 +215,9 @@
   "Isearch+, default with region word, enable regexp."
   (interactive)
   (if (use-region-p)
-      (progn
-        (let ((string (buffer-substring-no-properties (region-beginning) (region-end))))
-          (deactivate-mark)
-          (isearch-resume string nil nil t string nil)))
+      (let ((string (buffer-substring-no-properties (region-beginning) (region-end))))
+        (deactivate-mark)
+        (isearch-resume string nil nil t string nil))
     (call-interactively 'isearch-forward-regexp)))
 
 

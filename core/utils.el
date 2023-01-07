@@ -311,6 +311,15 @@
 (defun up-host () (aif (and ic/up (split-string (imup) "@")) (cadr it)))
 (defun up-user () (aif (and ic/up (split-string (imup) "@")) (car it)))
 
+(setf (symbol-function 'locate-user-emacs-file-origin) (symbol-function 'locate-user-emacs-file))
+(advice-add #'locate-user-emacs-file :override (defun locate-user-emacs-file$redirect-to-cache-dir (new-name &optional _) (expand-file-name new-name (locate-user-emacs-file-origin "var"))))
+
+(defun loce (subpath &optional nullp) (let ((f (locate-user-emacs-file-origin subpath))) (if (or (not nullp) (file-exists-p f)) (expand-file-name f))))
+(defun locc (&optional subpath nullp) (let ((f (locate-user-emacs-file (or subpath "./")))) (if (or (not nullp) (file-exists-p f)) (expand-file-name f))))
+(defun loco (subpath &optional nullp) (let ((f (expand-file-name subpath org-directory))) (if (or (not nullp) (file-exists-p f)) f)))
+
+(defmacro with-over (&rest args) `(with-eval-after-load 'over ,@args))
+
 (provide 'utils)
 
 ;;; utils.el ends here

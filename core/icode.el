@@ -1,4 +1,4 @@
-;;; imod-code.el --- Prog-Mode -*- lexical-binding: t -*-
+;;; icode.el --- Prog-Mode -*- lexical-binding: t -*-
 
 ;;; Code:
 
@@ -14,7 +14,7 @@
    (setq treesit-extra-load-path (list (locc "treesitter"))))
 
 (x prog-mode
-   :bind (:map prog-mode-map ("C-c C-u" . backward-up-list))
+   :bind (:map prog-mode-map ("C-c C-u" . backward-up-list) ("M-q" . nil))
    :init
    (defun:hook prog-mode-hook ()
      (setq-local show-trailing-whitespace (bound-and-true-p org-src-mode))
@@ -30,6 +30,6 @@
 
 (x flycheck/i)
 
-(provide 'imod-code)
+(provide 'icode)
 
-;;; imod-code.el ends here
+;;; icode.el ends here
