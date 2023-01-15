@@ -50,7 +50,7 @@
          :GenerateBinlog nil))))))
 
 (defun eglot-fsac-contact (_interactive)
-  (let ((cmd (append '("fsautocomplete" "--background-service-enabled")
+  (let ((cmd (append '("fsautocomplete" "--adaptive-lsp-server-enabled")
                      (if eglot-fsac-log-verbose '("-v")))))
     (cons 'eglot-fsac-server cmd)))
 
