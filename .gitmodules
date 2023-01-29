@@ -1,0 +1,3 @@
+[submodule "site-lisp/easydraw"]
+	path = site-lisp/easydraw
+	url = https://github.com/misohena/el-easydraw

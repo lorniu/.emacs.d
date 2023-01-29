@@ -102,6 +102,8 @@
    (require 'org-clock)
    (require 'org-timer)
    (require 'ox-spectacle)
+   (require 'edraw-org)
+   (edraw-org-setup-default)
 
    ;; babel switcher
    (cl-loop for l in '(shell powershell typescript

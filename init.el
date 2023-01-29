@@ -41,6 +41,9 @@
     (imload 'imod-security)
     (imload 'imod-edit+)
     (imload 'imod-apps)
+    (imload 'imod-graph)
+    (imload 'imod-media)
+    (imload 'imod-print)
     (imload 'imod-reader)
     (imload 'imod-tramp)
     (imload 'imod-mmm)
@@ -55,7 +58,6 @@
     (imload 'imod-vcs)
     (imload 'imod-shell)
     (imload 'imod-ime)
-    (imload 'imod-print)
     (imload 'imod-eaf)
 
     (imload 'icode)
