@@ -230,6 +230,11 @@
 
 ;;; Utils
 
+(defun org-babel-tangle-current-block ()
+  (interactive)
+  (let ((current-prefix-arg '(4)))
+    (call-interactively #'org-babel-tangle)))
+
 (defun im/org-wrap-src ()
   (interactive)
   (let ((beg "#+begin_src") (end "#+end_src") (lang (read-from-minibuffer "Please input your type: ")))
