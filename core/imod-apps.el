@@ -44,6 +44,13 @@
 
 
 
+(x aria2
+   "aria2c client in emacs."
+   :ref ("repo/download: aria2/aria2"
+         "usage: https://aria2c.com/usage.html"
+         "aria2.el: https://gitlab.com/ukaszg/aria2")
+   :commands (aria2 aria2-add-uris aria2-add-file))
+
 (x kubernetes
    :ref "kubernetes-el/kubernetes-el"
    :commands (kubernetes-overview)
