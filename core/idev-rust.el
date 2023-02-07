@@ -1,0 +1,11 @@
+;;; idev-rust.el --- Rust -*- lexical-binding: t -*-
+
+;; You should install `rust-analyzer' as language server.
+
+;;; Code:
+
+(x rust-mode)
+
+(provide 'idev-rust)
+
+;;; idev-rust.el ends here
