@@ -1,4 +1,4 @@
-;;; imod-mmm.el --- Multiple Major Modes -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;;  1. web-mode
 ;;  2. mmm-mode
@@ -8,15 +8,7 @@
 
 (x polymode
    :ref "polymode/polymode"
-   :init
-   (push '("\\.org$" . org-mode) auto-mode-alist)
-   (push '("\\.md$" . markdown-mode) auto-mode-alist)
-   ;;(eval-after-load 'org '(require 'poly-org))
-   ;;(eval-after-load 'markdown-mode '(require 'poly-markdown))
    :commands (poly-html-mode poly-vue-mode))
-
-(x edit-indirect
-   :ref "Fanael/edit-indirect")
 
 
 ;;; Poly - Html
@@ -73,10 +65,6 @@
                     poly-vue-script-innermode
                     poly-vue-style-innermode)))
 
-(provide 'imod-mmm)
-
 ;; Local Variables:
 ;; lisp-indent-function: common-lisp-indent-function
 ;; End:
-
-;;; imod-mmm.el ends here

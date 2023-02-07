@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: :exports
 # key: :
-# condition: (im-grab-line "^[[:blank:]]*#\\+begin_.*")
+# condition: (im:grab-line "^[[:blank:]]*#\\+begin_.*")
 # --
 :exports ${$$(yas-choose-value '("code" "results" "both"))}
