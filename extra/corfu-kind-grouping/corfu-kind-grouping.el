@@ -11,7 +11,7 @@
   "Sort CANDICATES by original rule, then resort according `corfu-kind-grouping-enable'."
   (let* ((fn (or (corfu--metadata-get 'display-sort-function) corfu-sort-function))
          (ordered (funcall fn candicates))
-         (kindfn (plist-get corfu--extra :company-kind)))
+         (kindfn (plist-get completion-extra-properties :company-kind)))
     (when (and corfu-kind-grouping-enable (functionp kindfn))
       (let ((kinds (delete-dups (mapcar (lambda (c) (funcall kindfn c)) ordered))))
         (when (> (length kinds) 1)

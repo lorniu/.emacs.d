@@ -1,4 +1,4 @@
-;;; imod-ime.el --- Input Methods -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;; Emacs native:
 ;;
@@ -30,8 +30,8 @@
    :ref "tumashu/pyim"
    :config
    (when IS-G
-     (setq pyim-page-tooltip 'posframe)
-     (setq pyim-posframe-border-width 6))
+     (setopt pyim-page-tooltip 'posframe
+             pyim-posframe-border-width 6))
    (pyim-basedict-enable))
 
 (x rime
@@ -42,12 +42,13 @@
    :bind (:map rime-active-mode-map ("<tab>" . rime-inline-ascii))
    :custom
    (rime-title "R ")
-   :init
+   :config
+   (setopt rime-inline-ascii-trigger 'shift-l
+           mode-line-mule-info '((:eval (rime-lighter))))
+   (when IS-G
+     (setopt rime-show-candidate 'posframe))
    (when IS-LINUX
-     (setq rime-user-data-dir "~/.local/share/fcitx5/rime/"))
-   (setq rime-inline-ascii-trigger 'shift-l)
-   (setq mode-line-mule-info '((:eval (rime-lighter))))
-   (if IS-G (setq rime-show-candidate 'posframe)))
+     (setopt rime-user-data-dir "~/.local/share/fcitx5/rime/")))
 
 (x sis
    "Auto-switch OS input methods.\n
@@ -72,7 +73,7 @@ To enable, set ic/ism-default like:\n
   (declare (indent 1))
   `(defun ,(intern (format "is/ime-rime:%s" file)) ()
      (interactive)
-     (with-current-buffer (find-file (expand-file-name ,(symbol-name file) (im-ensure-dir rime-user-data-dir)))
+     (with-current-buffer (find-file (expand-file-name ,(symbol-name file) (im:ensure-dir rime-user-data-dir)))
        (goto-char (point-max))
        (insert ,content))))
 
@@ -119,7 +120,3 @@ To enable, set ic/ism-default like:\n
   "Helper to reload/redeploy os-native rime."
   (interactive)
   (shell-command "qdbus org.fcitx.Fcitx5 /controller org.fcitx.Fcitx.Controller1.SetConfig \"fcitx://config/addon/rime/deploy\" \"\""))
-
-(provide 'imod-ime)
-
-;;; imod-ime.el ends here

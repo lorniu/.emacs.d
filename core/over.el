@@ -1,7 +1,7 @@
-;;; over.el --- Over -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;;; Code:
 
-(provide 'over)
+(x gcmh :delight gcmh-mode :init (gcmh-mode 1))
 
-;;; over.el ends here
+(provide 'over)
