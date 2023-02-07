@@ -1,11 +1,11 @@
-;;; imod-print.el --- Print -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;; Environment:
 ;;
 ;;   sudo pacman -S cups cups-pdf
 ;;
 ;;   yay -S epson-inkjet-printer-escpr # driver!
-;;   yay -S intlfonts                  # fonts for emacs print
+;;   yay -S intlfonts                  # fonts for emacs print!
 ;;
 ;;   sudo sc enable cups.socket
 ;;
@@ -25,25 +25,27 @@
 
 (defvar ic/print-duplex nil)
 
-(setq ps-paper-type 'a4)
-(setq ps-landscape-mode nil)
-(setq ps-selected-pages nil)
-(setq ps-print-header nil)
+(x ps-print
+   :config
+   (setopt ps-paper-type 'a4
+           ps-landscape-mode nil
+           ps-selected-pages nil
+           ps-print-header nil
 
-(setq ps-font-size 8)
-(setq ps-font-family 'Courier)
+           ps-font-size 8
+           ps-font-family 'Courier
 
-(setq ps-print-background-text nil)
-(setq ps-print-background-image nil)
+           ps-print-background-text nil
+           ps-print-background-image nil)
 
-;; ps-lpr-command
-;; ps-lpr-switches
-;; ps-printer-name
+   ;; ps-lpr-command
+   ;; ps-lpr-switches
+   ;; ps-printer-name
 
-(setq bdf-directory-list
-      (if IS-WIN (list (expand-file-name "fonts/bdf" installation-directory))
-        '("/usr/share/emacs/fonts/bdf/" "/usr/local/share/emacs/fonts/bdf"))
-      ps-multibyte-buffer 'bdf-font-except-latin)
+   (setopt bdf-directory-list
+           (if IS-WIN (list (expand-file-name "fonts/bdf" installation-directory))
+             '("/usr/share/emacs/fonts/bdf/" "/usr/local/share/emacs/fonts/bdf"))
+           ps-multibyte-buffer 'bdf-font-except-latin))
 
 
 
@@ -210,11 +212,7 @@
     ]]
   ["Actions"
    [("p" "ps-print" ipr--ps-print)]
-   [("P" "ps-print with faces" ipr--ps-print-with-faces)]]
+   [("P" "ps-print-with-faces" ipr--ps-print-with-faces)]]
   (interactive)
   (require 'ps-print)
   (transient-setup 'im/print))
-
-(provide 'imod-print)
-
-;;; imod-print.el ends here

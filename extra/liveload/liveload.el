@@ -54,7 +54,8 @@
                       :on-message #'liveload--ws-message
                       :on-close #'liveload--ws-close
                       :on-error #'liveload--ws-error)))
-  (add-hook 'after-save-hook #'liveload--notify-maybe 'append))
+  (add-hook 'after-save-hook #'liveload--notify-maybe 'append)
+  (advice-add #'org-export-to-file :after #'liveload--notify-maybe))
 
 (defun liveload-close ()
   (interactive)
@@ -64,7 +65,8 @@
     (setq liveload-process nil))
   (setq liveload-root nil)
   (mapc (lambda (conn) (websocket-close (process-get conn :websocket))) liveload-connections)
-  (remove-hook 'after-save-hook #'liveload--notify-maybe))
+  (remove-hook 'after-save-hook #'liveload--notify-maybe)
+  (advice-remove #'org-export-to-file #'liveload--notify-maybe))
 
 (defun liveload-and-view ()
   (interactive)
@@ -81,87 +83,6 @@
                     (t "")))
          (url (format "http://localhost:%d/%s" liveload-port (url-hexify-string rel))))
     (browse-url url)))
-
-
-;;; Watch and notify
-
-(defvar-local liveload--calculated-targets '())
-
-(defvar liveload-potential-targets 'liveload-default-potential-targets
-  "Identifies target URLs based on visited URL and current buffer.
-
-Can be a list of strings, the symbol t, or a symbol or lambda
-denoting a function of one argument producing one of the two
-preceding types.
-
-A list of strings identifies target URLs that liveload clients
-connected to Emacs are told to reload. If it is empty (or nil)
-saving the buffer will never cause clients to be notified.
-
-If a function, the argument passed to the function is the URL of
-the webpage that a liveload client is visiting.
-
-If t, it is up to any functions in `liveload-notify-hook',
-which see, to compute and perform any notifications.
-
-This variable is most likely useful if set buffer-locally.")
-
-(defvar liveload-notify-hook nil
-  "Hooks to run before notifying liveload clients.")
-
-(defun liveload--notify-maybe ()
-  (let* ((calculated
-          (cl-loop for conn in liveload-connections
-                   for url = (process-get conn 'liveload--url)
-                   for targets = (and url
-                                      (if (and (not (eq t liveload-potential-targets))
-                                               (or (symbolp liveload-potential-targets)
-                                                   (functionp liveload-potential-targets)))
-                                          (funcall liveload-potential-targets url)
-                                        liveload-potential-targets))
-                   when targets
-                   collect (list url conn targets))))
-    (setq-local liveload--calculated-targets calculated)
-    (cond (calculated
-           (let ((hookage (run-hook-with-args-until-success
-                           'liveload-notify-hook
-                           (mapcar #'car liveload--calculated-targets))))
-             (unless hookage (liveload-notify))))
-          (t
-           (liveload-log "No one to notify for %s" (current-buffer))))))
-
-(defun liveload-notify (&optional targets)
-  (cl-loop
-   for (_url conn calculated-targets) in liveload--calculated-targets
-   do (cl-loop for target in (or targets
-                                 (unless (eq calculated-targets t)
-                                   calculated-targets))
-               do (websocket-send-text
-                   (process-get conn :websocket)
-                   (json-encode `((command . :reload)
-                                  (path . ,target)
-                                  (liveCSS . t))))))
-  ;; prevent accidental overcalling of `liveload-notify'
-  (setq liveload--calculated-targets nil))
-
-(defun liveload-default-potential-targets (url)
-  (when (and (string-match "^\\(https?://\\(?:[a-z0-9.-]\\)\\(?::[[:digit:]]+\\)?\\)\\(.*\\)" url)
-             buffer-file-name
-             (save-match-data (string-match "\\(css\\|\\js\\|\\html?\\)" (or (file-name-extension buffer-file-name) ""))))
-    (let* ((_address (match-string 1 url))
-           (path (match-string 2 url))
-           (project-dir (and buffer-file-name
-                             (or (locate-dominating-file buffer-file-name ".git")
-                                 (file-name-directory buffer-file-name))))
-           (relative (and project-dir
-                          (substring buffer-file-name
-                                     (cl-mismatch project-dir buffer-file-name)))))
-      (cond ((and relative (string-match "\\(css\\|\\js\\|\\html\\)" (or (file-name-extension relative))))
-             (list relative))
-            ((and relative (string-match "index.html?" (or (file-name-nondirectory relative) "")))
-             (let ((relative-path (concat "/" (file-name-directory relative))))
-               (when (string= (regexp-quote relative-path) path)
-                 (list relative-path))))))))
 
 
 ;;; Process
@@ -279,7 +200,7 @@ This variable is most likely useful if set buffer-locally.")
     (process-send-string process
                          (concat "HTTP/1.1 200 OK\r\nConnection: close\r\n"
                                  (format "Content-Length: %d\r\n" (string-bytes resp))
-                                 (format "Content-Type: %s\r\n" (alist-get (file-name-extension path) mappings))
+                                 (format "Content-Type: %s\r\n" (cdr (assoc (file-name-extension path) mappings)))
                                  "\r\n"
                                  resp))))
 
@@ -328,6 +249,86 @@ This variable is most likely useful if set buffer-locally.")
 
 (defun liveload--ws-error (ws &rest args)
   (liveload-log ">>> [ws.ERROR] `%S': %s" (car args) (cdr args)))
+
+
+;;; Watch and notify
+
+(defvar-local liveload--calculated-targets '())
+
+(defvar liveload-potential-targets 'liveload-default-potential-targets
+  "Identifies target URLs based on visited URL and current buffer.
+
+Can be a list of strings, the symbol t, or a symbol or lambda
+denoting a function of one argument producing one of the two
+preceding types.
+
+A list of strings identifies target URLs that liveload clients
+connected to Emacs are told to reload. If it is empty (or nil)
+saving the buffer will never cause clients to be notified.
+
+If a function, the argument passed to the function is the URL of
+the webpage that a liveload client is visiting.
+
+If t, it is up to any functions in `liveload-notify-hook',
+which see, to compute and perform any notifications.
+
+This variable is most likely useful if set buffer-locally.")
+
+(defvar liveload-notify-hook nil
+  "Hooks to run before notifying liveload clients.")
+
+(defun liveload--notify-maybe (&rest _)
+  (let* ((calculated
+          (cl-loop for conn in liveload-connections
+                   for url = (process-get conn 'liveload--url)
+                   for targets = (and url
+                                      (if (and (not (eq t liveload-potential-targets))
+                                               (or (symbolp liveload-potential-targets)
+                                                   (functionp liveload-potential-targets)))
+                                          (funcall liveload-potential-targets url)
+                                        liveload-potential-targets))
+                   when targets
+                   collect (list url conn targets))))
+    (setq-local liveload--calculated-targets calculated)
+    (cond (calculated
+           (let ((hookage (run-hook-with-args-until-success
+                           'liveload-notify-hook
+                           (mapcar #'car liveload--calculated-targets))))
+             (unless hookage (liveload-notify))))
+          (t
+           (liveload-log "No one to notify for %s" (current-buffer))))))
+
+(defun liveload-notify (&optional targets)
+  (cl-loop
+   for (_url conn calculated-targets) in liveload--calculated-targets
+   do (cl-loop for target in (or targets
+                                 (unless (eq calculated-targets t)
+                                   calculated-targets))
+               do (websocket-send-text
+                   (process-get conn :websocket)
+                   (json-encode `((command . :reload)
+                                  (path . ,target)
+                                  (liveCSS . t))))))
+  ;; prevent accidental overcalling of `liveload-notify'
+  (setq liveload--calculated-targets nil))
+
+(defun liveload-default-potential-targets (url)
+  (let ((name buffer-file-name))
+    (when (and name (string-match "^\\(https?://\\(?:[a-z0-9.-]+\\)\\(?::[[:digit:]]+\\)?\\)\\(.*\\)" url))
+      (when (string-match-p "org$" name)
+        (setq name (concat (file-name-sans-extension name) ".html")))
+      (when (file-exists-p name)
+        (when (string-match-p "\\(css\\|\\js\\|\\html?\\)" (or (file-name-extension name) "")))
+        (let* ((path (match-string 2 url))
+               (project-dir (or (locate-dominating-file name ".git")
+                                (file-name-directory name)))
+               (relative (and project-dir (substring name (cl-mismatch project-dir name)))))
+          (cond ((and relative (string-match "\\(css\\|\\js\\|\\html\\)" (or (file-name-extension relative))))
+                 (list relative))
+                ((and relative (string-match "index.html?" (or (file-name-nondirectory relative) "")))
+                 (let ((relative-path (concat "/" (file-name-directory relative))))
+                   (when (string= (regexp-quote relative-path) path)
+                     (list relative-path))))))))))
 
 (provide 'liveload)
 
