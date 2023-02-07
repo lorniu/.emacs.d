@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: completion-table
+# key: code
+# --
+
+(lambda (input pred action)
+  (if (eq action 'metadata)
+      `(metadata (category . "xxx")
+                 (display-sort-function . ,#'identity)) ; affixation/annotation-function
+    (complete-with-action action items input pred)))
