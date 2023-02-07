@@ -5,28 +5,7 @@
 
 ;;; Code:
 
-(x eat
-   "Eat EShell."
-   :ref ("https://codeberg.org/akib/emacs-eat")
-   :if IS-LINUX
-   :init
-   (setq eat-enable-blinking-text t
-         eat-enable-yank-to-terminal t
-         eat-enable-kill-from-terminal t
-         eat-kill-buffer-on-exit t)
-
-   (add-hook 'eshell-first-time-mode-hook #'eat-eshell-visual-command-mode)
-   (add-hook 'eshell-first-time-mode-hook #'eat-eshell-mode)
-
-   :config
-   (cl-defmethod im/mode-action ((m (eql 'eat-mode)))
-     (if eat--semi-char-mode (eat-char-mode) (eat-semi-char-mode)))
-   (cl-defmethod im/mode-action ((m (eql 'eshell-mode)))
-     (if eat--eshell-semi-char-mode (eat-eshell-char-mode) (eat-eshell-semi-char-mode)))
-   (define-key eat-char-mode-map [f1] nil)
-   (define-key eat-char-mode-map [f12] nil)
-   (define-key eat-eshell-char-mode-map [f1] nil)
-   (define-key eat-eshell-char-mode-map [f12] nil))
+(defvar ic/eshell-extra-aliases nil)
 
 (x eshell/i
    :init
@@ -36,15 +15,21 @@
          comint-scroll-show-maximum-output nil
          eshell-scroll-show-maximum-output nil
          eshell-destroy-buffer-when-process-dies t)
+
    :config
    ;; (setq eshell-visual-commands ...)
+
+   (defun:after eshell-read-aliases-list//extra (&rest _)
+     (when (and ic/eshell-extra-aliases (not (get 'ic/eshell-extra-aliases 'done)))
+       (setq eshell-command-aliases-list (append ic/eshell-extra-aliases eshell-command-aliases-list))
+       (put 'ic/eshell-extra-aliases 'done t)))
 
    (with-eval-after-load 'em-hist
      (define-key eshell-hist-mode-map [(meta ?s)] nil))
 
    (with-eval-after-load 'esh-mode
      (define-key eshell-mode-map (kbd "C-r") 'eshell/h)
-     (define-key eshell-mode-map (kbd "C-c M-o") (lambda () (interactive) (recenter-top-bottom 0))))
+     (define-key eshell-mode-map (kbd "C-c M-o") (lambdai (recenter-top-bottom 0))))
 
    (defun eshell/! (&rest args)
      "Combination eshell and native-shell-command !"
@@ -56,12 +41,101 @@
      (require 'em-hist)
      (let* ((start-pos (save-excursion (eshell-bol) (point)))
             (end-pos (point))
+            (buf (current-buffer))
             (input (buffer-substring-no-properties start-pos end-pos))
-            (hists (delete-dups (when (> (ring-size eshell-history-ring) 0)
-                                  (ring-elements eshell-history-ring))))
-            (command (completing-read "Command: " hists nil nil nil nil (if (cl-plusp (length input)) input (car hists)))))
-       (setf (buffer-substring start-pos end-pos) command)
-       (end-of-line))))
+            (hists (progn
+                     (when (> (ring-size eshell-history-ring) 0)
+                       (setq eshell-history-ring
+                             (ring-convert-sequence-to-ring
+                              (delete-dups (ring-elements eshell-history-ring)))))
+                     (cl-loop for e in (ring-elements eshell-history-ring) for i from 0
+                              collect (propertize e 'ring-idx i))))
+            (ret (minibuffer-with-setup-hook
+                     (lambda ()
+                       (use-local-map (make-composed-keymap nil (current-local-map)))
+                       (local-set-key (kbd "C-k")
+                                      (lambda ()
+                                        (interactive)
+                                        (when-let (idx (get-pos-property 0 'ring-idx (im:completion-compat :current)))
+                                          (when (with-current-buffer buf (ring-remove eshell-history-ring idx))
+                                            (im:completion-compat :delete))))))
+                   (completing-read "Command: " (im:completion-table-with-sort-fn hists)
+                                    nil nil nil nil (if (cl-plusp (length input)) input (car hists))))))
+       (setf (buffer-substring start-pos end-pos) ret)
+       (end-of-line)))
+
+   (defun im:eshell-cd-competion-at-point ()
+     (when (eobp)
+       (let ((beg (save-excursion (eshell-bol) (point))) (end (point)))
+         (when (string-match-p "^cd[^ ]*$" (buffer-substring beg end))
+           (let* ((sortfn (lambda (x y)
+                            (let ((x1 (elt x 0)) (y1 (elt y 0)))
+                              (if (equal x1 y1)
+                                  (string< (cl-subseq x 1) (cl-subseq y 1))
+                                (< (pcase x1 (?~ 0) (?/ 200) (_ x1))
+                                   (pcase y1 (?~ 0) (?/ 200) (_ y1)))))))
+                  (normfn (lambda (dirs &optional type sortp)
+                            (require 'flymake)
+                            (cl-loop for dir in dirs
+                                     if (and dir (file-exists-p dir)
+                                             (not (cl-member dir (list "~/" default-directory) :test #'flymake-proc--same-files)))
+                                     collect (let ((d (abbreviate-file-name (file-name-as-directory dir))))
+                                               (if type (propertize d 'type type) d))
+                                     into lst
+                                     finally (return (if sortp (sort lst sortfn) lst)))))
+                  (bufdirs (cl-loop for buf in (buffer-list)
+                                    for dir = (with-current-buffer buf default-directory)
+                                    if (get-buffer-window buf) collect dir into highs
+                                    else collect dir into lows
+                                    finally (return (cons highs lows))))
+                  (others (list (loce "") (locc) org-directory agenda-directory
+                                ic/workdir ic/srcdir ic/downloaddir (if IS-WIN (getenv "USERPROFILE"))))
+                  (collection (cl-remove-duplicates
+                               (append (funcall normfn (car bufdirs) "c")
+                                       (when-let (d (project-root (project-current))) (funcall normfn (list d) "p"))
+                                       (funcall normfn (cdr bufdirs) "b" t)
+                                       (funcall normfn others nil t))
+                               :from-end t :test #'string=)))
+             (list (+ beg 2) end
+                   (lambda (input pred action)
+                     (if (eq action 'metadata)
+                         `(metadata (display-sort-function . ,#'identity)
+                                    (annotation-function . (lambda (c)
+                                                             (concat "        " (or (get-pos-property 1 'type c) "-"))))
+                                    (exit-function . (lambda (c s)
+                                                       (when (equal s 'finished)
+                                                         (save-excursion (eshell-bol) (forward-char 2) (insert " "))))))
+                       (complete-with-action action collection input pred)))
+                   . nil))))))
+
+   (defun:hook eshell-mode-hook/capf ()
+     (add-hook 'completion-at-point-functions 'im:eshell-cd-competion-at-point nil 'local)))
+
+(x eat
+   "Eat EShell."
+   :ref ("https://codeberg.org/akib/emacs-eat")
+   :if IS-LINUX
+   :init
+   (setq eat-enable-blinking-text t
+         eat-enable-yank-to-terminal t
+         eat-enable-kill-from-terminal t
+         eat-kill-buffer-on-exit t)
+
+   :config
+   (define-key eat-char-mode-map [f1] nil)
+   (define-key eat-char-mode-map [f12] nil)
+   (define-key eat-eshell-char-mode-map [f1] nil)
+   (define-key eat-eshell-char-mode-map [f12] nil))
+
+(when IS-LINUX
+  (add-hook 'eshell-load-hook #'eat-eshell-mode)
+  (add-hook 'eshell-load-hook #'eat-eshell-visual-command-mode)
+
+  (cl-defmethod im:local-action ((m (eql 'eat-mode)))
+    (if eat--semi-char-mode (eat-char-mode) (eat-semi-char-mode)))
+
+  (cl-defmethod im:local-action ((m (eql 'eshell-mode)))
+    (if eat--eshell-semi-char-mode (eat-eshell-char-mode) (eat-eshell-semi-char-mode))))
 
 
 
@@ -85,7 +159,7 @@
      (set-process-query-on-exit-flag (get-buffer-process (current-buffer)) nil))
 
    :config
-   (defun:around sh-set-shell$ (orig-fun &rest args)
+   (defun:around sh-set-shell (orig-fun &rest args)
      "Dont show messages: Indentation setup for shell type bash"
      (cl-letf (((symbol-function 'message) #'ignore))
        (apply orig-fun args))))
@@ -108,8 +182,10 @@
 
 (defun im/popup-xshell ()
   (interactive)
-  (let* ((vertico-sort-function nil)
-         (type (completing-read "Open: " '(eat term shell eshell powershell system-default) nil t)))
+  (let ((type (completing-read "Open: "
+                               (im:completion-table-with-sort-fn
+                                '(eat term shell eshell powershell system-default))
+                               nil t)))
     (pcase (intern type)
       ('eat (eat (or explicit-shell-file-name (getenv "ESHELL") shell-file-name)))
       ('shell (call-interactively 'shell))
@@ -125,7 +201,7 @@
       (let ((d (or default-directory "~/")))
         (start-process-shell-command (format "sys-terminal-%s" d) nil (format ic/system-terminal d))
         (message "OK."))
-    (user-error "Please config `ic/system-terminal' first.")))
+    (user-error "Please config `ic/system-terminal' first")))
 
 (provide 'imod-shell)
 

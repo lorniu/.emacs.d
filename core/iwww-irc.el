@@ -25,7 +25,7 @@
    (setq erc-log-insert-log-on-open nil)
    (setq erc-log-channels-directory "~/.erc-logs/")
    (setq erc-log-enable 'erc-log-all-but-server-buffers)
-   (setq erc-log-filter-function 'erc-my-filter)
+   (setq erc-log-filter-function 'im:erc-filter)
 
    (setq erc-prompt-for-password nil)
 
@@ -43,7 +43,7 @@
    (defvar erc-hide-list-default '("JOIN" "PART" "QUIT"))
    (setq erc-hide-list erc-hide-list-default)
 
-   (defun erc-my-filter (topic)
+   (defun im:erc-filter (topic)
      "Filter out system messges from the logs"
      (if (equal (string-match-p "^\\[[:digit:]: ]+\\*\\*\\*[[:space:]]" topic) nil)
          topic
@@ -98,7 +98,7 @@
 
 
 
-(transient-define-prefix imtt/transient-erc-mode ()
+(transient-define-prefix im/transient-erc-mode ()
   [[("-t" (lambda ()
             (if erc-hide-timestamps
                 (propertize "Timestamp" 'face 'font-lock-doc-face)
@@ -115,13 +115,13 @@
     ]
    [("s" "Save Buffer in Logs" erc-save-buffer-in-logs)
     ]
-   [("m" "Join.." erc-join-my-groups)
+   [("m" "Join.." im/erc-join-groups)
     ]
    ]
   (interactive)
   (if (eq major-mode 'erc-mode)
-      (transient-setup 'imtt/transient-erc-mode)
-    (user-error "You should invoke this in erc-mode.")))
+      (transient-setup 'im/transient-erc-mode)
+    (user-error "You should invoke this in erc-mode")))
 
 
 
@@ -146,24 +146,23 @@
       users ops))))
 
 (defun erc-cmd-JJ (&optional amount)
-  (erc-join-my-groups amount))
+  (im/erc-join-groups amount))
 
-(defun erc-join-my-groups (&optional arg)
+(defun im/erc-join-groups (&optional arg)
   (interactive)
   (when (not (equal major-mode 'erc-mode))
-    (user-error "Should called from erc-mode."))
-  (let* ((vertico-sort-function)
-         (candidates '("#emacs" "#commonlisp" "#c_lang_cn" "#linuxba"
+    (user-error "Should called from erc-mode"))
+  (let* ((candidates '("#emacs" "#commonlisp" "#c_lang_cn" "#linuxba"
                        "#archlinux-cn" "#archlinux"
                        "#c" "#java" "#clojure"))
          (groups (cond ((null arg)
-                        (completing-read-multiple "Groups: " candidates))
+                        (completing-read-multiple "Groups: " (im:completion-table-with-sort-fn candidates)))
                        ((or (numberp arg)
                             (string-match-p "^[0-9]+$" arg))
                         (cl-subseq candidates 0
                                    (if (numberp arg) arg (string-to-number arg))))
                        (t (list arg)))))
-    (if (null groups) (user-error "No group selected."))
+    (if (null groups) (user-error "No group selected"))
     (cl-loop for group in groups do (erc-cmd-JOIN group))))
 
 (provide 'iwww-irc)

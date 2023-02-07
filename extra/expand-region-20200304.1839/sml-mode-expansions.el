@@ -41,7 +41,7 @@
 ;; TODO: individual field, record type
 ;; TODO: head-or-tail, then cons expression
 
-(defun er/sml-mark-keyword-prefixed-expression ()
+(defun er-sml-mark-keyword-prefixed-expression ()
   "Mark the surrounding expression."
   (interactive)
   (progn 
@@ -49,15 +49,15 @@
     (mark-sexp)))
 
 
-(defun er/add-sml-mode-expansions ()
+(defun er-add-sml-mode-expansions ()
   "Adds expansions for buffers in `sml-mode'."
-  (set (make-local-variable 'er/try-expand-list)
-       (append er/try-expand-list
+  (set (make-local-variable 'er-try-expand-list)
+       (append er-try-expand-list
 	       '(sml-mark-function
-		 er/sml-mark-keyword-prefixed-expression
+		 er-sml-mark-keyword-prefixed-expression
 		 mark-sexp))))
 
-(er/enable-mode-expansions 'sml-mode 'er/add-sml-mode-expansions)
+(er-enable-mode-expansions 'sml-mode 'er-add-sml-mode-expansions)
 
 (provide 'sml-mode-expansions)
 

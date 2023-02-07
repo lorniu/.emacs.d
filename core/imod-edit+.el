@@ -32,7 +32,23 @@
    :init
    (setq expand-region-contract-fast-key ".")
    (setq expand-region-show-usage-message nil)
-   :commands (er/expand-region))
+   :config
+   ;; https://github.com/emacs-tree-sitter/elisp-tree-sitter/issues/20#issuecomment-1352675350
+   (defun treesit-mark-bigger-node ()
+     (when (treesit-available-p)
+       (let* ((root (treesit-buffer-root-node))
+              (node (treesit-node-descendant-for-range root (region-beginning) (region-end)))
+              (node-start (treesit-node-start node))
+              (node-end (treesit-node-end node)))
+         ;; Node fits the region exactly. Try its parent node instead.
+         (when (and (= (region-beginning) node-start) (= (region-end) node-end))
+           (when-let ((node (treesit-node-parent node)))
+             (setq node-start (treesit-node-start node)
+                   node-end (treesit-node-end node))))
+         (set-mark node-end)
+         (goto-char node-start))))
+   (add-to-list 'er-try-expand-list 'treesit-mark-bigger-node)
+   :commands (er-expand-region))
 
 (x vlf
    "Open huge file, Part by Part."
@@ -51,16 +67,20 @@
            for hook in '(find-file-hook dired-mode-hook)
            do (add-hook hook sudo-face)
            finally
-           (defun su ()
+           (defun sudo ()
              "Edit file as Super User."
              (interactive)
-             (let ((pt (point)) (old-buf (current-buffer))
-                   (buf-name (expand-file-name (or buffer-file-name default-directory))))
-               (setq buf-name (or (file-remote-p buf-name 'localname) (concat "/sudo::" buf-name)))
-               (cl-letf (((symbol-function 'server-buffer-done) (lambda (__ &optional _) nil)))
-                 (find-file buf-name))
-               (kill-buffer-if-not-modified old-buf)
-               (goto-char pt)))))
+             (if IS-WIN
+                 (if-let (f (buffer-file-name))
+                     (start-process-shell-command (format-time-string "sudo-%s") nil (concat "wsudo notepad " f))
+                   (user-error "No buffer-file found"))
+               (let ((pt (point)) (old-buf (current-buffer))
+                     (buf-name (expand-file-name (or buffer-file-name default-directory))))
+                 (setq buf-name (or (file-remote-p buf-name 'localname) (concat "/sudo::" buf-name)))
+                 (cl-letf (((symbol-function 'server-buffer-done) (lambda (__ &optional _) nil)))
+                   (find-file buf-name))
+                 (kill-buffer-if-not-modified old-buf)
+                 (goto-char pt))))))
 
 (provide 'imod-edit+)
 

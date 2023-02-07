@@ -1,0 +1,18 @@
+# -*- mode: snippet -*-
+# name: ic/extra-theme-faces
+# key: ic
+# --
+
+(with-over
+ (cond
+  ((null custom-enabled-themes)
+   (custom-set-faces
+    '(erc-timestamp-face ((t (:foreground "light gray" :weight bold))))
+    '(org-drawer ((t (:foreground "gray"))))
+    '(org-meta-line ((t (:inherit nil :foreground "dark gray"))))
+    '(region ((t (:extend t :background "LightSkyBlue1" :distant-foreground "gtk_selection_fg_color"))))))
+  ((member 'gruvbox-dark-soft custom-enabled-themes)
+   (custom-theme-set-faces
+    'gruvbox-dark-soft
+    '(org-block-begin-line ((t (:extend t :foreground "gray30"))))
+    '(org-block-end-line ((t (:extend t :foreground "gray30"))))))))

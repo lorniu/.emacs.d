@@ -18,11 +18,11 @@
  (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC)"
    :delight hs-minor-mode
    :hook ((prog-mode nxml-mode sgml-mode web-mode mhtml-mode) . hs-minor-mode)
-   :bind ( :map im-keys-mode-map
+   :bind ( :map imfine-mode-map
            ("C-c f"   . im/smart-folding)
            ("C-c F"   . im/smart-folding-all)
            ("C-c M-f" . (lambda () (interactive) (im/smart-folding-all 1)))
-           ("C-c C-f" . imtt/transient-fold)
+           ("C-c C-f" . im/transient-fold)
            :map hs-minor-mode-map
            ([(M-down-mouse-1)] . nil)
            ([(M-mouse-1)] . nil))
@@ -83,7 +83,7 @@
 
 (defvar-local outline-prefer-p nil)
 
-(defun:around forward-comment$avoid-across-page-break (fn count)
+(defun:around forward-comment//avoid-across-page-break (fn count)
   "When forward comment, don't across page-break!"
   (let ((o (point)))
     (funcall fn count)
@@ -99,7 +99,8 @@
                     (end-of-line)
                     (skip-chars-forward " \t\n")
                     (if (> (point) p) (point)))))))
-      (if q (goto-char q)))))
+      (prog1 (not (= o (point)))
+        (if (and q (> q o)) (goto-char q))))))
 
 
 
@@ -121,21 +122,21 @@
          (equal (ignore-errors (outline--cycle-state)) 'hide-all))
     (call-interactively 'outline-cycle))
    ;; if {{{...}}} in comments, fold-this
-   ((and (im-in-comment-p)
+   ((and (im:in-comment-p)
          (string-match "\\({{{\\|}}}\\)" (buffer-substring (line-beginning-position) (line-end-position))))
     (let ((tag (match-string 1 (buffer-substring (line-beginning-position) (line-end-position)))))
       (if (string-equal tag "{{{")
-          (when-let ((end (save-mark-and-excursion
-                            (catch 'here
-                              (while (search-forward "}}}" nil t)
-                                (when (im-in-comment-p)
-                                  (throw 'here (line-end-position))))))))
+          (when-let (end (save-mark-and-excursion
+                           (catch 'here
+                             (while (search-forward "}}}" nil t)
+                               (when (im:in-comment-p)
+                                 (throw 'here (line-end-position)))))))
             (fold-this (line-beginning-position) end))
-        (when-let ((beg (save-mark-and-excursion
-                          (catch 'here
-                            (while (search-backward "{{{" nil t)
-                              (when (im-in-comment-p)
-                                (throw 'here (line-beginning-position))))))))
+        (when-let (beg (save-mark-and-excursion
+                         (catch 'here
+                           (while (search-backward "{{{" nil t)
+                             (when (im:in-comment-p)
+                               (throw 'here (line-beginning-position)))))))
           (fold-this beg (line-end-position))))))
    ;; if on the line-break char, toggle fold-page
    ((or (and (eq (char-before) 10) (eq (char-after) 12))
@@ -145,6 +146,9 @@
       (mark-page)
       (call-interactively 'fold-this)
       (backward-char)))
+   ;; if treemacs-mode
+   ((derived-mode-p 'treemacs-mode)
+    (call-interactively 'treemacs-toggle-node))
    ;; if org-mode
    ((and (derived-mode-p 'org-mode) (org-at-heading-p))
     (call-interactively 'org-cycle))
@@ -176,20 +180,23 @@
    ((or (%fold-this-some (point)) (and (eq (char-after) 10) (%fold-this-some (- (point) 1))))
     (call-interactively 'fold-this-unfold-all))
    ;; if {{{...}}} in comments, fold-this all
-   ((and (im-in-comment-p)
+   ((and (im:in-comment-p)
          (string-match-p "{{{\\|}}}" (buffer-substring (line-beginning-position) (line-end-position))))
     (save-mark-and-excursion
       (let (beg end ps)
         (goto-char (point-min))
         (while (search-forward "{{{" nil t)
-          (when (im-in-comment-p)
+          (when (im:in-comment-p)
             (setq beg (point))
             (setq end (catch 'out
                         (while (search-forward "}}}" nil t)
-                          (when (im-in-comment-p)
+                          (when (im:in-comment-p)
                             (throw 'out (point))))))
             (push (cons beg end) ps)))
         (cl-loop for (b . e) in ps do (fold-this b e)))))
+   ;; if treemacs-mode
+   ((derived-mode-p 'treemacs-mode)
+    (call-interactively 'treemacs-collapse-all-projects))
    ;; if org-mode
    ((derived-mode-p 'org-mode)
     (call-interactively 'org-global-cycle))
@@ -385,7 +392,7 @@
 
 
 
-(transient-define-prefix imtt/transient-fold () ; C-c C-f
+(transient-define-prefix im/transient-fold () ; C-c C-f
   [:hide
    (lambda () t)
    ("s"     "" hs-show-block)
@@ -439,7 +446,7 @@
     ]
    ])
 
-(transient-define-prefix imtt/transient-narrow () ; C-x n
+(transient-define-prefix im/transient-narrow () ; C-x n
   [:hide
    (lambda () t)
    ("D" "" ni-narrow-to-defun-indirect-other-window)
@@ -470,7 +477,7 @@
    ]
   (interactive)
   (let ((transient-show-popup -0.3))
-    (transient-setup 'imtt/transient-narrow)))
+    (transient-setup 'im/transient-narrow)))
 
 (provide 'imod-folding)
 

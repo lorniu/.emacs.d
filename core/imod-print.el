@@ -182,7 +182,7 @@
       (call-interactively 'ps-print-region-with-faces)
     (call-interactively 'ps-print-buffer-with-faces)))
 
-(transient-define-prefix im/print ()
+(transient-define-prefix im/transient-print ()
   [["Options"
     (impr:paper-type)
     (impr:landscape-mode)
@@ -213,7 +213,7 @@
    [("P" "ps-print with faces" ipr--ps-print-with-faces)]]
   (interactive)
   (require 'ps-print)
-  (transient-setup 'im/print))
+  (transient-setup 'im/transient-print))
 
 (provide 'imod-print)
 

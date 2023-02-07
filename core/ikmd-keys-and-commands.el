@@ -7,58 +7,67 @@
 (global-unset-key (kbd "C-x C-k"))
 
 (bind-keys
- ( "C-x i"         .  imtt/transient-goto                         )
- ( "C-c i"         .  imtt/transient-act                          )
- ( "C-c p"         .  imtt/transient-tpl                          )
- ( "C-c e"         .  imtt/transient-custom                       )
- ( "C-x C-o"       .  imtt/transient-window                       )
-
- ( "C-c a"         .  org-agenda                                  )
- ( "C-c c"         .  imtt/transient-gtd                          )
- ( "C-c g"         .  magit-status                                )
- ( "C-c m"         .  im/welcome-to-mode                          )
- ( "C-c '"         .  edit-indirect-region                        )
-
- ( [f2]            .  name-last-kbd-macro                         )
- ( [(control f2)]  .  name-and-insert-last-kbd-macro              )
+ ( [f2]            .  im/kmacros                                  )
  ( [f5]            .  gts-do-translate                            )
  ( [f6]            .  toggle-truncate-lines                       )
- ( [f7]            .  quick-calc                                  )
- ( [f8]            .  calendar                                    )
+ ( [f8]            .  org-mpvi-seek                               )
  ( [f9]            .  compile                                     )
  ( [f10]           .  im/silly                                    )
- ( [f12]           .  im/mode-spcific-action                      )
+ ( [f11]           .  im/toggle-fullscreen                        )
+ ( [(control f11)] .  im/switch-layouts                           )
+ ( [f12]           .  im/local-action                             )
 
- ( "%"             .  his-match-paren                             )
+ ( "C-."           .  im/transient-retrieve                       )
+ ( "C-x C-r"       .  im/transient-fast                           )
+ ( "C-x i"         .  im/transient-goto                           )
+ ( "C-x w"         .  im/transient-windows                        )
+ ( "C-x /"         .  find-dired                                  )
+ ( "C-C /"         .  im/rg-smart-search                          )
+ ( "C-c a"         .  org-agenda                                  )
+ ( "C-c c"         .  im/transient-agenda                         )
+ ( "C-c d"         .  im/transient-dashbox                        )
+ ( "C-c C-d"       .  im/transient-dashbox                        )
+ ( "C-c g"         .  magit-status                                )
+ ( "C-c m"         .  im/local-action                             )
+ ( "C-c i"         .  im/transient-insert                         )
+ ( "C-c p"         .  org-capture                                 )
+ ( "C-c s"         .  im/transient-setup                          )
+ ( "C-c '"         .  edit-indirect-region                        )
+ ( "C-c `"         .  im/toggle-diagnostics-buffer                )
+ ( "C-c RET"       .  im/dispatch-macroexpand                     )
+
+ ( "%"             .  im/match-paren                              )
  ( "C-#"           .  cua-rectangle-mark-mode                     )
  ( "C-s"           .  im/isearch-regexp                           )
- ( "M-w"           .  im/yank-more                                )
+ ( "C-S-s"         .  isearch-forward                             )
+ ( "M-w"           .  im/smart-kill-ring-save                     )
+ ( "C-y"           .  im/smart-yank                               )
+ ( "C-S-y"         .  im/duplicate-lines                          )
+ ( "M-y"           .  consult-yank-pop                            ) ; temporary, yank-pop in emacs28 not put the pop item to the front now.
  ( "C-o"           .  im/smart-open-line                          )
  ( "M-q"           .  im/tiny-code                                )
  ( "M-Q"           .  im/tiny-code-buffer                         )
+ ( "M-P"           .  previous-buffer                             )
+ ( "M-N"           .  next-buffer                                 )
  ( "<C-backspace>" .  im/backward-delete-word                     )
 
- ( "ESC <down>"    .  im/copy-lines                               )
- ( "ESC <right>"   .  im/kill-lines                               )
  ( "<insertchar>"  .  undo                                        )
  ( "C-{"           .  shrink-window                               )
  ( "C-}"           .  enlarge-window                              )
 
- ( "C-x f"         .  project-find-file                           )
- ( "C-x F"         .  consult-file-externally                     )
+ ( "C-x f"         .  im/smart-find-file                          )
+ ( "C-x F"         .  find-dired                                  )
  ( "C-x d"         .  im/project-find-directory                   )
  ( "C-x C-b"       .  ibuffer                                     )
  ( "C-x b"         .  consult-buffer                              )
+ ( "C-x l"         .  consult-line                                )
+ ( "C-x n"         .  im/transient-narrow                         )
+ ( "C-x C-o"       .  ace-window                                  )
  ( "C-x 4 b"       .  consult-buffer-other-window                 )
  ( "C-x 5 b"       .  consult-buffer-other-frame                  )
  ( "C-x C-j"       .  ffap                                        )
  ( "C-x C-k"       .  kill-this-buffer                            )
-
- ( "C-c `"         .  im/toggle-diagnostics-buffer                )
- ( "C-c /"         .  im/search-ripgrep+                          )
- ( "C-c RET"       .  im/dispatch-macroexpand                     )
-
- ( "C-x C-r"       .  im/view-favorites                           )
+ ( "C-x r N"       .  im/rectangle-number-lines                   )
 
  ( "M-g g"         .  consult-goto-line                           )
  ( "M-g M-g"       .  consult-goto-line                           )
@@ -66,24 +75,19 @@
  ( "M-s m"         .  consult-multi-occur                         )
 
  ( "M-."           .  xref-find-definitions+citre                 )
+ ( "C-,"           .  er-expand-region                            )
 
- ( "C-."           .  imtt/transient-interact                     )
- ( "C-,"           .  er/expand-region                            )
- ( "C-M-,"         .  er/contract-region                          )
- ( "C-x n"         .  imtt/transient-narrow                       )
-
- ( "C-h C-h"       .  imtt/transient-help                         )
+ ( "C-h C-h"       .  im/transient-help                           )
  ( "C-h c"         .  quick-calc                                  )
  ( "C-h C-c"       .  calc                                        )
  ( "C-h g"         .  im/toggle-gnus                              )
  ( "C-h C-g"       .  im/toggle-gnus                              )
  ( "C-h t"         .  im/popup-system-terminal                    )
  ( "C-h C-t"       .  im/popup-system-terminal                    )
- ( "C-h E"         .  im/toggle-eat-buffer                        )
- ( "C-h e"         .  im/toggle-eshell-buffer                     )
+ ( "C-h e"         .  im/toggle-eat-buffer                        )
  ( "C-h C-e"       .  im/toggle-eshell-buffer                     )
- ( "C-h s"         .  im/toggle-scratch-or-ielm                   )
- ( "C-h C-s"       .  im/toggle-scratch-or-ielm                   )
+ ( "C-h s"         .  im/toggle-ielm-buffer                       )
+ ( "C-h C-s"       .  im/toggle-scratch-buffer                    )
  ( "C-h w"         .  im/toggle-messages-buffer                   )
  ( "C-h C-w"       .  im/toggle-messages-buffer                   )
  ( "C-h l"         .  im/toggle-common-lisp-dev-buffer            )
@@ -91,22 +95,6 @@
 
 (global-set-key [mouse-2] 'mouse-drag-region)
 (global-set-key [C-down-mouse-1] 'mouse-drag-region)
-
-
-
-(define-key im-keys-mode-map (kbd "M-<return>") #'im/smart-alt+return)
-(define-key im-keys-mode-map (kbd "C-<return>") #'im/smart-ctrl+return)
-
-(defun im/smart-alt+return ()
-  (interactive)
-  (cond ((equal major-mode 'inferior-fsharp-mode)
-         (call-interactively #'fsharp-comint-send))
-        (t (call-interactively #'hkey-either))))
-
-(defun im/smart-ctrl+return ()
-  (interactive)
-  (call-interactively
-   (if current-prefix-arg #'embark-dwim #'embark-act)))
 
 
 
@@ -123,7 +111,7 @@
    :config
    (setq which-key-compute-remaps t)
    (setq which-key-allow-multiple-replacements t)
-   (setq which-key-sort-order #'my/which-key-local-then-prefix-then-key-order)
+   (setq which-key-sort-order #'im:which-key-local-then-prefix-then-key-order)
 
    (which-key-add-key-based-replacements
      "C-x 8"   "unicode"
@@ -139,7 +127,7 @@
    (add-to-list 'which-key-replacement-alist '(("SPC" . nil) . (" " . nil)))
    (add-to-list 'which-key-replacement-alist '(("ESC" . nil) . ("ℇ" . nil)))
 
-   (defun my/which-key-local-then-prefix-then-key-order (acons bcons)
+   (defun im:which-key-local-then-prefix-then-key-order (acons bcons)
      (let ((aloc? (which-key--local-binding-p acons))
            (bloc? (which-key--local-binding-p bcons)))
        (if (not (eq aloc? bloc?))
@@ -153,7 +141,13 @@
 
 ;;; Enhanced
 
-(defun im/yank-more ()
+(defun im/smart-yank ()
+  (interactive)
+  (if (use-region-p)
+      (call-interactively #'im/duplicate-lines)
+    (call-interactively #'yank)))
+
+(defun im/smart-kill-ring-save ()
   "Copy-Current-Line-Or-Region."
   (interactive)
   (cond ((use-region-p)
@@ -187,16 +181,11 @@
          (forward-line -1)
          (indent-for-tab-command))))
 
-(defun im/bind-key-to-command ()
-  (interactive)
-  (let ((fun (read-string "Command: " (symbol-name (symbol-at-point)))))
-    (if (< (length fun) 4)
-        (user-error "Maybe the command is not right")
-      (let ((key (read-key-sequence (format "Key: " fun))))
-        (if (< (length key) 2)
-            (user-error "Maybe the key is not right")
-          (when (y-or-n-p (format "Bind '%s' to command '%s' ?" (key-description key) fun))
-            (global-set-key (kbd key) (intern fun))))))))
+(defun im/smart-find-file (&optional arg)
+  (interactive "P")
+  (if (and (project-current nil) (not arg))
+      (call-interactively #'project-find-file)
+    (call-interactively #'fuzzy-finder)))
 
 (defun im/backward-word ()
   "Don't back too much."
@@ -220,93 +209,120 @@
         (isearch-resume string nil nil t string nil))
     (call-interactively 'isearch-forward-regexp)))
 
-
-;;; Toggle Display (C-h-*)
+(defun im/rectangle-number-lines ()
+  "Interactively fill number for everyline.
 
-(defmacro im/hide-or-show-buffer (buffer-predicate buffer-show-form &rest buffer-init-form)
-  "Helper macro: hide or show buffer window."
-  (declare (indent 1))
-  `(let* ((it (cl-find-if ,(cond ((and (consp buffer-predicate) (equal (car buffer-predicate) 'lambda)) buffer-predicate)
-                                 ((symbolp buffer-predicate) buffer-predicate)
-                                 (t `(lambda (b) (string-equal (buffer-name b) ,buffer-predicate))))
-                          (buffer-list))))
-     (cond ((and ,(not (null buffer-init-form)) (null it))
-            ,@buffer-init-form)
-           ((and it (get-buffer-window it))
-            (save-excursion (ignore-errors (delete-window (get-buffer-window it)))))
-           (t ,buffer-show-form))))
+The start number and stepper will provide as:
 
-(defun im/toggle-messages-buffer()
-  "Toggle show the *Messages* buffer."
+   [empty]            ; then act as the builtin `rectangle-number-lines', from 1 incr by 1
+   2                  ; only the start num: start from 2 and incr by 1
+   (* it 4)           ; only a form: start from 1, and the next num will eval from this form. 'it' is special as the prev num
+   2 (+ it 3)         ; a start num and then a form: start from 2 and increment by 3
+"
   (interactive)
-  (im/hide-or-show-buffer "*Messages*" (call-interactively 'view-echo-area-messages)))
+  (require 'rect)
+  (dlet ((it 1))
+    (let ((stepper '(+ it 1))
+          (input (string-trim (read-string "Start number and stepper form (Empty or Number or Form or Number Form): "))))
+      (when (cl-plusp (length input))
+        (with-temp-buffer
+          (insert input)
+          (goto-char (point-min))
+          (when (looking-at "[0-9]+")
+            (setq it (string-to-number (match-string 0)))
+            (goto-char (match-end 0))
+            (skip-chars-forward " \t"))
+          (when (looking-at "(.*) *$")
+            (setq stepper (read (match-string 0)))
+            (goto-char (match-end 0)))
+          (when (looking-at ".+")
+            (user-error "Maybe wrong number or stepper form input"))))
+      (let ((incr (eval `(lambda () (prog1 it (setq it ,stepper))))))
+        (apply-on-rectangle (lambda (beg end fmt)
+                              (delete-rectangle-line beg end t)
+                              (insert (format fmt (funcall incr))))
+                            (region-beginning) (region-end)
+                            (read-string "Format string: " "%d"))))))
 
-(defun im/toggle-scratch-or-ielm (&optional ielmp)
-  "Toggle show the *Scratch* buffer or ielm."
-  (interactive "P")
-  (im/hide-or-show-buffer (if ielmp "*ielm*" "*scratch*")
-    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom) (direction . right)))))
-      (if ielmp (ielm) (resume-scratch)))))
-
-(defun im/toggle-gnus ()
-  "Toggle show the *Group* buffer."
+(defun im/go-to-char (&optional backwardp)
+  "Jump to the next CHAR, like `f' in vim, when backwardp is t, then search backward."
   (interactive)
-  (im/hide-or-show-buffer "*Group*"
-    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window display-buffer-in-direction) (direction . right)))))
-      (display-buffer it))
-    (user-error "You should start GNUS first.")))
-
-(defun im/toggle-common-lisp-dev-buffer ()
-  "Toggle show SLIME/SLY buffer."
-  (interactive)
-  (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-below-selected) (direction . right)))))
-    (im/hide-or-show-buffer (lambda (b) (string-match-p "^\\*sl.*-m?repl.*" (buffer-name b)))
-      (pop-to-buffer it)
+  (let (char n p)
+    (setq p (point))
+    (push-mark p)
+    (setq char (read-char "Go to char: ") n 1)
+    (while (or (= char 20)
+               (and (> char 31) (< char 127))
+               (and (> char 134217776) (< char 134217786)))
       (condition-case nil
-          (call-interactively ic/lisp-dev)
-        (error (%lisp/devenv-nofound))))))
+          (cond ((= char 20) (message "Turn back: ") (setq backwardp (not backwardp) n 1))
+                ((> char 134217776) (setq n (- char 134217776)))
+                (t (if backwardp
+                       (search-backward (string char) nil nil n)
+                     (search-forward (string char) nil nil n))
+                   (setq n 1)))
+        (error (message "No more...")))
+      (setq char (read-char)))
+    (cond ((= char 13) (message "Reached."))
+          ((= char 23) (kill-region p (point)) (message "Killed to ring."))
+          ((= char 134217847) (copy-region-as-kill p (point)) (message "Saved to ring."))
+          (t (setq unread-command-events (list last-input-event))))))
 
-(defun im/toggle-diagnostics-buffer()
-  "Show the error messages for flycheck or flymake."
-  (interactive)
-  (cond ((and (boundp 'flycheck-mode) flycheck-mode)
-         (let ((buf flycheck-error-list-buffer))
-           (call-interactively 'flycheck-list-errors)
-           (select-window (get-buffer-window buf))))
-        ((and (boundp 'flymake-mode) flymake-mode)
-         (let ((buf (flymake--diagnostics-buffer-name)))
-           (call-interactively 'flymake-show-diagnostics-buffer)
-           (select-window (get-buffer-window buf))))
-        (t (message "Nothing to do, check flycheck or flymake toggled?"))))
+(defun im/match-paren (&optional ins)
+  "Like `%' in vim."
+  (interactive "P")
+  (if ins (insert "%")
+    (cond ((or (derived-mode-p 'web-mode) (derived-mode-p 'sgml-mode))
+           (require 'sgml-mode)
+           (cond ((looking-at "<")   (sgml-skip-tag-forward 1))
+                 ((looking-back ">" nil) (sgml-skip-tag-backward 1))
+                 (t                  (insert "%"))))
+          ((looking-at "\\s(\\|\\s{\\|\\s[")     (forward-list))
+          ((looking-back "\\s)\\|\\s}\\|\\s\\]" nil) (backward-list))
+          (t (insert "%")))))
 
 
 ;;; Open With
 
-(defun im/open-externally (&optional @fname)
+(defun im:native-open (file)
+  "Open FILE with OS native way. If FILE is nil then try to open current buffer-file."
+  (when (or (and (not file) (not (buffer-file-name)))
+            (and file (not (file-exists-p file))))
+    (user-error "File unavailable, do nothing"))
+  (let ((f (or file (buffer-file-name))))
+    (cond (IS-WIN
+           (if (and (executable-find "code")
+                    (let* ((ext (file-name-extension f))
+                           (mime (im:file-mime f)))
+                      (or (member ext '("js")) (and mime (string-match-p "text\\|json\\|xml" mime)))))
+               (im/open-current-with-vscode)
+             (w32-shell-execute "open" f)))
+          (IS-MAC (shell-command (concat "open " (shell-quote-argument f))))
+          (IS-G (let ((process-connection-type nil)) (start-process "" nil "xdg-open" f)))
+          (t (user-error "Not the supported system")))))
+
+(defun im/open-externally (&optional fname)
   "Open file in OS way."
   (interactive)
-  (let (($file-list
-         (if @fname (list @fname)
-           (cond ((string-equal major-mode "dired-mode")
-                  (dired-get-marked-files))
-                 ((string-equal major-mode "eshell-mode")
-                  (list (eshell/pwd)))
-                 ((string-equal major-mode "shell-mode")
-                  (list default-directory))
-                 (t (list (or (buffer-file-name)
+  (if (cl-member major-mode '("eshell-mode" "shell-mode" "eat-mode") :test #'string=)
+      (im/popup-system-terminal)
+    (let ((files
+           (if fname (list fname)
+             (cond ((string-equal major-mode "dired-mode")
+                    (or (dired-get-marked-files) default-directory))
+                   (t (list (unless (buffer-file-name)
                               (if (y-or-n-p "No location, goto default dir or QUIT?" )
                                   default-directory
-                                (message "Do Nothing.")))))))))
-    (when (or (<= (length $file-list) 5) (y-or-n-p "Open more than 5 files? "))
-      (cond
-       (IS-WIN
-        (mapc (lambda ($fpath) (w32-shell-execute "open" $fpath)) $file-list))
-       (IS-MAC
-        (mapc (lambda ($fpath) (shell-command (concat "open " (shell-quote-argument $fpath))))  $file-list))
-       (IS-G
-        (mapc (lambda ($fpath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" $fpath))) $file-list))))))
+                                (user-error "Do Nothing")))))))))
+      (when (or (<= (length files) 5) (y-or-n-p "Open more than 5 files? "))
+        (mapc #'im:native-open files)))))
 
-(defun im/open-with-vscode ()
+(defun im/open-directory-externally ()
+  "Open current directory externally."
+  (interactive)
+  (im:native-open default-directory))
+
+(defun im/open-current-with-vscode ()
   "Open current file with vscode."
   (interactive)
   (let ((line (number-to-string (line-number-at-pos)))
@@ -314,54 +330,26 @@
     (apply 'call-process "code" nil nil nil (list (concat buffer-file-name ":" line ":" column) "--goto"))))
 
 
-;;; Commands
+;;; Mode specific action (C-c m / <f12>)
 
-(defun im/view-url-cursor ()
-  "Open a new buffer containing the contents of URL."
+(defun im/local-action ()
+  "Run the command define by `im:local-action' method."
   (interactive)
-  (let* ((default (thing-at-point-url-at-point))
-         (url (read-from-minibuffer "URL: " default)))
-    (switch-to-buffer (url-retrieve-synchronously url) 'norecord)
-    (rename-buffer url t)
-    (goto-char (point-min))
-    (re-search-forward "^$")
-    (delete-region (point-min) (1+ (point)))
-    (search-forward "><")
-    (replace-match ">\n<")
-    (delete-blank-lines)
-    (set-auto-mode)))
+  (im:local-action major-mode))
 
-(defun im/youtube-dl-url (&optional url)
-  "Run 'youtube-dl' over the URL. If URL is nil, use URL at point."
-  (interactive (list
-                (let ((up (thing-at-point-url-at-point)))
-                  (or up (read-string "youtube url: ")))))
-  (if (zerop (length url))
-      (user-error "URL not found.")
-    (let ((eshell-buffer-name "*youtube-dl*")
-          (directory (seq-find (lambda (dir)
-                                 (and (file-directory-p dir) (expand-file-name dir)))
-                               '("~/temp") ".")))
-      (eshell)
-      (when (eshell-interactive-process) (eshell t))
-      (eshell-interrupt-process)
-      (insert (format " cd '%s' && youtube-dl " directory) url)
-      (eshell-send-input))))
+(cl-defmethod im:local-action (_default)
+  "The general action for mode."
+  (let ((bn (intern (format "im/transient-%s" (string-trim (buffer-name))))))
+    (if (commandp bn)
+        (call-interactively bn)
+      (let ((tn (intern (format "im/transient-%s" major-mode))))
+        (if (commandp tn)
+            (call-interactively tn)
+          (message "This is %s, nice to meet you."
+                   (propertize (format "%s" major-mode) 'face 'font-lock-warning-face)))))))
 
-(defun grep-cursor (word)
-  "Grep the current WORD in the files."
-  (interactive (list (im-thing-at-region-or-point)))
-  (if (or (not word) (< (length word) 3))
-      (message "word not available")
-    (let* ((oldcmd grep-find-command)
-           (ext (aif (file-name-extension (buffer-name))
-                  (concat "." it) ""))
-           (newcmd (format "find . -maxdepth 1 -type f -name '*%s' -exec grep -nH -e '%s' {} + " ext word)))
-      (unwind-protect
-          (progn
-            (grep-apply-setting 'grep-find-command newcmd)
-            (call-interactively 'grep-find))
-        (grep-apply-setting 'grep-find-command oldcmd)))))
+
+;;; Commands
 
 (defun im/tiny-code ()
   "Indent codes according mode."
@@ -400,48 +388,6 @@
     (call-interactively 'mark-whole-buffer)
     (im/tiny-code)))
 
-(defun im/go-to-char (&optional backwardp)
-  "Jump to the next CHAR, like `f' in vim, when backwardp is t, then search backward."
-  (interactive)
-  (let (char n p)
-    (setq p (point))
-    (push-mark p)
-    (setq char (read-char "Go to char: ") n 1)
-    (while (or (= char 20)
-               (and (> char 31) (< char 127))
-               (and (> char 134217776) (< char 134217786)))
-      (condition-case nil
-          (cond ((= char 20) (message "Turn back: ") (setq backwardp (not backwardp) n 1))
-                ((> char 134217776) (setq n (- char 134217776)))
-                (t (if backwardp
-                       (search-backward (string char) nil nil n)
-                     (search-forward (string char) nil nil n))
-                   (setq n 1)))
-        (error (message "No more...")))
-      (setq char (read-char)))
-    (cond ((= char 13) (message "Reached."))
-          ((= char 23) (kill-region p (point)) (message "Killed to ring."))
-          ((= char 134217847) (copy-region-as-kill p (point)) (message "Saved to ring."))
-          (t (setq unread-command-events (list last-input-event))))))
-
-(defun his-match-paren (n)
-  "Like `%' in vim. N is self-insert times."
-  (interactive "p")
-  (cond ((looking-at "\\s\(\\|\\s\{\\|\\s\[")
-         (forward-list))
-        ((looking-back "\\s\)\\|\\s\}\\|\\s\\]")
-         (backward-list))
-        ((or (derived-mode-p 'web-mode)
-             (derived-mode-p 'sgml-mode))
-         (require 'sgml-mode)
-         (cond ((looking-at "<")
-                (sgml-skip-tag-forward 1))
-               ((looking-back ">")
-                (sgml-skip-tag-backward 1))
-               (t (self-insert-command (or n 1)))))
-        (t
-         (self-insert-command (or n 1)))))
-
 (defun ascii-table-show ()
   "Print ASCII table."
   (interactive)
@@ -468,266 +414,9 @@
         (newline)
         (setq i (+ i 1)))
       (goto-char (point-min)))
-    (im-make-buffer-buriable)
+    (im:make-buffer-buriable)
     (local-set-key "Q" 'kill-this-buffer)
     (read-only-mode 1)))
-
-(defun resume-scratch ()
-  "This sends you to the *Scratch* buffer."
-  (interactive)
-  (let ((name "*scratch*"))
-    (unless (get-buffer name)
-      (progn
-        (get-buffer-create name)
-        (with-current-buffer name
-          (insert ";; scratch buffer\n\n")
-          (funcall initial-major-mode))))
-    (pop-to-buffer name '(display-buffer-pop-up-window) t)))
-
-(defun im/copy-lines (&optional direction)
-  "Copy lines down/up, like in Eclipse."
-  (interactive)
-  (if (use-region-p)
-      (let ((beg (region-beginning))
-            (end (region-end)))
-        (goto-char beg)
-        (setq beg (line-beginning-position))
-        (goto-char end)
-        (goto-char (setq end (line-end-position)))
-        (kill-ring-save beg end)
-        (newline)
-        (yank)
-        (if direction (goto-char end)))
-    (kill-ring-save (line-beginning-position) (line-end-position))
-    (end-of-line)
-    (newline)
-    (yank)
-    (forward-line -1)))
-
-(defun im/kill-lines ()
-  "Fast move/del like in eclipse."
-  (interactive)
-  (if (use-region-p)
-      (let ((beg (region-beginning))
-            (end (region-end)))
-        (goto-char beg)
-        (setq beg (line-beginning-position))
-        (goto-char end)
-        (goto-char (setq end (line-end-position)))
-        (kill-region beg end))
-    (kill-whole-line)))
-
-(defun im/clear-comment ()
-  "Delete all comments in the buffer."
-  (interactive)
-  (let (pmin pmax lines kill-ring)
-    (if (use-region-p)
-        (setq pmin (region-beginning) pmax (region-end))
-      (setq pmin (point-min) pmax (point-max)))
-    (save-excursion
-      (setq lines (count-lines pmin pmax))
-      (when lines (goto-char pmin) (comment-kill lines)))))
-
-(defvar my-wrap-current nil)
-
-(defun im/wrap-current (chars)
-  "Wrap current word with some CHARS, x_y format."
-  (interactive (list
-                (read-string (format "Wrap %s with%s: "
-                                     (if (use-region-p) "region"
-                                       (propertize (or (word-at-point) (user-error "No region or no word at point."))
-                                                   'face 'font-lock-warning-face))
-                                     (if my-wrap-current (format " (%s)" (car my-wrap-current)) ""))
-                             nil 'my-wrap-current (car my-wrap-current))))
-  (save-excursion
-    (let* ((fill (split-string chars " +"))
-           (left (car fill))
-           (right (or (cadr fill)
-                      (pcase left
-                        ("(" ")")
-                        ("[" "]")
-                        ("{" "}")
-                        ("<" ">")
-                        (_ left))))
-           beg end)
-      (if (use-region-p)
-          (setq beg (region-beginning) end (region-end))
-        (if (looking-at-p "\\sw") (forward-word))
-        (setq end (point))
-        (backward-word) (setq beg (point)))
-      (goto-char end) (insert right)
-      (goto-char beg) (insert left)
-      (deactivate-mark))))
-
-(defun im/count-words (beg end)
-  "Count words in marked region(BEG to END)."
-  (interactive "r")
-  (let ((cn-word 0)
-        (en-word 0)
-        (total-word 0)
-        (total-byte 0))
-    (setq cn-word (count-matches "\\cc" beg end)
-          en-word (count-matches "\\w+\\W" beg end)
-          total-word (+ cn-word en-word)
-          total-byte (+ cn-word (abs (- beg end))))
-    (message (format "Count Result: %d words(cn: %d, en: %d), %d bytes."
-                     total-word cn-word en-word total-byte))))
-
-(defun im/count-lines-in-directory ()
-  (interactive)
-  (let* ((cs "find . -path ./.git -prune -o -type f -execdir cat {} \\; | wc -l")
-         (cmd (read-string "Command: " cs nil cs)))
-    (async-shell-command
-     (concat "echo `pwd`; echo; " cmd))))
-
-(defun im/insert-date (&optional timep)
-  (interactive "P")
-  (insert (format-time-string (if timep "%F %T" "%F"))))
-
-(defun im/yank-current-directory ()
-  (interactive)
-  (if-let ((d default-directory))
-      (progn
-        (kill-new d)
-        (message "Yanked: %s" d))
-    (user-error "Nothing to copy.")))
-
-(defun im/yank-current-buffer-name ()
-  (interactive)
-  (let ((filename (buffer-file-name))
-        (buffname (buffer-name)))
-    (if filename (kill-new filename))
-    (kill-new buffname)
-    (message "Yanked: %s" buffname)))
-
-(defun im/yank-current-full-name ()
-  (interactive)
-  (let ((filename (buffer-file-name)) r)
-    (if filename (setq r filename)
-      (setq r (buffer-name)))
-    (kill-new r)
-    (message "Yanked: %s" r)))
-
-(defun im/yank-current-dir-and-buffer-name ()
-  (interactive)
-  (let ((bn (buffer-name))
-        (dn default-directory))
-    (kill-new bn)
-    (kill-new dn)
-    (message "Yanked: %s - %s" bn dn)))
-
-(defun im/set-lisp-indent-function-buffer-local ()
-  "Toggle the current indent-function."
-  (interactive)
-  (unless (eq major-mode 'emacs-lisp-mode)
-    (user-error "Should be invoked in emacs-lisp-mode."))
-  (cl-loop for item in '("common-lisp-indent-function" "lisp-indent-function")
-           unless (string= item (symbol-name lisp-indent-function))
-           collect item into cs
-           finally do
-           (let ((exp (completing-read "Change to: " cs nil t)))
-             (setq-local lisp-indent-function (intern exp))
-             (message "Changed to `%s' locally." lisp-indent-function))))
-
-(defun trailing-whitespace-mode ()
-  (interactive)
-  (setq show-trailing-whitespace (not show-trailing-whitespace))
-  (message "Show-Trailing-Whitespace: %S" show-trailing-whitespace))
-
-(defun im/screenshot-svg ()
-  "Save a screenshot of the current frame as an SVG image.
-Saves to a temp file and puts the filename in the kill ring."
-  (interactive)
-  (let* ((filename (make-temp-file "Emacs" nil ".svg"))
-         (data (x-export-frames nil 'svg)))
-    (with-temp-file filename
-      (insert data))
-    (kill-new filename)
-    (message filename)))
-
-(defun im/ipinfo (ip)
-  "Return ip info from ipinfo.io for IP."
-  (interactive "sEnter IP to query (blank for own IP): ")
-  (require 'request)
-  (request
-    (concat "https://ipinfo.io/" ip)
-    :headers '(("User-Agent" . "Emacs ipinfo.io Client")
-               ("Accept" . "application/json")
-               ("Content-Type" . "application/json;charset=utf-8"))
-    :parser 'json-read
-    :success (cl-function
-              (lambda (&key data &allow-other-keys)
-                (message
-                 (mapconcat
-                  (lambda (e)
-                    (format "%10s: %s" (capitalize (symbol-name (car e))) (cdr e)))
-                  data "\n"))))
-    :error (cl-function (lambda (&rest args &key error-thrown &allow-other-keys)
-                          (message "Can't receive ipinfo. Error %S " error-thrown)))))
-
-(defun im/change-window-split-layout ()
-  "Switch between vertical and horizontal split. It only works for frames with exactly two windows."
-  (interactive)
-  (if (= (count-windows) 2)
-      (let* ((this-win-buffer (window-buffer))
-             (next-win-buffer (window-buffer (next-window)))
-             (this-win-edges (window-edges (selected-window)))
-             (next-win-edges (window-edges (next-window)))
-             (this-win-2nd (not (and (<= (car this-win-edges)
-                                         (car next-win-edges))
-                                     (<= (cadr this-win-edges)
-                                         (cadr next-win-edges)))))
-             (splitter (if (= (car this-win-edges)
-                              (car (window-edges (next-window))))
-                           'split-window-horizontally
-                         'split-window-vertically)))
-        (delete-other-windows)
-        (let ((first-win (selected-window)))
-          (funcall splitter)
-          (if this-win-2nd (other-window 1))
-          (set-window-buffer (selected-window) this-win-buffer)
-          (set-window-buffer (next-window) next-win-buffer)
-          (select-window first-win)
-          (if this-win-2nd (other-window 1))))))
-
-(defun im/shengciben-add (word)
-  (interactive (list (read-string "Save to shengciben: " (im-thing-at-region-or-point))))
-  (deactivate-mark)
-  (when (zerop (length word))
-    (user-error "Word is empty, nothing done."))
-  (save-window-excursion
-    (let* ((f-default ic/shengciben)
-           (f (if (file-exists-p f-default) f-default (locc "words.org"))))
-      (find-file f)
-      (goto-char (point-max))
-      (skip-chars-backward " \n")
-      (insert (format "\n- %-35s (%s)" word (time-str)))
-      (save-buffer)))
-  (message "[%s] saved." (propertize word 'face 'font-lock-string-face)))
-
-(defun im/set-minibuffer-height (n)
-  (interactive "nMinibuffer height set to: ")
-  (set-face-attribute 'mode-line nil :height n)
-  (set-face-attribute 'mode-line-inactive nil :height n)
-  (message "Set current height to %d" n))
-
-(defun im/set-indent-width-or-offset ()
-  (interactive)
-  (cl-flet ((getn (&optional n) (read-number "Set indent-width/offset to: " n)))
-    (cl-macrolet ((cond+ (&rest forms)
-                    `(cond ,@(cl-loop for form in forms
-                                      if (or (eq (car form) t) (consp (car form))) collect `,form
-                                      else collect `((eq major-mode ',(car form))
-                                                     (let ((n (getn ,(cadr form))))
-                                                       ,@(cl-loop for v in (cdr form) collect `(setq-local ,v n))
-                                                       (message "(setq-local %S %d)" ',(if (= 1 (length (cdr form))) (cadr form) (cdr form)) n)))))))
-      (cond+ (sgml-mode   sgml-basic-offset)
-             (nxml-mode   nxml-child-indent nxml-attribute-indent)
-             (mhtml-mode  sgml-basic-offset)
-             (js-mode     js-indent-level)
-             (css-mode    css-indent-offset)
-             (web-mode    web-mode-markup-indent-offset web-mode-css-indent-offset web-mode-code-indent-offset)
-             (t (user-error "[%s] Nothing to do with %s" this-command major-mode))))))
 
 (defun im/pick-lines (&optional regexp)
   "Pick all lines matching the REGEXP in current buffer or region.
@@ -755,13 +444,297 @@ ps. builtin `kill-matching-lines' almost do the same thing."
         (local-set-key "q" #'bury-buffer)
         (display-buffer result-buffer)))))
 
-(defun im/mode-spcific-action ()
-  "Run the command define by `im/mode-action' method."
-  (interactive)
-  (im/mode-action major-mode))
+(defun im/duplicate-lines (&optional n)
+  "Duplicate current line, or region if active.
+With argument N, make N copies."
+  (interactive "*p")
+  (let* ((use-region (use-region-p))
+         (range (if use-region
+                    (list (region-beginning) (region-end))
+                  (list (line-beginning-position) (line-end-position))))
+         (text (apply #'buffer-substring range)))
+    (undo-boundary)
+    (dotimes (i (abs (or n 1)))
+      (save-mark-and-excursion
+        (goto-char (if use-region (region-end) (line-end-position)))
+        (if (derived-mode-p 'org-mode)
+            (newline)
+          (newline-and-indent))
+        (insert text)))
+    (when use-region
+      (setq deactivate-mark nil)
+      (when (= (point) (region-beginning))
+        (exchange-point-and-mark)))
+    (undo-boundary)))
 
-(cl-defmethod im/mode-action (_default)
-  (message "May you have a good day."))
+(defun im/count-words (beg end)
+  "Count words in marked region(BEG to END)."
+  (interactive "r")
+  (let ((cn-word 0)
+        (en-word 0)
+        (total-word 0)
+        (total-byte 0))
+    (setq cn-word (count-matches "\\cc" beg end)
+          en-word (count-matches "\\w+\\W" beg end)
+          total-word (+ cn-word en-word)
+          total-byte (+ cn-word (abs (- beg end))))
+    (message (format "Count Result: %d words(cn: %d, en: %d), %d bytes."
+                     total-word cn-word en-word total-byte))))
+
+(defun im/count-lines-in-directory ()
+  (interactive)
+  (let* ((cs "find . -path ./.git -prune -o -type f -execdir cat {} \\; | wc -l")
+         (cmd (read-string "Command: " cs nil cs)))
+    (async-shell-command
+     (concat "echo `pwd`; echo; " cmd))))
+
+(defun im/clear-comment ()
+  "Delete all comments in the buffer."
+  (interactive)
+  (let (pmin pmax lines kill-ring)
+    (if (use-region-p)
+        (setq pmin (region-beginning) pmax (region-end))
+      (setq pmin (point-min) pmax (point-max)))
+    (save-excursion
+      (setq lines (count-lines pmin pmax))
+      (when lines (goto-char pmin) (comment-kill lines)))))
+
+(defun im/insert-date (&optional timep)
+  (interactive "P")
+  (insert (format-time-string (if timep "%F %T" "%F"))))
+
+(defun im/yank-current-directory ()
+  (interactive)
+  (if-let (d default-directory)
+      (progn
+        (kill-new d)
+        (message "Yanked: %s" d))
+    (user-error "Nothing to copy")))
+
+(defun im/yank-current-buffer-name ()
+  (interactive)
+  (let ((filename (buffer-file-name))
+        (buffname (buffer-name)))
+    (if filename (kill-new filename))
+    (kill-new buffname)
+    (message "Yanked: %s" buffname)))
+
+(defun im/yank-current-full-name (e)
+  (interactive "e")
+  (let ((filename (buffer-file-name (window-buffer (caadr e)))) r)
+    (if filename (setq r filename)
+      (setq r (buffer-name)))
+    (kill-new r)
+    (message "Yanked: %s" r)))
+
+(defun im/yank-current-dir-and-buffer-name (e)
+  (interactive "e")
+  (let ((bn (buffer-name (window-buffer (caadr e))))
+        (dn default-directory))
+    (kill-new bn)
+    (kill-new dn)
+    (message "Yanked: %s - %s" bn dn)))
+
+(defun im/bind-key-to-command ()
+  (interactive)
+  (let ((fn (read-string "Command: " (symbol-name (symbol-at-point)))))
+    (if (< (length fn) 4)
+        (user-error "Maybe the command is not right")
+      (let ((key (read-key-sequence (format "Key for `%s': " fn))))
+        (if (and (not (vectorp key)) (< (length key) 2))
+            (user-error "Maybe the key is not right")
+          (when (y-or-n-p (format "Bind '%s' to command '%s' ?" (key-description key) fn))
+            (global-set-key (if (vectorp key) key (kbd key)) (intern fn))
+            (message "Bind '%s' to '%s' successfully." fn (key-description key))))))))
+
+(defun im/set-indent-width-or-offset ()
+  (interactive)
+  (cl-flet ((getn (&optional n) (read-number "Set indent-width/offset to: " n)))
+    (cl-macrolet ((cond+ (&rest forms)
+                    `(cond ,@(cl-loop for form in forms
+                                      if (or (eq (car form) t) (consp (car form))) collect `,form
+                                      else collect `((eq major-mode ',(car form))
+                                                     (let ((n (getn ,(cadr form))))
+                                                       ,@(cl-loop for v in (cdr form) collect `(setq-local ,v n))
+                                                       (message "(setq-local %S %d)" ',(if (= 1 (length (cdr form))) (cadr form) (cdr form)) n)))))))
+      (cond+ (sgml-mode   sgml-basic-offset)
+             (nxml-mode   nxml-child-indent nxml-attribute-indent)
+             (mhtml-mode  sgml-basic-offset)
+             (js-mode     js-indent-level)
+             (css-mode    css-indent-offset)
+             (web-mode    web-mode-markup-indent-offset web-mode-css-indent-offset web-mode-code-indent-offset)
+             (t (user-error "[%s] Nothing to do with %s" this-command major-mode))))))
+
+(defun im/toggle-lisp-indent-style-locally ()
+  "Toggle the current indent-function."
+  (interactive)
+  (unless (eq major-mode 'emacs-lisp-mode)
+    (user-error "Should be invoked in emacs-lisp-mode"))
+  (cl-loop for item in '("common-lisp-indent-function" "lisp-indent-function")
+           unless (string= item (symbol-name lisp-indent-function))
+           collect item into cs
+           finally do
+           (let ((exp (completing-read "Change to: " cs nil t)))
+             (setq-local lisp-indent-function (intern exp))
+             (message "Changed to `%s' locally." lisp-indent-function))))
+
+(defun im/trailing-whitespace-mode ()
+  (interactive)
+  (setq show-trailing-whitespace (not show-trailing-whitespace))
+  (message "Show-Trailing-Whitespace: %S" show-trailing-whitespace))
+
+(defun im/view-url-cursor ()
+  "Open a new buffer containing the contents of URL."
+  (interactive)
+  (let* ((default (thing-at-point-url-at-point))
+         (url (read-from-minibuffer "URL: " default)))
+    (switch-to-buffer (url-retrieve-synchronously url) 'norecord)
+    (rename-buffer url t)
+    (goto-char (point-min))
+    (re-search-forward "^$")
+    (delete-region (point-min) (1+ (point)))
+    (search-forward "><")
+    (replace-match ">\n<")
+    (delete-blank-lines)
+    (set-auto-mode)))
+
+(defun im/youtube-dl-url (&optional url)
+  "Run 'youtube-dl' over the URL. If URL is nil, use URL at point."
+  (interactive (list
+                (let ((up (thing-at-point-url-at-point)))
+                  (or up (read-string "youtube url: ")))))
+  (if (zerop (length url))
+      (user-error "URL not found")
+    (let ((eshell-buffer-name "*youtube-dl*")
+          (directory (seq-find (lambda (dir)
+                                 (and (file-directory-p dir) (expand-file-name dir)))
+                               '("~/temp") ".")))
+      (eshell)
+      (when (eshell-interactive-process) (eshell t))
+      (eshell-interrupt-process)
+      (insert (format " cd '%s' && youtube-dl " directory) url)
+      (eshell-send-input))))
+
+(defun im/screenshot-svg ()
+  "Save a screenshot of the current frame as an SVG image.
+Saves to a temp file and puts the filename in the kill ring."
+  (interactive)
+  (let* ((filename (make-temp-file "Emacs" nil ".svg"))
+         (data (x-export-frames nil 'svg)))
+    (with-temp-file filename
+      (insert data))
+    (kill-new filename)
+    (message filename)))
+
+(defun im/edit-hosts-file ()
+  "Edit hosts file in Linux/Windows."
+  (interactive)
+  (let ((post (lambda (buf)
+                (with-current-buffer buf
+                  (when (= (point) 1)
+                    (re-search-forward "^[^#]\\{3\\}" nil t)
+                    (beginning-of-line)))))
+        h1 h2)
+    (cond
+     ((file-exists-p (setq h1 "/etc/hosts"))
+      (funcall post (find-file (concat "/sudo::" h1))))
+     ((file-exists-p (setq h2 "C:/Windows/system32/drivers/etc/hosts"))
+      (funcall post (find-file-read-only h2))
+      (start-process-shell-command (format-time-string "host-%s") nil (concat "wsudo notepad " h2)))
+     (t (user-error "No hosts file found for current system")))))
+
+(defun im/trace-defuns (&optional arg)
+  "Output trace info for functions in current buffer.
+With ARG not nil for prompt the trace logic."
+  (interactive "P")
+  (let (all (mkad (lambda (f) (intern (format "$im:trace-%s" f)))))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "^(defun +\\([^ ]+\\)" nil t)
+        (push (match-string 1) all)))
+    (if-let (funcs (completing-read-multiple "Functions (* for all, empty for clean): " all nil nil (which-function)))
+        (let ((logic (if arg (read--expression "Logic to run: "))))
+          (if (equal (list "*") funcs) (setq funcs all))
+          (message "[trace] Advice for trace: %s" funcs)
+          (cl-loop for funs in funcs
+                   for func = (intern funs)
+                   for ad = (funcall mkad func)
+                   do (eval `(defun ,ad (f &rest args)
+                               (condition-case err
+                                   ,(if logic `,logic
+                                      `(let ((str (if args (mapconcat (lambda (s) (format "%s" s)) args " ") "")))
+                                         (cw "[Trace] {(if (subrp f) (subr-name f) f)}" str)))
+                                 (error (message "[trace] %s" err)))
+                               (apply f args))
+                            t)
+                   do (advice-add func :around ad)
+                   finally (message "Add traces to %d functions." (length funcs))))
+      (cl-loop for funs in all
+               for func = (intern funs)
+               for ad = (funcall mkad func)
+               if (fboundp ad) do (advice-remove func ad) and do (fmakunbound ad) and collect ad into ads
+               finally (message "Removed all %d traces." (length ads))))))
+
+(defun im/systemd-new-unit ()
+  "Snippet for new systemd unit file."
+  (interactive)
+  (let* ((dir (expand-file-name
+               (read-directory-name "Location: " "/etc/systemd/system/" nil t)))
+         (default-directory (if (string-match-p "^/home/" dir) dir
+                              (format "/sudo::%s" dir)))
+         (name (format "%s.service" (cl-gensym "systemd-unit-"))))
+    (unless (file-exists-p default-directory)
+      (user-error "Maybe `%s' is not available" default-directory))
+    (with-current-buffer (get-buffer-create name)
+      (insert "[Unit]
+Description=unit 1
+After=network.target network-online.target
+#Wants/After/Before=docker.service\n
+[Service]
+#User/Group=vip
+#Type=simple/forking/oneshot/notify/dbus/idle
+#Environment=PS1=1
+ExecStart=/usr/bin/x
+#ExecReload=/bin/kill -HUP $MAINPID
+#ExecStartPre/ExecStartPost/ExecStop/ExecStopPost=
+#Restart/RestartSec/PIDFile/TimeoutSec/KillMode\n
+[Install]
+WantedBy=multi-user.target")
+      (systemd-mode)
+      (pop-to-buffer (current-buffer)))))
+
+(defun im/escape-sequence ()
+  "ASII Escape Sequence, used in shell script."
+  (interactive)
+  (let* ((items '(("default"      . "0")
+                  ("Black"        . "30")
+                  ("Red"          . "31")
+                  ("Green"        . "32")
+                  ("Brown/Orange" . "33")
+                  ("Blue"         . "34")
+                  ("Purple"       . "35")
+                  ("Cyan"         . "36")
+                  ("Light Gray"   . "37")
+                  ("Dark Gray"    . "1;30")
+                  ("Light Red"    . "1;31")
+                  ("Light Green"  . "1;32")
+                  ("Yellow"       . "1;33")
+                  ("Light Blue"   . "1;34")
+                  ("Light Purple" . "1;35")
+                  ("Light Cyan"   . "1;36")
+                  ("White"        . "1;37")))
+         (color (completing-read "Escape Sequence (\\033[...m): "
+                                 (lambda (input pred action)
+                                   (if (eq action 'metadata)
+                                       `(metadata (category . "escape-sequence")
+                                                  (display-sort-function . ,#'identity)
+                                                  (annotation-function . ,(lambda (x) (format (format " %%%ss" (- 20 (length x))) (cdr (assoc x items))))))
+                                     (complete-with-action action items input pred))) nil t))
+         (es (format "\\033[%sm" (cdr (assoc color items)))))
+    (when (called-interactively-p 'any)
+      (kill-new es)
+      (message (concat "> Escape sequence " (propertize es 'face 'font-lock-keyword-face) " is now in kill-ring.")))
+    es))
 
 (provide 'ikmd-keys-and-commands)
 

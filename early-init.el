@@ -17,11 +17,12 @@
 (defvar gc-cons-threshold-default (* 128 1024 1024))
 (defvar file-name-handler-alist-default file-name-handler-alist)
 
-(setq package-enable-at-startup nil
-      gc-cons-threshold most-positive-fixnum
-
-      garbage-collection-messages nil
+(setq gc-cons-threshold most-positive-fixnum
       file-name-handler-alist nil
+      byte-compile-warnings '(cl-defun)
+
+      package-enable-at-startup nil
+      garbage-collection-messages nil
 
       load-prefer-newer noninteractive
       frame-inhibit-implied-resize t
@@ -45,7 +46,8 @@
 (add-hook 'emacs-startup-hook
           (lambda ()
             (setq gc-cons-threshold gc-cons-threshold-default)
-            (setq file-name-handler-alist (delete-dups (append file-name-handler-alist file-name-handler-alist-default)))))
+            (setq file-name-handler-alist (delete-dups (append file-name-handler-alist file-name-handler-alist-default)))
+            (setq byte-compile-warnings t)))
 
 (add-hook 'window-setup-hook
           (lambda ()

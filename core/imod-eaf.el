@@ -27,7 +27,7 @@
    (advice-remove #'dired-find-file #'eaf--dired-find-file-advisor)
    (advice-remove #'dired-find-alternate-file #'eaf--dired-find-file-advisor)
 
-   (defun:around find-file$eaf-open-smart (orig-fn file &rest args)
+   (defun:around find-file//eaf-open-smart (orig-fn file &rest args)
      (let ((fn (if (commandp 'eaf-open) 'eaf-open orig-fn)))
        (pcase (file-name-extension file)
          ((or "pdf" "pub")

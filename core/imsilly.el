@@ -58,28 +58,22 @@
 
 ;;; Walk through directory
 
-(defmacro is/walk-with-directory-buffers (dir filter &rest what-to-do)
-  "Walk the DIR under FILTER, operate each with buffer."
-  (declare (indent defun))
-  (let ((file (gensym)))
-    `(save-window-excursion
-       (dolist (,file (directory-files-recursively ,dir (or ,filter "*")))
-         (with-current-buffer (find-file ,file)
-           (unwind-protect (progn ,@what-to-do)
-             (if (buffer-modified-p)
-                 (save-buffer)
-               (kill-buffer)))))
-       (message "\n||| Finished. |||\n") 1)))
+(cl-defmacro is/walk-directory ((dir regexp &optional include-directories predicate follow-symlinks) &rest body)
+  "Wrapper of `directory-files-recursively', used to batch deal files."
+  (declare (indent 1))
+  `(cl-loop with its = (directory-files-recursively ,dir ,regexp ,include-directories ,predicate ,follow-symlinks)
+            with cnt = (length its) for it in its for idx from 1
+            do (cw ">>> ({idx}/{cnt})" it) do ,@body
+            finally (cw) (cw "------ Done! ------") (cw)))
 
 (defun is/refactor-encoding-in-directory ()
   "Emacs style batch mode / change coding under the dir to UTF8."
-  (dolist (file (directory-files-recursively "/var/www/" ".*\\.rb"))
-    (with-current-buffer (find-file file)
+  (is/walk-directory ("/var/www/" ".*\\.rb")
+    (with-current-buffer (find-file-noselect it)
       (when (or (eq buffer-file-coding-system 'chinese-gbk-dos)
                 (eq buffer-file-coding-system 'chinese-gbk-unix))
         (set-buffer-file-coding-system 'utf-8)
-        (save-buffer))
-      (kill-buffer))))
+        (save-buffer)))))
 
 
 ;;; Emacself
@@ -150,7 +144,7 @@
   (with-current-buffer (current-buffer)
     (goto-char (point-min))
     (flush-lines "^SET\\|^SELECT\\|^GRANT\\|OWNER TO")
-    (im-replace-all-in-buffer
+    (im:replace-all-in-buffer
      '(("\"" . "`")
        ("public\\." . "")
        ("character varying" . "varchar")
@@ -240,7 +234,7 @@ choco config set proxy http://127.0.0.1:1081
 cinst ag dropbox ccleaner vcredist2012 sysinternals jdk8 -y
 ")
     (powershell-mode)
-    (im-make-buffer-buriable)
+    (im:make-buffer-buriable)
     (goto-char (point-min))))
 
 (provide 'imsilly)

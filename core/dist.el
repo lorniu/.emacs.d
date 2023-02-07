@@ -50,7 +50,7 @@
 (package-initialize)
 (add-hook 'package-menu-mode-hook (lambda () (hl-line-mode 1)))
 
-(cl-loop for root in (append ic/external-load-path-tops (list (loce "extra") (loce "site-lisp")))
+(cl-loop for root in (append ic/external-load-path-roots (list (loce "extra") (loce "repo") (loce "site-lisp")))
          for dirs = (ignore-errors (directory-files root t))
          do (cl-loop for dir in dirs
                      if (and (not (eq (file-name-extension dir) "")) (file-directory-p dir)) do
@@ -65,7 +65,7 @@
 
 
 (defmacro p/loads (&rest packages-required)
-  `(let ((tip "\n(progn\n  (im/proxy (quote SOCK))\n  (setq package-check-signature nil)\n  (p/repo :origin)\n  (p/install)\n)\n"))
+  `(let ((tip "\n(progn\n  (call-interactively #'p/repo)\n  (call-interactively #'im/proxy)\n  (setq package-check-signature nil)\n  (p/install)\n)\n"))
      (defun p/packages ()
        (cl-loop for o in ',packages-required
                 for p = (if (listp o) (if (eval (cadr o)) (car o)) o)
@@ -77,7 +77,7 @@
        (package-refresh-contents)
        (dolist (p (p/packages-lacks)) (package-install p dont-select))
        (message "Install Finished."))
-     (when-let ((lacks (p/packages-lacks)))
+     (when-let (lacks (p/packages-lacks))
        (if (= (length lacks) (length (p/packages)))
            (warn "Have you installed any packages?\n\nMaybe:\n%s" tip))
        (warn "Total %s packages missing:\n\n%s\n\nPlease install first:\n%s\n\n"
@@ -89,98 +89,102 @@
              tip))))
 
 (p/loads (use-package (< emacs-major-version 29))
-  delight ; lighter
-  rainbow-mode rainbow-delimiters ; colorful
-  page-break-lines
-  xterm-color
-  erc-hl-nicks
-  all-the-icons ; icons
-  posframe ; childframe
-  nano-theme modus-themes gruvbox-theme srcery-theme ; themes
+         delight ; lighter
+         rainbow-mode rainbow-delimiters ; colorful
+         page-break-lines
+         xterm-color
+         erc-hl-nicks
+         all-the-icons ; icons
+         posframe cfrs ; childframe
+         treemacs
+         nano-theme gruvbox-theme srcery-theme ; themes
 
-  bbdb
-  vundo
-  session
-  syntax-subword
-  wgrep
-  rg ; ripgrep
-  dired-dups
-  ztree ; dir diff
-  engine-mode
-  macrostep
-  aes ; encrypt
-  hide-lines ; like occur
-  vlf ; view large file
-  memory-usage
-  pyim pyim-basedict rime sis ; ime
-  mpv emms ; media
-  keycast ; show key-pressed
-  evil ; viper -> evil-local-mode
-  cowsay ;; figlet ; ascii art
-  kubernetes docker dockerfile-mode ; container
-  magit git-timemachine ssh-agency git-modes ghub forge ; git
-  uuidgen
-  htmlize
-  package-lint
-  sx ; stackoverflow
-  (vterm nil) eat ; terminal emulator
-  simple-httpd
+         bbdb
+         vundo
+         pcre2el
+         trashed
+         wgrep
+         rg fuzzy-finder ; ripgrep fzf
+         dired-dups
+         ztree ; dir diff
+         engine-mode
+         macrostep
+         aes ; encrypt
+         hide-lines ; like occur
+         vlf ; view large file
+         memory-usage
+         pyim pyim-basedict rime sis ; ime
+         emms ; media
+         keycast ; show key-pressed
+         evil ; viper -> evil-local-mode
+         cowsay ;; figlet ; ascii art
+         kubernetes docker dockerfile-mode ; container
+         magit git-timemachine ssh-agency git-modes ghub forge gitignore-templates ; git
+         uuidgen
+         htmlize
+         package-lint
+         sx ; stackoverflow
+         (vterm nil) eat ; terminal emulator
+         simple-httpd
 
-  corfu cape
-  hyperbole embark embark-consult
-  vertico orderless consult marginalia
-  which-key
-  yasnippet gitignore-templates license-templates ; templates
-  treemacs
-  ace-window
-  citre ; ctags
-  editorconfig
+         ;; basic/edit
 
-  org org-contrib
-  org-present
-  org-roam org-roam-ui
-  ox-pandoc
-  pdf-tools org-noter org-noter-pdftools nov ; read & note
+         corfu cape
+         hyperbole embark embark-consult
+         vertico orderless consult marginalia
+         which-key
+         ace-window
+         yasnippet license-templates ; templates
+         editorconfig
+         nhexl-mode ; binary
 
-  gnuplot
-  graphviz-dot-mode
-  plantuml-mode
-  auctex ; latex
+         ;; ai
+         gptel
 
-  (eglot (< emacs-major-version 29)) consult-eglot
-  lsp-mode dap-mode lsp-treemacs lsp-ui
+         ;; org
 
-  web-mode edit-indirect
-  polymode poly-org poly-markdown
+         org org-contrib
+         org-reverse-datetree ; used in org-capture for journal
+         org-present ; simple presentation
+         org-roam org-roam-ui
+         ox-pandoc
+         pdf-tools org-noter org-noter-pdftools nov ; read & note
 
-  nhexl-mode ; binary
-  emmet-mode web-beautify sass-mode ; html
-  ob-typescript ; typescript
-  websocket know-your-http-well ; http
-  restclient ob-restclient httprepl ; rest
-  c-eldoc cmake-mode ; c/c++
-  rust-mode ; rust
-  php-mode ; php
-  go-mode ; go
-  robe ; ruby
-  erlang ; erlang
-  alchemist ; elixir
-  lua-mode ; lua
-  haskell-mode hindent attrap ; haskell
-  (csharp-mode (< emacs-major-version 29)) csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
-  kotlin-mode clojure-mode groovy-mode scala-mode ; jvm
-  lsp-java ; better than ever
-  jdecomp ; java decompile, use idea's fernflower.jar
-  android-mode ; easy to run android tools
-  markdown-mode markdown-toc ; md
-  yaml-mode csv-mode
-  sql-indent ; sql
-  powershell ob-powershell
-  systemd udev-mode ; for linux
+         ;; drawing/export
 
-  ;; freelazy
-  go-translate
-  ox-spectacle)
+         gnuplot
+         graphviz-dot-mode
+         plantuml-mode
+         auctex ; latex
+
+         ;; development
+
+         (eglot (< emacs-major-version 29)) consult-eglot
+         lsp-mode dap-mode lsp-ui
+         polymode poly-org poly-markdown edit-indirect
+
+         c-eldoc cmake-mode citre ; c/c++
+         emmet-mode web-beautify sass-mode web-mode ; html
+         typescript-mode ob-typescript ; typescript
+         websocket know-your-http-well ; http
+         restclient ob-restclient httprepl ; rest
+         rust-mode ; rust
+         php-mode ; php
+         go-mode ; go
+         robe ; ruby
+         erlang ; erlang
+         alchemist ; elixir
+         lua-mode ; lua
+         haskell-mode hindent attrap ; haskell
+         (csharp-mode (< emacs-major-version 29)) csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
+         kotlin-mode clojure-mode groovy-mode scala-mode ; jvm
+         lsp-java ; better than ever
+         jdecomp ; java decompile, use idea's fernflower.jar
+         android-mode ; easy to run android tools
+         markdown-mode markdown-toc ; md
+         sql-indent ; db
+         powershell ob-powershell
+         yaml-mode csv-mode systemd udev-mode)
 
 
 ;;; x-wrapper
@@ -196,6 +200,7 @@
                (doc-strings (cl-loop for i in args until (keywordp i) collect i))
                (options (cl-set-difference args doc-strings))
                (refs (prog1 (plist-get options :ref) (cl-remf options :ref)))
+               (refs-name (if (and (cdr-safe refs) (symbolp (car-safe refs))) (pop refs) (intern mode-name)))
                (fopts (delq nil
                             (list (if (seq-contains flags ?e) :demand :defer) t
                                   (if (seq-contains flags ?d) :delight)
@@ -208,7 +213,7 @@
                   (let ((c (plist-get options :if)))
                     `(if ,(or (eq c nil) c) (load-packages-incrementally '(,name)))))
              ,(if doc-strings `(defhelper ,(intern mode-name) ,@doc-strings))
-             ,(if refs `(defreference ,(intern mode-name) ,refs))
+             ,(if refs `(defreference ,refs-name ,refs))
              (use-package ,name ,@fopts ,@options)))))
 
 
@@ -224,7 +229,8 @@
                                            (transient . git)
                                            (magit . git))
   "Packages to load incrementally."
-  :type 'list)
+  :type 'list
+  :group 'imfine)
 
 (defun load-packages-incrementally (packages &optional now)
   "Register PACKAGES to be loaded incrementally."
@@ -293,6 +299,12 @@
                       (message "Deleting %s %s" d (if dry-run "[dry-run]" ""))
                       (unless dry-run (delete-directory d t))))
       (message "Nothing to clean."))))
+
+(defun p/add-to-load-path (path)
+  (interactive (list (read-directory-name "Directory to add: " nil nil t)))
+  (if (and path (file-directory-p path))
+      (add-to-list 'load-path path)
+    (user-error "Path '%s' is not available")))
 
 (provide 'dist)
 

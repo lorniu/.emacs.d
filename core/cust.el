@@ -2,46 +2,64 @@
 
 ;;; Code:
 
-(setq user-full-name "imfine")
+(setq user-full-name "lorniu")
 (setq user-mail-address "lorniu@gmail.com")
 
 
 ;;; User definitions
 
-(defgroup imfine nil "Private custom variables"
-  :group 'emacs :prefix "ic/")
+(defgroup imfine nil
+  "Private custom variables"
+  :group 'emacs
+  :prefix "ic/")
 
-(defcustom org-directory (let ((d "~/.notes")) (expand-file-name (if (file-exists-p d) d "~/org")))
-  "Main Directory for GTD/Notes/Diary and others."
-  :type 'string :group 'imfine)
+(defcustom org-directory (im:the-file "~/.notes/" "~/org")
+  "Main Directory for Agenda/Notes/Diary and others."
+  :type 'directory)
 
-(defcustom ic/up nil
-  "Private Host"
+(defcustom ic/srcdir "~/source/"
+  "Source directory."
   :type 'string)
+
+(defcustom ic/workdir "~/workdir/"
+  "Personal work directory."
+  :type 'string)
+
+(defcustom ic/downloaddir (im:the-file (expand-file-name "Downloads/" (getenv (if IS-WIN "USERPROFILE" "HOME"))))
+  "Directory used to download."
+  :type 'string)
+
+(defcustom ic/host "127.0.0.1"
+  "My remote server. Ip or host."
+  :type 'string)
+
+(defcustom ic/host-user "vip"
+  "Default username of remote server."
+  :type 'string)
+
+(defcustom ic/proxy nil
+  "http://auth@localhost:1081 or sock://localhost:1080 style."
+  :type 'string)
+
+(defun im:host (&optional user host) (concat (or user ic/host-user) "@" (or host ic/host)))
 
 (defcustom ic/external-paths (list (loce "bin/x") (loco "bin"))
   "Extend the PATH environment."
   :type '(repeat string))
 
-(defcustom ic/external-load-path-tops (list (loco "share/emacs/"))
+(defcustom ic/external-load-path-roots (list (loco "share/emacs/"))
   "Extra load-path root."
-  :type 'list)
-
-(defcustom ic/find-file-readonly-regexp nil
-  "Regexp to decide whether file should be readonly after opened."
-  :type 'string)
+  :type '(repeat string))
 
 (defcustom ic/system-terminal (cond (IS-WIN "start cmd %s")
                                     ((executable-find "alacritty") "alacritty --working-directory %s -t floater"))
   "System terminal, %s for workding directory."
   :type 'string)
 
-(defcustom ic/shengciben (loco "000/words.org")
-  "Shengciben"
-  :type 'string)
+;; personal minor mode
 
-(defvar im-keys-mode-map (make-sparse-keymap))
-(define-minor-mode im-keys-mode "Global override map" :init-value t :global t)
+(defvar imfine-mode-map (make-sparse-keymap))
+(define-minor-mode imfine-mode "Personal mode" :init-value t :global t)
 
 
 ;;; Better default
@@ -66,7 +84,6 @@
 
       undo-limit 10000000
 
-      byte-compile-warnings '(cl-functions)
       comp-async-buffer-name " *Async-native-compile-log*")
 
 (setq resize-mini-windows t
@@ -99,27 +116,11 @@
 
 (fset 'yes-or-no-p 'y-or-n-p)
 
+(defalias #'linum-mode #'display-line-numbers-mode)
+
 (setq request-storage-directory    (locc "request")
       pcache-directory             (locc "pacache/")
       shared-game-score-directory  (locc "shared-game-score/"))
-
-
-;;; Data security
-
-(setq create-lockfiles nil) ;; .#lock-file
-
-(setq backup-inhibited nil  ;; version backup file~~
-      backup-by-copying t
-      version-control t kept-new-versions 4 kept-old-versions 2 delete-old-versions t
-      backup-directory-alist `(("\\.cache\\|\\.git\\|\\.ssh")
-                               ("." . ,(locc "backup-files/"))))
-
-(setq auto-save-default t   ;; save #periodically# to avoid crashes
-      auto-save-interval 300 auto-save-timeout 30
-      auto-save-file-name-transforms `((".*" ,(locc "auto-save/") t))
-      auto-save-list-file-prefix (locc "auto-save/"))
-
-(setq delete-by-moving-to-trash t)
 
 
 ;;; Environments
@@ -129,42 +130,26 @@
 (setenv "LC_ALL" "en_US.UTF-8")
 
 (when IS-WIN
-  (when-let (realhome (and (null (getenv-internal "HOME"))
-                           (getenv "USERPROFILE")))
+  (when-let (realhome (and (null (getenv-internal "HOME")) (getenv "USERPROFILE")))
     (setenv "HOME" realhome)
     (setq abbreviated-home-dir nil)))
 
 
 ;;; Encoding/Sentence
 
-(set-locale-environment   "utf-8")
-(prefer-coding-system     'gb2312)
-(prefer-coding-system     'cp936)
-(prefer-coding-system     'utf-16)
-(prefer-coding-system     'utf-8-unix)
+;; (prefer-coding-system 'gb2312)
+;; (prefer-coding-system 'cp936)
+;; (prefer-coding-system 'utf-16)
 
-(defun im/local-encoding (&optional encoding)
-  "Reset local system encoding, default is CP936."
-  (interactive)
-  (let ((encoding (or encoding 'cp936-dos)))
-    (when (called-interactively-p 'any)
-      (setq encoding (read-coding-system "Choose charset: " 'utf-8)))
-    (set-buffer-file-coding-system encoding)
-    (ignore-errors
-      (set-process-coding-system (get-buffer-process (current-buffer)) encoding encoding))
-    (message "Changed local coding to %s." encoding)))
-
-(when IS-WIN
-  ;; generic encoding
-  (set-language-environment "chinese-gbk")
-  (prefer-coding-system 'utf-8)
-
-  ;; process global encoding
-  (setq process-coding-system-alist '(("what?" utf-8 . utf-8)))
-
-  ;; specified encoding
-  (setq file-name-coding-system 'cp936-dos)
-  (set-terminal-coding-system 'cp936-dos))
+;; (if IS-WIN
+;;     (progn
+;;       ;; generic encoding
+;;       (set-locale-environment "zh_CN.GBK")
+;;       (prefer-coding-system 'utf-8)
+;;       ;; process global encoding
+;;       (setq process-coding-system-alist '(("what?" utf-8 . utf-8))))
+;;   (set-locale-environment "utf-8")
+;;   (prefer-coding-system 'utf-8-unix))
 
 (setq sentence-end-double-space nil)
 (setq sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*")
@@ -184,24 +169,21 @@
 
 ;;; Custom File
 
-(setq custom-file
-      (if (boundp 'custome-file-private) custome-file-private
-        (let ((n (format "%s@%s.el"
-                         (string-join (reverse (split-string (downcase (system-name)) "\\.")) ".")
-                         (user-real-login-name)))
-              (d (loco "share/emacs/inits/")))
-          (if (file-exists-p d) (expand-file-name n d) (loce (concat "init-" n))))))
+(unless (and (boundp 'custom-file) custom-file)
+  (makunbound 'custom-file)) ; Remove it when not config before, then defvar below will work.
+
+(defvar custom-file
+  (let ((n (format "init-%s@%s.el"
+                   (string-join (reverse (split-string (downcase (system-name)) "\\.")) ".")
+                   (user-real-login-name)))
+        (d (loco "share/emacs/inits/")))
+    (if (file-exists-p d) (expand-file-name n d) (loce n)))
+  "Change this in 'init-aux.el' if you want.")
 
 (unless (file-exists-p custom-file)
   (with-temp-file custom-file (insert (format ";; %s" (system-name)))))
 
-(advice-add #'custom-set-faces :around
-            (defun %make-custom-set-face-the-highest-period (f &rest args)
-              (eval-after-load 'imover (apply f args))))
-
-(condition-case _err
-    (load custom-file t t)
-  )
+(condition-case _err (load custom-file t t))
 
 
 ;;; Global List
@@ -211,7 +193,7 @@
                 ("\\.scm\\'"             . scheme-mode)
                 ("\\.\\(ba\\)?sh\\'"     . sh-mode)
                 ("\\.xaml\\'"            . nxml-mode)
-                ("\\.\\(ini\\|inf\\)\\'" . conf-mode))
+                ("\\.\\(ini\\|inf\\|nmconnection\\)\\'" . conf-mode))
               auto-mode-alist))
 
 (setq jka-compr-compression-info-list
@@ -223,69 +205,15 @@
                   jka-compr-compression-info-list)
         (jka-compr-update)))
 
-(setq display-buffer-alist
-      `(("\\*Compile-Log\\*"            ; regexp to filter buffer-name
-         (display-buffer-reuse-window)  ; functions to deal with display
-         (window-height . 0.3)          ; parameters to pass to functions above
-         (window-width . 0.3))
-
-        ("\\*[cC]ompilation\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom))
-
-        ("\\*Messages\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom)
-         (reusable-frames . t))
-
-        ("\\*sly-macroexpansion\\*\\|\\*Pp Macroexpand Output\\*"
-         (display-buffer-reuse-window %display-buffer-in-direction-or-below-selected)
-         (direction . right))
-
-        ("\\*Youdao Dictionary\\*\\|\\*Help\\*\\|\\*Shell Command Output\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom)
-         (window-height . 0.3)
-         (reusable-frames . t))
-
-        ("\\*\\(e?shell[-+]?\\|PowerShell\\|Python\\)\\*\\|[-+]\\(shell\\)[-+]"
-         (display-buffer-same-window)
-         (reusable-frames . t))
-
-        ("\\*Async Shell Command\\*"
-         (%display-buffer-at-bottom-follows-with-quit)
-         (window-height . 0.3))
-
-        ("\\*org-roam\\*"
-         (display-buffer-in-direction)
-         (direction . right)
-         (window-width . 0.33)
-         (window-height . fit-window-to-buffer))
-
-        ("." nil (reusable-frames . t))))
-
-(defmacro im/make-fun--display-my-buffer-in-direction-or- (other)
-  (let ((fname (intern (format "%%display-buffer-in-direction-or-%s" other)))
-        (dname (intern (format "display-buffer-%s" other))))
-    `(defun ,fname (buffer alist)
-       (if (and (> (frame-width) 120)
-                (null (window-in-direction 'right))
-                (null (window-in-direction 'left)))
-           (display-buffer-in-direction buffer alist)
-         (,dname buffer alist)))))
-
-(im/make-fun--display-my-buffer-in-direction-or- below-selected)
-(im/make-fun--display-my-buffer-in-direction-or- at-bottom)
-
-(defun %display-buffer-at-bottom-follows-with-quit (buffer alist)
-  (display-buffer-at-bottom buffer alist)
-  (select-window (get-buffer-window buffer))
-  (with-current-buffer buffer (view-mode 1)))
-
 
 ;;; Global Hooks
+
+(defvar ic/find-file-readonly-regexp nil)
 
 (defun:hook find-file-hook/readonly ()
   "Files that should be readonly."
   (let* ((case-fold-search nil)
-         (match? (lambda (&rest items) (string-match-p (apply #'join-as-regor-group items) buffer-file-name))))
+         (match? (lambda (&rest items) (string-match-p (apply #'im:join-as-regor-group items) buffer-file-name))))
     (when (and buffer-file-name
                (or (and ic/find-file-readonly-regexp
                         (string-match-p ic/find-file-readonly-regexp buffer-file-name))
@@ -315,34 +243,63 @@
         (byte-compile-file (buffer-file-name))))))
 
 
-;;; Global Proxy
+;;; Proxy ⏚
 
-(defvar ic/proxy-type nil "nil, :http or :sock")
-(defvar ic/proxy-http '("127.0.0.1:1081" nil nil))
-(defvar ic/proxy-sock '("Default server" "127.0.0.1" 1080 5))
+(defun im/proxy (&optional url)
+  (interactive (list (completing-read "Proxy to enable: "
+                                      (delq nil (list
+                                                 ic/proxy
+                                                 "sock://127.0.0.1:1080"
+                                                 "http://127.0.0.1:1081"
+                                                 "sock://10.1.1.1:1080"
+                                                 "http://10.1.1.1:1081"
+                                                 (if ic/host (format "http://%s:11181" ic/host)))))))
+  (cond ((= (length url) 0)
+         (setq url-gateway-method 'native
+               url-proxy-services nil
+               url-http-proxy-basic-auth-storage nil
+               socks-server nil
+               ic/proxy nil)
+         (message "Proxy canceled."))
+        ((string-match "^\\(http\\|sock\\)s?://\\(?:\\(.*\\)@\\)?\\(.+\\):\\([0-9]+\\)$" url)
+         (let* ((auth (match-string 2 url))
+                (host (match-string 3 url))
+                (port (match-string 4 url))
+                (host+port (concat host ":" port)))
+           (pcase (match-string 1 url)
+             ("http"
+              (setq url-gateway-method 'native
+                    url-proxy-services `(("no_proxy" . ,url-gateway-local-host-regexp)
+                                         ("http" . ,host+port)
+                                         ("https" . ,host+port))
+                    url-http-proxy-basic-auth-storage (if auth (list (list host+port (cons "Proxy" (base64-encode-string auth)))))
+                    socks-server nil
+                    ic/proxy url)
+              (message (concat "Proxy "
+                               (propertize (concat "http://" (if auth (concat (car (split-string auth ":")) "@")) host+port) 'face 'font-lock-string-face)
+                               " enabled.")))
+             ("sock"
+              (setq url-gateway-method 'socks
+                    url-proxy-services nil
+                    url-http-proxy-basic-auth-storage nil
+                    socks-server (list "Default server" host (string-to-number port) 5)
+                    ic/proxy url)
+              (message (concat "Proxy " (propertize (concat "socks://" host+port) 'face 'font-lock-string-face) " enabled."))))))
+        (t (user-error "Proxy URL should like 'http://auth@127.0.0.1:1081' or 'sock://127.0.0.1:1080'"))))
 
-(setq url-gateway-local-host-regexp
-      (concat "^" (regexp-opt '("localhost" "127.0.0.1" "192.168." "10."))))
+(defvar ic/proxy-lighter "  ℘  ")
 
-(defun im/proxy (&optional type)
-  (interactive (list (intern (completing-read "type: " '(disable :sock :http) nil t))))
-  (pcase type
-    (:http (pcase-let ((`(,url ,user ,password) ic/proxy-http))
-             (setq url-gateway-method 'native
-                   url-proxy-services `(("no_proxy" . ,url-gateway-local-host-regexp) ("http" . ,url) ("https" . ,url))
-                   url-http-proxy-basic-auth-storage (if user `((,url (,user . ,password))))
-                   socks-server nil)
-             (message "Http proxy %s enabled." url)))
-    (:sock (setq url-gateway-method 'socks
-                 url-proxy-services nil
-                 socks-server ic/proxy-sock)
-           (message "Sock proxy %s enabled." ic/proxy-sock))
-    (_ (setq url-gateway-method 'native
-             url-proxy-services nil
-             socks-server nil)
-       (message "Proxy canceled."))))
+(defvar url-gateway-local-host-regexp
+  (concat "^" (regexp-opt `("localhost" "127.0." "192.168." "10." ,ic/host))))
 
-(if ic/proxy-type (im/proxy ic/proxy-type)) ; initial proxy
+(defvar im:proxy-format
+  '(:propertize ic/proxy-lighter
+                local-map (keymap (mode-line keymap (mouse-1 . (lambda () (interactive) (im/proxy) (force-mode-line-update)))))
+                face font-lock-comment-face
+                mouse-face font-lock-warning-face
+                help-echo ic/proxy))
+
+(if ic/proxy (im/proxy ic/proxy))
 
 
 ;;; Server Daemon

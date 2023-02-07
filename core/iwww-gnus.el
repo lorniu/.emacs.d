@@ -26,7 +26,8 @@
                           "freenews.netfront.net"
                           "news.eternal-september.org")
   "NNTP Servers."
-  :type 'list)
+  :type 'list
+  :group 'imfine)
 
 (defcustom ic/gnus-rss-feeds (list
                               "https://vdaily.iu.vc/weekly.xml"
@@ -34,7 +35,8 @@
                               "http://feed.williamlong.info"
                               "http://www.matrix67.com/blog/feed")
   "RSS feeds."
-  :type 'list)
+  :type 'list
+  :group 'imfine)
 
 (defcustom ic/gnus-mails-reciever
   '((nnimap "gmail"
@@ -54,7 +56,8 @@
             (nnmail-expiry-wait 'immediate)))
 
   "Mails opened by GNUS."
-  :type 'list)
+  :type 'list
+  :group 'imfine)
 
 (defcustom ic/gnus-mails-sender
   `((".*"
@@ -77,7 +80,8 @@
      (eval (set (make-local-variable 'message-cite-style) nil))))
 
   "Send mail strategy in GNUS."
-  :type 'list)
+  :type 'list
+  :group 'imfine)
 
 (setq gnus-inhibit-startup-message t)
 
@@ -164,9 +168,9 @@
    (defun:hook gnus-summary-mode-hook () (setq line-spacing 5))
 
    ;; keybinds
-   (transient-my-bind-service gnus-group-mode)
-   (transient-my-bind-service gnus-summary-mode)
-   (transient-my-bind-service gnus-article-mode)
+   (define-key gnus-group-mode-map (kbd "C-c m") 'im/transient-gnus-group-mode)
+   (define-key gnus-summary-mode-map (kbd "C-c m") 'im/transient-gnus-summary-mode)
+   (define-key gnus-article-mode-map (kbd "C-c m") 'im/transient-gnus-article-mode)
    (define-key gnus-group-mode-map (kbd "G R") 'im/gnus-make-rss-group)
    (defun:hook gnus-sum-load-hook/keys-overrides ()
      (define-key gnus-summary-mode-map "q"  'im/gnus-summary-smart-quit)))
@@ -196,7 +200,7 @@
   (interactive)
   (let ((n (read-number "Set activate-level to: " gnus-activate-level)))
     (if (or (> n 9) (< n 1) (= n gnus-activate-level))
-        (user-error "Nothing to do.")
+        (user-error "Nothing to do")
       (setq gnus-activate-level n)
       (message "Activate-Level to %s, only groups with level < %s are actived." n n))))
 
@@ -211,7 +215,7 @@
             (message "Allow images only in newsgroups.")
             #'gnus-block-private-groups))))
 
-(transient-define-prefix imtt/transient-gnus-group-mode ()
+(transient-define-prefix im/transient-gnus-group-mode ()
   :transient-non-suffix 'transient--do-exit
   [[("" (lambda () (!tdesc "t | T..   " "Topic.."))     ignore :format " %d")
     ("" (lambda () (!tdesc "^ | B     " "Server List")) ignore :format " %d")
@@ -229,10 +233,10 @@
    ]
   (interactive)
   (if (eq major-mode 'gnus-group-mode)
-      (transient-setup 'imtt/transient-gnus-group-mode)
-    (user-error "You should invoke this in gnus-group-mode.")))
+      (transient-setup 'im/transient-gnus-group-mode)
+    (user-error "You should invoke this in gnus-group-mode")))
 
-(transient-define-prefix imtt/transient-gnus-summary-mode ()
+(transient-define-prefix im/transient-gnus-summary-mode ()
   :transient-non-suffix 'transient--do-exit
   [[("" (lambda () (!tdesc "A T | ^" "All/Parent Article")) ignore :format " %d")
     ("" (lambda () (!tdesc "C-u M-g" "Show Topics.."))      ignore :format " %d")
@@ -246,10 +250,10 @@
    ]
   (interactive)
   (if (eq major-mode 'gnus-summary-mode)
-      (transient-setup 'imtt/transient-gnus-summary-mode)
-    (user-error "You should invoke this in gnus-summary-mode.")))
+      (transient-setup 'im/transient-gnus-summary-mode)
+    (user-error "You should invoke this in gnus-summary-mode")))
 
-(transient-define-prefix imtt/transient-gnus-article-mode ()
+(transient-define-prefix im/transient-gnus-article-mode ()
   :transient-non-suffix 'transient--do-exit
   [[("s    "   "Show Summary"  ignore)
     ("T E  "   "Mark Expired"  ignore)]
@@ -258,8 +262,8 @@
    ]
   (interactive)
   (if (eq major-mode 'gnus-article-mode)
-      (transient-setup 'imtt/transient-gnus-article-mode)
-    (user-error "You should invoke this in gnus-article-mode.")))
+      (transient-setup 'im/transient-gnus-article-mode)
+    (user-error "You should invoke this in gnus-article-mode")))
 
 (provide 'iwww-gnus)
 
