@@ -1,4 +1,4 @@
-;;; imsilly.el --- Elisp Scripts -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;;; Code:
 
@@ -56,42 +56,16 @@
         (message "Script %s is not available." script)))))
 
 
-;;; Walk through directory
-
-(defmacro is/walk-with-directory-buffers (dir filter &rest what-to-do)
-  "Walk the DIR under FILTER, operate each with buffer."
-  (declare (indent defun))
-  (let ((file (gensym)))
-    `(save-window-excursion
-       (dolist (,file (directory-files-recursively ,dir (or ,filter "*")))
-         (with-current-buffer (find-file ,file)
-           (unwind-protect (progn ,@what-to-do)
-             (if (buffer-modified-p)
-                 (save-buffer)
-               (kill-buffer)))))
-       (message "\n||| Finished. |||\n") 1)))
-
-(defun is/refactor-encoding-in-directory ()
-  "Emacs style batch mode / change coding under the dir to UTF8."
-  (dolist (file (directory-files-recursively "/var/www/" ".*\\.rb"))
-    (with-current-buffer (find-file file)
-      (when (or (eq buffer-file-coding-system 'chinese-gbk-dos)
-                (eq buffer-file-coding-system 'chinese-gbk-unix))
-        (set-buffer-file-coding-system 'utf-8)
-        (save-buffer))
-      (kill-buffer))))
-
-
 ;;; Emacself
 
-(defun is/emacs-recompile-els (&optional force)
+(defun in/emacs-recompile-els (&optional force)
   "Recompile .el files."
   (interactive "P")
   (let* ((def (loce "extra/"))
          (dir (read-directory-name "Byte recompile directory: " def def)))
     (byte-recompile-directory dir 0 force)))
 
-(defun is/emacs-generate-configs-for-windows ()
+(defun in/emacs-generate-configs-for-windows ()
   "Invoke this and then (1) import `.reg' file (2) move `eee.cmd' to PATH."
   (interactive)
   (unless IS-WIN (error "This only works for Windows!"))
@@ -141,23 +115,41 @@
     (when (yes-or-no-p (format "Saved in %s. View ?" (emacs-file "\\")))
       (w32-shell-execute "open" (emacs-file ".")))))
 
+(defun in/emacs-current-build-configure ()
+  (interactive)
+  (let ((cmd (format "./configure %s" system-configuration-options)))
+    (kill-new cmd)
+    (message cmd)))
+
+
+;;; Batch convert encodings
+
+(defun in/convert-encodings-in-directory ()
+  "Emacs style batch mode / change coding under the dir to UTF8."
+  (im/walk-directory ("/var/www/" ".*\\.rb")
+    (with-current-buffer (find-file-noselect it)
+      (when (or (eq buffer-file-coding-system 'chinese-gbk-dos)
+                (eq buffer-file-coding-system 'chinese-gbk-unix))
+        (set-buffer-file-coding-system 'utf-8)
+        (save-buffer)))))
+
 
 ;;; Convert postgres to mysql
 
-(defun is/sql-pg-to-mysql ()
+(defun in/sql-pg-to-mysql ()
   "Convert sql statement from Postgres to MySQL. Open the sql file, execute it, you will get the result."
   (interactive)
   (with-current-buffer (current-buffer)
     (goto-char (point-min))
     (flush-lines "^SET\\|^SELECT\\|^GRANT\\|OWNER TO")
-    (im-replace-all-in-buffer
+    (im:replace-all-in-buffer
      '(("\"" . "`")
        ("public\\." . "")
        ("character varying" . "varchar")
        ("timestamp without time zone\\|timestamp" . "datetime")
        ("TABLE ONLY" . "TABLE")))))
 
-(cl-defun is/dump-pg-to-mysql (table-name dest-file &optional (dbname "imdata"))
+(cl-defun in/dump-pg-to-mysql (table-name dest-file &optional (dbname "imdata"))
   "Dump table data from local Postgres to SQL file can be used by MySQL."
   (let ((cmd "pg_dump -U postgres %s -t %s --insert --column-inserts"))
     (setq cmd (format cmd dbname table-name))
@@ -165,13 +157,13 @@
         (message "File-already exist, rename first.")
       (with-temp-file dest-file
         (call-process-shell-command cmd nil (current-buffer))
-        (is/sql-pg-to-mysql))
+        (in/sql-pg-to-mysql))
       (find-file dest-file))))
 
 
 ;;; ssh/nat
 
-(defun is/generate-ssh-config-file ()
+(defun in/generate-ssh-config-file ()
   "Generate .ssh/config file."
   (interactive)
   (let ((file "~/.ssh/config"))
@@ -186,7 +178,7 @@
 "))
       (find-file (expand-file-name file)))))
 
-(defun is/generate-nat-traverse-cmd (name vps inner)
+(defun in/generate-nat-traverse-cmd (name vps inner)
   (interactive (list (read-string "Please input [SERVICE_NAME]: ")
                      (read-string "Please Input [PUBLIC:PORT]: ")
                      (read-string "Please Input [INNER:PORT]: ")))
@@ -195,9 +187,54 @@
                     name (cl-second vps-arr) inner (cl-first vps-arr)))))
 
 
-;;; Scoop/Chocolatey
+;;; OS
 
-(defun is/windows-install-scoop-or-chocolatey ()
+(defun in/systemd-new-unit ()
+  "Snippet for new systemd unit file."
+  (interactive)
+  (let* ((dir (expand-file-name
+               (read-directory-name "Location: " "/etc/systemd/system/" nil t)))
+         (default-directory (if (string-match-p "^/home/" dir) dir
+                              (format "/sudo::%s" dir)))
+         (name (format "%s.service" (cl-gensym "systemd-unit-"))))
+    (unless (file-exists-p default-directory)
+      (user-error "Maybe `%s' is not available" default-directory))
+    (with-current-buffer (get-buffer-create name)
+      (insert "[Unit]
+Description=unit 1
+After=network.target network-online.target
+#Wants/After/Before=docker.service\n
+[Service]
+#User/Group=vip
+#Type=simple/forking/oneshot/notify/dbus/idle
+#Environment=PS1=1
+ExecStart=/usr/bin/x
+#ExecReload=/bin/kill -HUP $MAINPID
+#ExecStartPre/ExecStartPost/ExecStop/ExecStopPost=
+#Restart/RestartSec/PIDFile/TimeoutSec/KillMode\n
+[Install]
+WantedBy=multi-user.target")
+      (systemd-mode)
+      (pop-to-buffer (current-buffer)))))
+
+(defun in/edit-hosts-file ()
+  "Edit hosts file in Linux/Windows."
+  (interactive)
+  (let ((post (lambda (buf)
+                (with-current-buffer buf
+                  (when (= (point) 1)
+                    (re-search-forward "^[^#]\\{3\\}" nil t)
+                    (beginning-of-line)))))
+        h1 h2)
+    (cond
+     ((file-exists-p (setq h1 "/etc/hosts"))
+      (funcall post (find-file (concat "/sudo::" h1))))
+     ((file-exists-p (setq h2 "C:/Windows/system32/drivers/etc/hosts"))
+      (funcall post (find-file-read-only h2))
+      (start-process-shell-command (format-time-string "host-%s") nil (concat "wsudo notepad " h2)))
+     (t (user-error "No hosts file found for current system")))))
+
+(defun in/windows-install-scoop-or-chocolatey ()
   (interactive)
   (with-current-buffer (pop-to-buffer "*scoop-or-chocolatey-installation*")
     (erase-buffer)
@@ -240,9 +277,25 @@ choco config set proxy http://127.0.0.1:1081
 cinst ag dropbox ccleaner vcredist2012 sysinternals jdk8 -y
 ")
     (powershell-mode)
-    (im-make-buffer-buriable)
+    (im:make-buffer-buriable)
     (goto-char (point-min))))
 
-(provide 'imsilly)
+
+;;; Misc
 
-;;; imsilly.el ends here
+(defun in/youtube-dl-url (&optional url)
+  "Run \\='youtube-dl' over the URL. If URL is nil, use URL at point."
+  (interactive (list
+                (let ((up (thing-at-point-url-at-point)))
+                  (or up (read-string "youtube url: ")))))
+  (if (zerop (length url))
+      (user-error "URL not found")
+    (let ((eshell-buffer-name "*youtube-dl*")
+          (directory (seq-find (lambda (dir)
+                                 (and (file-directory-p dir) (expand-file-name dir)))
+                               '("~/temp") ".")))
+      (eshell)
+      (when (eshell-interactive-process) (eshell t))
+      (eshell-interrupt-process)
+      (insert (format " cd '%s' && youtube-dl " directory) url)
+      (eshell-send-input))))
