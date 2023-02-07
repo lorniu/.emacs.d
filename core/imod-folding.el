@@ -1,4 +1,4 @@
-;;; imod-folding.el --- Code Folding -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;; - C-x $, indent based.
 ;; - hideshow, syntax based.
@@ -13,66 +13,79 @@
 
 ;;; Code:
 
-(x hideshow/e
-   "Use `hs-special-modes-alist' to set rules:
- (MODE START END COMMENT-START FORWARD-SEXP-FUNC ADJUST-BEG-FUNC)"
-   :delight hs-minor-mode
-   :hook ((prog-mode nxml-mode sgml-mode web-mode mhtml-mode) . hs-minor-mode)
-   :bind ( :map im-keys-mode-map
-           ("C-c f"   . im/smart-folding)
-           ("C-c F"   . im/smart-folding-all)
-           ("C-c M-f" . (lambda () (interactive) (im/smart-folding-all 1)))
-           ("C-c C-f" . imtt/transient-fold)
-           :map hs-minor-mode-map
-           ([(M-down-mouse-1)] . nil)
-           ([(M-mouse-1)] . nil))
-   :init
-   (setq hs-allow-nesting t)
-   :config
-   (defvar %hs-display-line-overlay-map
-     (let ((m (make-sparse-keymap)))
-       (define-key m [return] 'hs-show-block)
-       (define-key m [mouse-1] 'hs-show-block)
-       m))
-   (defun %hs-display-line-counts (ov)
-     (when (eq 'code (overlay-get ov 'hs))
-       (let ((s (overlay-start ov)) pre)
-         (cond ((derived-mode-p 'lisp-data-mode)
-                (setq pre " "))
-               ((string-match-p "^[ \t]*{" (buffer-substring (save-excursion (goto-char s) (line-beginning-position)) s))
-                (setq pre (concat " " (buffer-substring s (- s 1))))
-                (setf (overlay-start ov) (save-excursion (goto-char s) (skip-chars-backward "\t\n {") (point)))))
-         (overlay-put ov 'display
-                      (concat pre
-                              (propertize
-                               (format "...%d..." (count-lines (overlay-start ov) (overlay-end ov)))
-                               'face font-lock-warning-face 'cursor t 'pointer 'hand)))
-         (overlay-put ov 'keymap %hs-display-line-overlay-map)))
-     (when (eq 'comment (overlay-get ov 'hs))
-       (overlay-put ov 'display "...")
-       (overlay-put ov 'keymap %hs-display-line-overlay-map)))
-   (setq hs-set-up-overlay '%hs-display-line-counts))
+(defface im/hs-ellipse-face '((t :inherit warning))
+  "Hideshow ellipse."
+  :group 'imfine)
 
-(x outline
-   "Use `outline-regexp' to set rule of buffer."
-   :delight outline-minor-mode
-   :hook ((prog-mode text-mode conf-mode) . outline-minor-mode)
-   :config
-   (defvar-local outline-fold-all-flag nil)
-   (defvar-local outline-narrow-flag nil))
+(defface im/outline-ellipse-face '((t :weight thin))
+  "Outline ellipse."
+  :group 'imfine)
 
-(x fold-this/e
-   :ref "magnars/fold-this.el")
+(xzz outline
+  :diminish outline-minor-mode
+  :hook ((prog-mode text-mode conf-mode) . outline-minor-mode)
+  :config
+  (defvar-local outline-fold-all-flag nil)
+  (defvar-local outline-narrow-flag nil)
+  (defun:hook outline-minor-mode-hook/add-face-to-invisible-ellipse ()
+    (let ((display-table (or buffer-display-table (make-display-table))))
+      (unless buffer-display-table
+        (setq buffer-display-table display-table))
+      (set-display-table-slot display-table 4
+                              (vconcat (mapcar (lambda (c)
+                                                 (make-glyph-code c 'im/outline-ellipse-face))
+                                               "..."))))))
 
-(x hide-lines
-   :ref "vapniks/hide-lines")
+(xzz hideshow/e
+  :diminish hs-minor-mode
+  :hook ((prog-mode nxml-mode sgml-mode web-mode mhtml-mode) . hs-minor-mode)
+  :bind ( :map imfine-mode-map
+          ("C-c f"   . im/smart-folding)
+          ("C-c F"   . im/smart-folding-all)
+          ("C-c M-f" . (lambda () (interactive) (im/smart-folding-all 1)))
+          ("C-c C-f" . im/transient-fold)
+          :map hs-minor-mode-map
+          ([(M-down-mouse-1)] . nil)
+          ([(M-mouse-1)] . nil))
+  :config
+  (setopt hs-allow-nesting t
+          hs-set-up-overlay
+          (lambda (ov)
+            (let ((m (make-sparse-keymap)))
+              (define-key m [return] 'hs-show-block)
+              (define-key m [mouse-1] 'hs-show-block)
+              (when (eq 'code (overlay-get ov 'hs))
+                (let ((s (overlay-start ov)) pre)
+                  (cond ((derived-mode-p 'lisp-data-mode)
+                         (setq pre " "))
+                        ((string-match-p "^[ \t]*{" (buffer-substring (save-excursion (goto-char s) (line-beginning-position)) s))
+                         (setq pre (concat " " (buffer-substring s (- s 1))))
+                         (setf (overlay-start ov) (save-excursion (goto-char s) (skip-chars-backward "\t\n {") (point)))))
+                  (overlay-put ov 'display
+                               (concat pre
+                                       (propertize
+                                        (format "...%d..." (count-lines (overlay-start ov) (overlay-end ov)))
+                                        'face 'im/hs-ellipse-face 'cursor t 'pointer 'hand)))
+                  (overlay-put ov 'keymap m)))
+              (when (eq 'comment (overlay-get ov 'hs))
+                (overlay-put ov 'display "...")
+                (overlay-put ov 'keymap m))))))
 
-(x narrow-indirect
-   "Utils of indirect buffer (C-x 4 c)"
-   :commands (ni-narrow-to-defun-indirect-other-window
-              ni-narrow-to-region-indirect-other-window
-              ni-narrow-to-page-indirect-other-window)
-   :ref "https://www.emacswiki.org/emacs/NarrowIndirect")
+(xzz fold-this/e
+  :ref "magnars/fold-this.el")
+
+(xzz hide-lines
+  :ref "vapniks/hide-lines")
+
+(xzz edit-indirect
+  :ref "Fanael/edit-indirect")
+
+(xzz narrow-indirect
+  "Utils of indirect buffer (C-x 4 c)"
+  :commands (ni-narrow-to-defun-indirect-other-window
+             ni-narrow-to-region-indirect-other-window
+             ni-narrow-to-page-indirect-other-window)
+  :ref "https://www.emacswiki.org/emacs/NarrowIndirect")
 
 (advice-add 'set-selective-display
             :filter-args (lambda (args)
@@ -83,7 +96,7 @@
 
 (defvar-local outline-prefer-p nil)
 
-(defun:around forward-comment$avoid-across-page-break (fn count)
+(defun:around forward-comment//avoid-across-page-break (fn count)
   "When forward comment, don't across page-break!"
   (let ((o (point)))
     (funcall fn count)
@@ -99,7 +112,8 @@
                     (end-of-line)
                     (skip-chars-forward " \t\n")
                     (if (> (point) p) (point)))))))
-      (if q (goto-char q)))))
+      (prog1 (not (= o (point)))
+        (if (and q (> q o)) (goto-char q))))))
 
 
 
@@ -117,25 +131,25 @@
    ((and outline-minor-mode
          (not (derived-mode-p 'markdown-mode))
          (not (derived-mode-p 'org-mode))
-         (not (derived-mode-p 'org-mode))
+         (not (derived-mode-p 'python-mode))
          (equal (ignore-errors (outline--cycle-state)) 'hide-all))
     (call-interactively 'outline-cycle))
    ;; if {{{...}}} in comments, fold-this
-   ((and (im-in-comment-p)
+   ((and (im:in-comment-p)
          (string-match "\\({{{\\|}}}\\)" (buffer-substring (line-beginning-position) (line-end-position))))
     (let ((tag (match-string 1 (buffer-substring (line-beginning-position) (line-end-position)))))
       (if (string-equal tag "{{{")
-          (when-let ((end (save-mark-and-excursion
-                            (catch 'here
-                              (while (search-forward "}}}" nil t)
-                                (when (im-in-comment-p)
-                                  (throw 'here (line-end-position))))))))
+          (when-let* ((end (save-mark-and-excursion
+                             (catch 'here
+                               (while (search-forward "}}}" nil t)
+                                 (when (im:in-comment-p)
+                                   (throw 'here (line-end-position))))))))
             (fold-this (line-beginning-position) end))
-        (when-let ((beg (save-mark-and-excursion
-                          (catch 'here
-                            (while (search-backward "{{{" nil t)
-                              (when (im-in-comment-p)
-                                (throw 'here (line-beginning-position))))))))
+        (when-let* ((beg (save-mark-and-excursion
+                           (catch 'here
+                             (while (search-backward "{{{" nil t)
+                               (when (im:in-comment-p)
+                                 (throw 'here (line-beginning-position))))))))
           (fold-this beg (line-end-position))))))
    ;; if on the line-break char, toggle fold-page
    ((or (and (eq (char-before) 10) (eq (char-after) 12))
@@ -145,11 +159,17 @@
       (mark-page)
       (call-interactively 'fold-this)
       (backward-char)))
+   ;; if gnus-summary-mode
+   ((derived-mode-p 'gnus-summary-mode)
+    (call-interactively
+     (if (cl-find-if (lambda (ov) (eq (overlay-get ov 'invisible) 'gnus-sum)) (overlays-at (line-end-position)))
+         'gnus-summary-show-thread
+       'gnus-summary-hide-thread)))
    ;; if org-mode
    ((and (derived-mode-p 'org-mode) (org-at-heading-p))
     (call-interactively 'org-cycle))
    ;; if markdown-mode
-   ((and (derived-mode-p 'markdown-mode) (markdown-heading-at-point))
+   ((and (eq major-mode 'markdown-mode) (markdown-heading-at-point))
     (call-interactively 'markdown-cycle))
    ;; if outline-mode
    ((and (derived-mode-p 'outline-mode) (outline-on-heading-p))
@@ -176,31 +196,31 @@
    ((or (%fold-this-some (point)) (and (eq (char-after) 10) (%fold-this-some (- (point) 1))))
     (call-interactively 'fold-this-unfold-all))
    ;; if {{{...}}} in comments, fold-this all
-   ((and (im-in-comment-p)
+   ((and (im:in-comment-p)
          (string-match-p "{{{\\|}}}" (buffer-substring (line-beginning-position) (line-end-position))))
     (save-mark-and-excursion
       (let (beg end ps)
         (goto-char (point-min))
         (while (search-forward "{{{" nil t)
-          (when (im-in-comment-p)
+          (when (im:in-comment-p)
             (setq beg (point))
             (setq end (catch 'out
                         (while (search-forward "}}}" nil t)
-                          (when (im-in-comment-p)
+                          (when (im:in-comment-p)
                             (throw 'out (point))))))
             (push (cons beg end) ps)))
         (cl-loop for (b . e) in ps do (fold-this b e)))))
+   ;; if gnus-summary-mode
+   ((derived-mode-p 'gnus-summary-mode)
+    (call-interactively
+     (if (cl-find-if (lambda (ov) (eq (overlay-get ov 'invisible) 'gnus-sum)) (car (overlay-lists)))
+         'gnus-summary-show-all-threads
+       'gnus-summary-hide-all-threads)))
    ;; if org-mode
    ((derived-mode-p 'org-mode)
     (call-interactively 'org-global-cycle))
-   ;; if markdown-mode
-   ((derived-mode-p 'markdown-mode)
-    (call-interactively 'im/outline-toggle-all))
-   ;; if outline-mode
-   ((derived-mode-p 'outline-mode)
-    (call-interactively 'im/outline-toggle-all))
-   ;; if eshell-mode
-   ((derived-mode-p 'eshell-mode)
+   ;; mode as outline-mode
+   ((derived-mode-p '(markdown-mode outline-mode emacs-news-mode eshell-mode))
     (call-interactively 'im/outline-toggle-all))
    ((or hs-minor-mode outline-minor-mode)
     (cond ((and outline-minor-mode outline-prefer-p)
@@ -251,7 +271,8 @@
 (defun im/outline-toggle-narrow ()
   (interactive)
   (if outline-narrow-flag
-      (progn (outline-show-all) (setq outline-narrow-flag nil))
+      (progn (outline-show-all)
+             (setq outline-narrow-flag nil))
     (outline-hide-other)
     (setq outline-narrow-flag t)))
 
@@ -267,7 +288,7 @@
   (setq-local outline-prefer-p (not outline-prefer-p))
   (message (concat (propertize "Priod: " 'face 'minibuffer-prompt)
                    (let ((s (if outline-prefer-p "Outline > Hideshow" "Hideshow > Outline")))
-                     (put-text-property 8 10 'face 'font-lock-warning-face s)
+                     (put-text-property 8 10 'face 'warning s)
                      s))))
 
 (defun %fold-this-some (point)
@@ -275,12 +296,37 @@
 
 
 
-(defmacro hs-set-rule (modes &optional start end comment-start forward-sexp-func adjust-beg-func)
+(defmacro outline-set-rule (modes regexp &rest level-args)
   (declare (indent 1))
   (macroexp-progn
    (cl-loop for m in (if (listp modes) modes (list modes))
-            collect `(setq hs-special-modes-alist (cl-remove ',m hs-special-modes-alist :key #'car))
-            collect `(add-to-list 'hs-special-modes-alist ',(list m start end comment-start forward-sexp-func adjust-beg-func)))))
+            for sym = (intern (format "%s-hook/outline" (symbol-name m)))
+            collect `(defun:hook ,sym ()
+                       (outline-minor-mode 1)
+                       (setq-local outline-regexp ,regexp)
+                       ,(if level-args `(setq-local outline-level (lambda () ,@level-args)) t)))))
+
+(outline-set-rule eshell-mode
+  eshell-prompt-regexp 1)
+
+(outline-set-rule Custom-mode
+  "S" 1)
+
+(outline-set-rule yaml-mode
+  (concat "\\( *\\)\\(?:\\(?:--- \\)?\\|{\\|\\(?:[-,] +\\)+\\) *"
+          "\\(?:" yaml-tag-re " +\\)?"
+          "\\(" yaml-bare-scalar-re "\\) *:"
+          "\\(?: +\\|$\\)")
+  (- (match-end 1) (match-beginning 1)))
+
+
+
+(defmacro hs-set-rule (modes &optional start end comment-start forward-sexp-func adjust-beg-func)
+  (declare (indent 1))
+  `(with-eval-after-load 'hideshow
+     ,@(cl-loop for m in (if (listp modes) modes (list modes))
+                collect `(setq hs-special-modes-alist (cl-remove ',m hs-special-modes-alist :key #'car))
+                collect `(add-to-list 'hs-special-modes-alist ',(list m start end comment-start forward-sexp-func adjust-beg-func)))))
 
 (hs-set-rule nxml-mode
   "<!--\\|<[^/>]*[^/]>"
@@ -310,10 +356,10 @@
   "<!--\\|/[*/]")
 
 (hs-set-rule ruby-mode
-  "def\\|do\\|{"
-  "end\\|}"
-  "#"
-  (lambda (_) (ruby-end-of-block)))
+  "class\\|d\\(?:ef\\|o\\)\\|module\\|[[{]"
+  "end\\|[]}]"
+  "#\\|=begin"
+  ruby-forward-sexp)
 
 (hs-set-rule haskell-mode
   "^[a-zA-Z\f]+"
@@ -338,6 +384,12 @@
     (unless (save-excursion (search-backward "\\begin{document}" (line-beginning-position) t))
       (LaTeX-find-matching-end))))
 
+(hs-set-rule matlab-mode
+  "if\\|switch\\|case\\|otherwise\\|while\\|for\\|try\\|catch"
+  "end"
+  nil
+  (lambda (_arg) (matlab-forward-sexp)))
+
 (hs-set-rule makefile-gmake-mode
   "^[a-zA-Z$.].*:"
   ""
@@ -352,40 +404,7 @@
 
 
 
-(defmacro outline-set-rule (modes regexp &rest level-args)
-  (declare (indent 1))
-  (macroexp-progn
-   (cl-loop for m in (if (listp modes) modes (list modes))
-            for sym = (intern (format "%s-hook/outline" (symbol-name m)))
-            collect
-            `(defun:hook ,sym ()
-               (outline-minor-mode 1)
-               (setq-local outline-regexp ,regexp)
-               ,(if level-args `(setq-local outline-level (lambda () ,@level-args)) t)))))
-
-(outline-set-rule eshell-mode
-  eshell-prompt-regexp 1)
-
-(outline-set-rule Custom-mode
-  "S" 1)
-
-(outline-set-rule python-mode
-  "[^ \t\n]\\|[ \t]*\\(def[ \t]+\\|class[ \t]+\\)"
-  (let (buffer-invisibility-spec)
-    (save-excursion
-      (skip-chars-forward "\t ")
-      (current-column))))
-
-(outline-set-rule yaml-mode
-  (concat "\\( *\\)\\(?:\\(?:--- \\)?\\|{\\|\\(?:[-,] +\\)+\\) *"
-          "\\(?:" yaml-tag-re " +\\)?"
-          "\\(" yaml-bare-scalar-re "\\) *:"
-          "\\(?: +\\|$\\)")
-  (- (match-end 1) (match-beginning 1)))
-
-
-
-(transient-define-prefix imtt/transient-fold () ; C-c C-f
+(transient-define-prefix im/transient-fold () ; C-c C-f
   [:hide
    (lambda () t)
    ("s"     "" hs-show-block)
@@ -439,7 +458,7 @@
     ]
    ])
 
-(transient-define-prefix imtt/transient-narrow () ; C-x n
+(transient-define-prefix im/transient-narrow () ; C-x n
   [:hide
    (lambda () t)
    ("D" "" ni-narrow-to-defun-indirect-other-window)
@@ -449,7 +468,7 @@
   [:if-mode
    'org-mode
    [("b" (lambda () (format "(%s) %s"
-                            (propertize "org" 'face 'font-lock-warning-face)
+                            (propertize "org" 'face 'warning)
                             (!tdesc "b" "Narrow to Block")))
      org-narrow-to-block :format "%d")]
    [("e" "Narrow to Element" org-narrow-to-element)]
@@ -459,7 +478,7 @@
   [:if-mode
    'restclient-mode
    [("c"
-     (lambda () (format "(%s) %s" (propertize "restclient" 'face 'font-lock-warning-face) (!tdesc "c" "Narrow to Current")))
+     (lambda () (format "(%s) %s" (propertize "restclient" 'face 'warning) (!tdesc "c" "Narrow to Current")))
      restclient-narrow-to-current :format "%d")]
    ]
   [[("d" (lambda () (!tdesc "d"     "Narrow to Defun"))   narrow-to-defun  :format "%d")]
@@ -470,8 +489,4 @@
    ]
   (interactive)
   (let ((transient-show-popup -0.3))
-    (transient-setup 'imtt/transient-narrow)))
-
-(provide 'imod-folding)
-
-;;; imod-folding.el ends here
+    (transient-setup 'im/transient-narrow)))

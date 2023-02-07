@@ -9,11 +9,13 @@
 !/bin
 !/core
 !/extra
+!/repo
 !/site-lisp
 !/clone
 !/share
 !/snippets
 !/themes
+!/.gitsubmodule
 __pycache__/
 _*
 .git.bk

@@ -89,9 +89,9 @@ An alist.")
 METADATA is the completion metadata supplied by the caller (see
 info node `(elisp)Programmed Completion').  To use, add this
 function to the relevant margin-formatters list."
-  (if-let ((kind-func (kind-all-the-icons--metadata-get metadata "company-kind")))
+  (if-let* ((kind-func (kind-all-the-icons--metadata-get metadata "company-kind")))
       (lambda (cand)
-	    (if-let ((kind (funcall kind-func cand)))
+	    (if-let* ((kind (funcall kind-func cand)))
 	        (kind-all-the-icons-formatted kind)
 	      (kind-all-the-icons-formatted t))))) ;; as a backup
 
