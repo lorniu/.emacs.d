@@ -1,125 +1,278 @@
-;;; imod-ime.el --- Input Methods -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
-;; Emacs native:
-;;
 ;;  - chinese-py (builtin)
-;;  - pyim (pure elisp)
-;;  - rime (dynamic + librime)
-;;
-;; OS native IMEs, smart-switch with this:
-;;
-;;  - emacs-smart-input-source.el
-;;
-;;
-;; Get librime:
-;;
-;;  - pacman -S librime-or-fcitx5-rime (arch)
-;;
-;;  - scoop install gcc   (windows)
-;;    scoop bucket add wsw0108 https://github.com/wsw0108/scoop-bucket.git
-;;    scoop install librime
-;;
+;;  - pyim (pure elisp) : for Emergency Usage
+;;  - native fcitx5 + librime + rime-ice
 
 ;;; Code:
 
-(defvar ic/ime-default "pyim")
-
-(defvar ic/ism-default nil)
+(defvar ln-ime-default "pyim")
 
 (x pyim
-   :ref "tumashu/pyim"
+   :ref ("tumashu/pyim" "redguardtoo/pyim-tsinghua-dict" "tumashu/pyim-greatdict")
    :config
    (when IS-G
-     (setq pyim-page-tooltip 'posframe)
-     (setq pyim-posframe-border-width 6))
-   (pyim-basedict-enable))
+     (setq pyim-page-tooltip 'posframe pyim-posframe-border-width 6))
+   (if-let* ((dict (cl-find-if (lambda (d) (file-exists-p (locc (car d)))) ime:pyim-extra-dicts))
+             (file (locc (car dict))))
+       (setq pyim-extra-dicts `((:name ,(file-name-nondirectory file) :file ,file)))
+     (message "No extra dicts found, download via `ime/pyim:download-dict' if necessary."))
+   (define-key pyim-mode-map "." 'pyim-page-next-page)
+   (define-key pyim-mode-map "," 'pyim-page-previous-page))
 
-(x rime
-   "1) install librime 2) set `ic/ime-default' to 'rime'."
-   :ref ("DogLooksGood/emacs-rime"
-         "Install: DogLooksGood/emacs-rime/blob/master/INSTALLATION.org"
-         "Rime Guide: rime/home/wiki/CustomizationGuide")
-   :bind (:map rime-active-mode-map ("<tab>" . rime-inline-ascii))
-   :custom
-   (rime-title "R ")
-   :init
-   (when IS-LINUX
-     (setq rime-user-data-dir "~/.local/share/fcitx5/rime/"))
-   (setq rime-inline-ascii-trigger 'shift-l)
-   (setq mode-line-mule-info '((:eval (rime-lighter))))
-   (if IS-G (setq rime-show-candidate 'posframe)))
+(defvar ime:pyim-extra-dicts
+  `(("pyim/greatdict~80M.dict" . "https://raw.githubusercontent.com/tumashu/pyim-greatdict/refs/heads/master/pyim-greatdict.pyim.gz")
+    ("pyim/tsinghua~2M.dict"   . "https://raw.githubusercontent.com/redguardtoo/pyim-tsinghua-dict/refs/heads/master/pyim-tsinghua-dict.pyim")))
 
-(x sis
-   "Auto-switch OS input methods.\n
-To enable, set ic/ism-default like:\n
-  Linux: (list 1 2 'fcitx5)) (list nil rime 'native)
-  Windows: (list 1033 2052 'im-select)"
-   :ref ("laishulu/emacs-smart-input-source"
-         "im-select.exe: daipeihust/im-select")
-   :if ic/ism-default
-   :init
-   (apply 'sis-ism-lazyman-config ic/ism-default)
-   (sis-global-cursor-color-mode t)
-   (sis-global-respect-mode t)
-   (sis-global-context-mode t)
-   (sis-global-inline-mode t))
+(defun ime/pyim:download-dict (&optional dict)
+  "Download extra dicts for pyim (only when necessary)."
+  (interactive (list (completing-read "Dict to download: " ime:pyim-extra-dicts nil t)))
+  (let ((url (alist-get dict ime:pyim-extra-dicts nil nil #'equal))
+        (file (locc dict)))
+    (unless url
+      (user-error "Invalid dict name `%s'" dict))
+    (if (file-exists-p file)
+        (when (called-interactively-p 'any)
+          (message "Dict `%s' already exists." file))
+      (pdd-with-progress-reporter url
+        (lambda (r)
+          (let ((coding-system-for-write 'no-conversion)
+                (target (concat file (if (string-suffix-p ".gz" url) ".gz"))))
+            (write-region r nil target)
+            (when (string-suffix-p ".gz" url)
+              (shell-command (format "gzip -d %s" target)))
+            (message "Dict `%s' is ready." file)))))))
 
-(setq default-input-method ic/ime-default)
+(setq default-input-method ln-ime-default)
 
 
 
-(defmacro is-ime-with-rime-file (file content)
-  (declare (indent 1))
-  `(defun ,(intern (format "is/ime-rime:%s" file)) ()
-     (interactive)
-     (with-current-buffer (find-file (expand-file-name ,(symbol-name file) (im-ensure-dir rime-user-data-dir)))
-       (goto-char (point-max))
-       (insert ,content))))
+(defreference rime
+  "https://rime.im/"
+  "schema: iDvel/rime-ice"
+  "gramma: amzxyz/RIME-LMDG"
+  "config: https://github.com/LEOYoon-Tsaw/Rime_collections/blob/master/Rime_description.md")
 
-(is-ime-with-rime-file default.custom.yaml
+(defvar ime:fcitx-user-data-dir "~/.config/fcitx5/")
+
+(defvar ime:rime-user-data-dir
+  (cond (IS-MAC "~/Library/Rime/")
+        (t "~/.local/share/fcitx5/rime/")))
+
+(cl-defmacro ime:with-file (file content &optional (enable? t))
+  (declare (indent 1))
+  (pcase-let* ((`(,category ,name) (split-string (format "%s" file) ":"))
+               (fn `(defun ,(intern (format "ime/%s" file)) ()
+                      (interactive)
+                      (let ((dir ,(pcase category
+                                    ("fcitx" 'ime:fcitx-user-data-dir)
+                                    ("rime" '(ln:ensure-dir ime:rime-user-data-dir)))))
+                        (with-current-buffer (find-file (expand-file-name ,name dir))
+                          (erase-buffer)
+                          (insert ,content))))))
+    (if (eq enable? t) fn `(when ,enable? ,fn))))
+
+(ime:with-file fcitx:profile
+  "[Groups/0]
+Name=Default
+Default Layout=us
+DefaultIM=rime
+
+[Groups/0/Items/0]
+Name=rime
+Layout=
+
+[GroupOrder]
+0=Default"
+  IS-LINUX)
+
+(ime:with-file fcitx:conf/classicui.conf
+  "Vertical Candidate List=False
+PerScreenDPI=False
+Font=\"Noto Sans Mono 15\"
+Theme=Material-Color-Red
+DarkTheme=Material-Color-Yellow"
+  IS-LINUX)
+
+(ime:with-file rime:default.custom.yaml
   "patch:
-  menu/page_size: 5
-  switcher/hotkeys:
-    - Control+Shift+F8
-  key_binder/bindings:
-    __patch:
-      - key_bindings:/emacs_editing
-      - key_bindings:/move_by_word_with_tab
-      - key_bindings:/paging_with_minus_equal
-      - key_bindings:/paging_with_comma_period
+  schema_list:
+    - schema: rime_ice
+    - schema: double_pinyin
+  menu/page_size: 6
   ascii_composer/switch_key:
     Caps_Lock: clear
     Shift_L: commit_code
     Shift_R: inline_ascii
     Control_L: noop
-    Control_R: commit_text")
+    Control_R: commit_text
+  key_binder/bindings:
+    - { when: has_menu, accept: minus,  send: Page_Up }
+    - { when: has_menu, accept: equal,  send: Page_Down }
+    - { when: paging,   accept: comma,  send: Page_Up }
+    - { when: has_menu, accept: period, send: Page_Down }
+    - { when: composing, accept: Shift+Tab, send: Shift+Left }
+    - { when: composing, accept: Tab, send: Shift+Right }
+    - { when: composing, accept: Control+n, send: Down }
+    - { when: composing, accept: Control+p, send: Up }
+    - { when: composing, accept: Control+f, send: Right }
+    - { when: composing, accept: Control+b, send: Left }
+    - { when: composing, accept: Control+a, send: Home }
+    - { when: composing, accept: Control+e, send: End }
+    - { when: composing, accept: Control+d, send: Delete }
+    - { when: composing, accept: Control+k, send: Shift+Delete }
+    - { when: composing, accept: Control+h, send: BackSpace }
+    - { when: composing, accept: Control+g, send: Escape }
+    - { when: composing, accept: Control+v, send: Page_Down }
+    - { when: composing, accept: Alt+v,     send: Page_Up }
+    - { when: has_menu,  accept: Control+m, send: Return }
+    - { when: composing, accept: Control+m, send: Return }
+    - { when: always, accept: Control+Shift+f9, toggle: full_shape }
+  switcher/hotkeys: [Control+Shift+F8]")
 
-(is-ime-with-rime-file weasel.custom.yaml
+(ime:with-file rime:squirrel.custom.yaml
   "patch:
-  \"style/color_scheme\": google # 皮肤风格 ink/google..
-  \"style/layout/border_width\": 0
-  \"style/layout/border\": 0
-  \"style/horizontal\": true
-  #\"style/font_face\": Microsoft YaHei
-  \"style/font_point\": 12")
+  style/candidate_list_layout: linear
+  show_notifications_when: never"
+  IS-MAC)
 
-(is-ime-with-rime-file luna_pinyin.custom.yaml
+(ime:with-file rime:rime_ice.custom.yaml
   "patch:
   switches:
     - name: ascii_mode
+      states: [中, A]
       reset: 1
+    - name: ascii_punct
+      states: [¥, $]
+      reset: 0
+    - name: traditionalization
+      states: [简, 繁]
+      reset: 0
+    - name: emoji
+      states: [💀, 😄]
+      reset: 0
+    - name: full_shape
+      states: [半角, 全角]
+      reset: 0
+  grammar:
+    language: wanxiang-lts-zh-hans
+    collocation_max_length: 5
+    collocation_min_length: 2
+  translator/contextual_suggestions: true
+  translator/max_homophones: 7
+  translator/max_homographs: 7")
+
+(ime:with-file rime:luna_pinyin.custom.yaml
+  "patch:
+  switches:
+    - name: ascii_mode
       states: [ 中文, 西文 ]
+      reset: 1
+    - name: simplification
+      states: [ 漢字, 汉字 ]
+      reset: 1
     - name: full_shape
       states: [ 半角, 全角 ]
-    - name: simplification
-      reset: 1
-      states: [ 漢字, 汉字 ]")
+      reset: 0")
 
-(defun im/ime-reload-fcitx5-rime ()
-  "Helper to reload/redeploy os-native rime."
+(defun ime/rime:wanxiang-lmdg.gram ()
   (interactive)
-  (shell-command "qdbus org.fcitx.Fcitx5 /controller org.fcitx.Fcitx.Controller1.SetConfig \"fcitx://config/addon/rime/deploy\" \"\""))
+  (let ((file (expand-file-name "wanxiang-lts-zh-hans.gram" ime:rime-user-data-dir)))
+    (if (file-exists-p file)
+        (message "File `%s' already exists" file)
+      (pdd-let*
+          ((md5sum1 (pdd "https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/md5sum.txt"
+                      (lambda (r) (car (split-string r)))))
+           (md5sum2 (pdd-with-progress-reporter "https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/wanxiang-lts-zh-hans.gram"
+                      (lambda (r)
+                        (let ((coding-system-for-write 'no-conversion))
+                          (write-region r nil file))
+                        (pdd-exec t `[md5sum ,file]
+                          :done (lambda (r) (car (split-string r))))))))
+        (unless (equal (await md5sum1) (await md5sum2))
+          (user-error "MD5SUM check failed, maybe you should delete %s and download again." file))
+        (message "MD5SUM check: the gramma file is correct.")))))
 
-(provide 'imod-ime)
+(defun ime/display-rime-installation ()
+  (interactive)
+  (ln:with-current-view-buffer (get-buffer-create "*Input Method Tips*")
+    :focus t :keywords '(("#.*" . 'font-lock-comment-face))
+    (cond
+     (IS-LINUX (insert
+                (format "Install packages:
 
-;;; imod-ime.el ends here
+  pacman -S fcitx5-im fcitx5-rime rime-ice-git
+  pacman -S fcitx5-material-color # skins: yay -Ss fcitx5-skin
+
+  # or download rime-ice with git (including skins inside)
+  rm -rf %s
+  git clone https://github.com/iDvel/rime-ice.git %s --depth 1
+
+
+Add to .xinitrc or .profile:
+
+  export GTK_IM_MODULE=fcitx
+  export QT_IM_MODULE=fcitx
+  export SDL_IM_MODULE=fcitx
+  export XMODIFIERS=@im=fcitx
+
+Execute commands to generate files:
+
+  M-x ime/rime:default.custom.yaml   # Global
+  M-x ime/rime:rime_ice.custom.yaml  # Rime Schema
+  M-x ime/rime:wanxiang-lmdg.gram    # Rime Gramma (Download)
+  M-x ime/fcitx:profile              # Fcitx
+  M-x ime/fcitx:conf/classicui.conf  # Fcitx Theme (Optional)
+
+Others:
+
+  $ fcitx5-configtool
+  $ fcitx5-remote -r
+
+Then reboot, all will be ok." ime:rime-user-data-dir ime:rime-user-data-dir)))
+
+     (IS-MAC (insert
+              "Install packages:
+
+  brew install --cask squirrel
+  rm -rf ~/Library/Rime
+  git clone https://github.com/iDvel/rime-ice.git ~/Library/Rime --depth 1
+
+Execute commands to generate files:
+
+  M-x ime/rime:default.custom.yaml   # Global
+  M-x ime/rime:squirrel.custom.yaml  # Style
+  M-x ime/rime:rime_ice.custom.yaml  # Schema
+  M-x ime/rime:wanxiang-lmdg.gram    # Gramma (Download)
+
+Remove default ABC input method:
+
+  # make sure SIP is closed, then remove the line in file
+  ~/Library/Preferences/com.apple.HIToolbox.plist
+  : Root/AppleEnabledInputSources/Item-with-ABC
+
+That's all."))
+
+     (t (insert "NO Tips for current OS.")))))
+
+(defun ime/display-ziranma-shuangpin ()
+  (interactive)
+  (ln:with-current-view-buffer (get-buffer-create "*ShuangPin/ZiRanMa*")
+    :focus t :wc `((display-buffer-below-selected) (window-height . 8))
+    :keywords '(("[A-Z]" . 'font-lock-keyword-face) ("^a.*" . 'font-lock-comment-face))
+    (insert "
+Q(iu) W(ia,ua) E(e) R(uan) T(ue,ve) Y(ing,uai) U(sh,u) I (ch,i) O(o,uo) P(un)\n
+  A(a) S(iong,ong) D(iang,uang) F(en) G(eng) H(ang) J(an) K(ao) L(ai)\n
+   Z(ei) X(ie) C(iao) V(zh,ui,v) B(ou) N(in) M(ian)\n\n
+a aa | ang ah | e ee | eng eg | o oo | ai an ao ei en er ou")))
+
+(when IS-LINUX
+  (defun ime/reload-rime ()
+    "Helper to reload/redeploy fcitx/rime."
+    (interactive)
+    (pdd-chain t
+      (lambda () (pdd-exec [fcitx5-remote -e]))
+      (lambda () (pdd-exec [rime_deployer --build] :fail #'ignore))
+      (lambda () (pdd-exec [fcitx5-remote -c]))
+      (lambda () (message "Reload done."))
+      :fail (lambda (r) (message "> %s" r)))))

@@ -1,4 +1,4 @@
-;;; imod-snippet.el --- Snippets -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;;; Code:
 
@@ -9,114 +9,189 @@
 
 (x dabbrev
    "What M-/ bound."
-   :init
-   (setq dabbrev-case-fold-search 'case-fold-search)
-   (setq dabbrev-case-replace nil))
+   :config
+   (setopt dabbrev-case-fold-search 'case-fold-search
+           dabbrev-case-replace nil))
 
 (x hippie-exp
-   :init
+   :config
    ;; (global-set-key (kbd "M-/") #'hippie-expand)
-   (setq hippie-expand-try-functions-list
-         '(try-expand-dabbrev
-           try-expand-dabbrev-visible
-           try-expand-dabbrev-all-buffers try-expand-dabbrev-from-kill
-           try-complete-file-name-partially try-complete-file-name
-           try-expand-all-abbrevs try-expand-list try-expand-line
-           try-complete-lisp-symbol-partially try-complete-lisp-symbol)))
+   (setopt hippie-expand-try-functions-list
+           '(try-expand-dabbrev
+             try-expand-dabbrev-visible
+             try-expand-dabbrev-all-buffers try-expand-dabbrev-from-kill
+             try-complete-file-name-partially try-complete-file-name
+             try-expand-all-abbrevs try-expand-list try-expand-line
+             try-complete-lisp-symbol-partially try-complete-lisp-symbol)))
 
 
+
+(x autoinsert
+   "Auto insert content after create new file."
+   :init (auto-insert-mode 1)
+   :config
+   (setopt auto-insert-query nil
+           auto-insert-alist nil
+           auto-insert-directory (loce "snippets/Init/"))
+   (define-auto-insert "\\.ccls$"    [".ccls" ln:autoinsert-yas-expand])
+   (define-auto-insert "\\.service$" ["systemd" ln:autoinsert-yas-expand])
+   (define-auto-insert "\\.desktop$" ["xdg-desktop" ln:autoinsert-yas-expand])
+   (define-auto-insert "\\.md$"      (lambda () (ln:yas-insert-by-name "init"))))
 
 (x yasnippet/ed
    :ref ("joaotavora/yasnippet"
          "DOC: https://joaotavora.github.io/yasnippet/index.html")
    :bind (:map yas-keymap ("C-m" . yas-next-field-or-maybe-expand))
    :init
-   (setq yas-verbosity 2
-         yas--basic-extras '(fundamental-mode)
-         yas-snippet-dirs  (cl-remove-if 'null (list (loco "snippets" t) (loce "snippets"))))
-
-   (defun im/yas--clear-extra-mode ()
-     (interactive)
-     (dolist (mode yas--extra-modes)
-       (unless (member mode yas--basic-extras)
-         (yas-deactivate-extra-mode mode))))
-
+   (setq yas-verbosity 2 yas--basic-extras '(fundamental-mode))
+   (yas-global-mode 1)
+   :config
+   (setopt yas-snippet-dirs  (cl-remove-if 'null (list (loco "snippets" t) (loce "snippets"))))
+   (diminish 'yas-minor-mode)
    (defun:hook yas-minor-mode-hook ()
-     (delight 'yas-minor-mode)
-     (mapc 'yas-activate-extra-mode yas--basic-extras))
+     (mapc 'yas-activate-extra-mode yas--basic-extras)))
 
-   (defun:override yas--prompt-for-template$pp (templates &optional prompt)
-     "Pretty display snippets when `yas-insert-snippet'."
-     (when templates
-       (setq templates
-             (sort templates #'(lambda (t1 t2)
-                                 (string< (yas--template-key t1)
-                                          (yas--template-key t2)))))
-       (cl-some (lambda (fn)
-                  (let (vertico-sort-function)
-                    (funcall fn (or prompt "Choose a snippet: ")
-                             templates
-                             (lambda (tpl)
-                               (format "%-10s %s"
-                                       (propertize (yas--template-key tpl) 'face 'font-lock-keyword-face)
-                                       (yas--template-name tpl))))))
-                yas-prompt-functions)))
+(defun ln/yas--clear-extra-mode ()
+  (interactive)
+  (dolist (mode yas--extra-modes)
+    (unless (member mode yas--basic-extras)
+      (yas-deactivate-extra-mode mode))))
 
-   (defun:override yas--guess-snippet-directories$completion (&optional table)
-     "Hack. Choose posible snippet dir when create snippet."
-     (let ((main-dir (let ((dirs (or (yas-snippet-dirs)
-                                     (setq yas-snippet-dirs (list yas--default-user-snippets-dir)))))
-                       (completing-read "Snippet dir: " dirs nil t nil nil (car dirs)))) ;; this one
-           (tables (if table (list table) (yas--get-snippet-tables))))
-       (unless table
-         (let ((major-mode-table (yas--table-get-create major-mode)))
-           (cl-callf2 delq major-mode-table tables)
-           (push major-mode-table tables)))
-       (mapcar #'(lambda (table)
-                   (cons table (mapcar #'(lambda (subdir) (expand-file-name subdir main-dir))
-                                       (yas--guess-snippet-directories-1 table))))
-               tables)))
+(defun:override yas--prompt-for-template//pp (templates &optional prompt)
+  "Pretty display snippets when `yas-insert-snippet'."
+  (when templates
+    (setq templates
+          (sort templates (lambda (t1 t2) (string< (yas--template-key t1) (yas--template-key t2)))))
+    (let* ((collection (cl-loop for tpl in templates
+                                for str = (format "%-10s %s"
+                                                  (propertize (yas--template-key tpl) 'face 'font-lock-keyword-face)
+                                                  (yas--template-name tpl))
+                                collect (cons str tpl)))
+           (choosen (completing-read (or prompt "Choose a snippet: ") (ln:completion-table collection) nil t)))
+      (cdr (assoc choosen collection)))))
 
-   (defun:override yas--get-snippet-tables$org-src-block (&optional mode)
-     "Fixup `yas-insert-snippet' used on org-mode src block."
-     (when (and (equal major-mode 'org-mode) (org-in-src-block-p t))
-       (let* ((l (car (org-babel-get-src-block-info)))
-              (m (assoc l org-src-lang-modes)))
-         (setq mode (intern (concat (if m (symbol-name (cdr m)) l) "-mode")))))
-     (remove nil (mapcar #'(lambda (name) (gethash name yas--tables))
-                         (yas--modes-to-activate mode))))
+(defun:override yas--get-snippet-tables//org-src-block (&optional mode)
+  "Fixup `yas-insert-snippet' used on org-mode src block."
+  (when (and (equal major-mode 'org-mode) (org-in-src-block-p t))
+    (let* ((l (car (org-babel-get-src-block-info)))
+           (m (assoc l org-src-lang-modes)))
+      (setq mode (intern (concat (if m (symbol-name (cdr m)) l) "-mode")))))
+  (remove nil (mapcar #'(lambda (name) (gethash name yas--tables))
+                      (yas--modes-to-activate mode))))
 
-   (yas-global-mode 1))
+(defun:override yas--guess-snippet-directories//completion (&optional table)
+  "Hack. Choose possible snippet dir when create snippet."
+  (let ((main-dir (let ((dirs (or (yas-snippet-dirs)
+                                  (setq yas-snippet-dirs (list yas--default-user-snippets-dir)))))
+                    (completing-read "Snippet dir: " dirs nil t nil nil (car dirs)))) ;; this one
+        (tables (if table (list table) (yas--get-snippet-tables))))
+    (unless table
+      (let ((major-mode-table (yas--table-get-create major-mode)))
+        (cl-callf2 delq major-mode-table tables)
+        (push major-mode-table tables)))
+    (mapcar #'(lambda (table)
+                (cons table (mapcar #'(lambda (subdir) (expand-file-name subdir main-dir))
+                                    (yas--guess-snippet-directories-1 table))))
+            tables)))
 
-(x autoinsert
-   "Auto insert content after create new file."
-   :init
-   (auto-insert-mode 1)
-   (setq auto-insert-query nil)
-   (setq auto-insert-alist nil)
-   (setq auto-insert-directory (loce "snippets/Init/"))
-   (define-auto-insert "\\.ccls$"    [".ccls" im-autoinsert-yas-expand])
-   (define-auto-insert "\\.service$" ["systemd" im-autoinsert-yas-expand])
-   (define-auto-insert "\\.desktop$" ["xdg-desktop" im-autoinsert-yas-expand])
-   (define-auto-insert "\\.md$"      (lambda () (im-yas-insert-by-name "init"))))
-
-
-
-(defun im-yas-map-void (check replace-t replace-f)
+(defun ln:yas-map-void (check replace-t replace-f)
   (if (string= check "") replace-t replace-f))
 
-(defun im-yas-insert-by-name (name)
+(defun ln:yas-insert-by-name (name)
   "Insert snippet whose name is NAME."
-  (when-let ((template
+  (when-let* ((template
               (and yas-minor-mode
                    (cl-find name (yas--all-templates (yas--get-snippet-tables))
                             :key #'yas--template-name :test #'equal))))
     (yas-expand-snippet (yas--template-content template))))
 
-(defun im-autoinsert-yas-expand()
+(defun ln:autoinsert-yas-expand()
   "Replace text in yasnippet template."
   (yas-expand-snippet (buffer-string) (point-min) (point-max)))
 
-(provide 'imod-snippet)
+
 
-;;; imod-snippet.el ends here
+(defvar ln:license-templates nil)
+
+(defun ln:license-templates ()
+  (or ln:license-templates
+      (setq ln:license-templates
+            (cl-coerce (pdd "https://api.github.com/licenses" :sync t) 'list))))
+
+(defun ln:license-template-info (name)
+  (let* ((licenses (ln:license-templates))
+         (license (cl-find-if (lambda (l) (equal name (alist-get 'key l))) licenses)))
+    (pdd (alist-get 'url license) :sync t)))
+
+(defun ln/license-template-insert (name)
+  (interactive
+   (list (completing-read "License template: "
+                          (ln:completion-table
+                           (mapcar (lambda (y) (alist-get 'key y)) (ln:license-templates)))
+                          nil t)))
+  (insert (alist-get 'body (ln:license-template-info name))))
+
+(defun ln/license-template-new-file (name &optional dir)
+  (interactive
+   (list (completing-read "License template: "
+                          (ln:completion-table
+                           (mapcar (lambda (y) (alist-get 'key y)) (ln:license-templates)))
+                          nil t)
+         (if current-prefix-arg
+             (read-directory-name "Create license in directory: ")
+           default-directory)))
+  (let ((file (expand-file-name "LICENSE" dir)))
+    (when (file-exists-p file)
+      (user-error "Can't create '%s', because it already exists" (abbreviate-file-name file)))
+    (write-region (alist-get 'body (ln:license-template-info name)) nil file)))
+
+
+
+(defvar ln:gitignore-templates nil)
+
+(defun ln:gitignore-templates ()
+  (or ln:gitignore-templates
+      (setq ln:gitignore-templates
+            (pdd "https://api.github.com/gitignore/templates"
+              :headers '(("Accept" . "application/vnd.github.v3+json"))
+              :done (lambda (rs) (cl-coerce rs 'list)) :sync t))))
+
+(defun ln:gitignore-template-content (name)
+  (unless (member name (ln:gitignore-templates))
+    (user-error "Invalid name %s" name))
+  (pdd (concat "https://api.github.com/gitignore/templates/" name)
+    :done (lambda (rs) (alist-get 'source rs)) :sync t))
+
+(defun ln/gitignore-template-insert (name)
+  (interactive
+   (list (completing-read ".gitignore template: "
+                          (ln:completion-table (ln:gitignore-templates))
+                          nil t)))
+  (insert (ln:gitignore-template-content name)))
+
+(defun ln/gitignore-template-new-file (name &optional dir)
+  (interactive
+   (list (completing-read ".gitignore template: "
+                          (ln:completion-table (ln:gitignore-templates))
+                          nil t)
+         (if current-prefix-arg
+             (read-directory-name "Create .gitignore in directory: ")
+           default-directory)))
+  (let ((file (expand-file-name ".gitignore" dir)))
+    (when (file-exists-p file)
+      (user-error "Can't create '%s', because it already exists" (abbreviate-file-name file)))
+    (write-region (ln:gitignore-template-content name) nil file)))
+
+
+
+(transient-define-prefix ln/transient-yasnippet ()
+  [[("n" "new-snippet"           yas-new-snippet)
+    ("f" "open-snippet"          yas-visit-snippet-file)]
+   [("e" "activate-extra-mode"   yas-activate-extra-mode)
+    ("c" "clear-all-extra-modes" ln/yas--clear-extra-mode)]
+   [("i" "pick-snippet"          yas-insert-snippet)
+    ("l" "view-yas-tables"       (lambda () (interactive)
+                                   (yas-describe-tables)
+                                   (pop-to-buffer "*YASnippet Tables*")))]
+   [("a" "reload-all"            yas-reload-all)
+    ("d" "load-from-directory"   yas-load-directory)]])

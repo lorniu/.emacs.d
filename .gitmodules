@@ -1,3 +1,27 @@
-[submodule "site-lisp/easydraw"]
-	path = site-lisp/easydraw
+[submodule "mpvi"]
+	path = repo/mpvi
+	url = git@github.com:lorniu/mpvi
+[submodule "bilibili"]
+	path = repo/bilibili
+	url = git@github.com:lorniu/bilibili.el.git
+[submodule "ox-spectacle"]
+	path = repo/ox-spectacle
+	url = git@github.com:lorniu/ox-spectacle
+[submodule "go-translate"]
+	path = repo/go-translate
+	url = git@github.com:lorniu/go-translate
+[submodule "emacs-dropbox"]
+	path = repo/emacs-dropbox
+	url = git@github.com:lorniu/emacs-dropbox
+[submodule "org-expose-emphasis-markers"]
+	path = repo/org-expose-emphasis-markers
+	url = git@github.com:lorniu/org-expose-emphasis-markers.git
+[submodule "nov-xwidget"]
+	path = site-lisp/nov-xwidget
+	url = https://github.com/chenyanming/nov-xwidget
+[submodule "el-easydraw"]
+	path = site-lisp/el-easydraw
 	url = https://github.com/misohena/el-easydraw
+[submodule "repo/pdd.el"]
+	path = repo/pdd.el
+	url = git@github.com:lorniu/pdd.el

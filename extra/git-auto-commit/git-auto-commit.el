@@ -27,7 +27,7 @@
         relative-filename
       (read-string "Summary: " relative-filename))))
 
-(defun im/git-commit (&optional commit-msg)
+(defun ln/git-commit (&optional commit-msg)
   (interactive)
   (let* ((buffer-file (or (buffer-file-name) (buffer-name)))
          (commit-msg (if (zerop (length commit-msg)) (gac/get-commit-message buffer-file) commit-msg))
@@ -35,15 +35,14 @@
     (shell-command "git add .")
     (shell-command (format "git commit -m %s" (shell-quote-argument commit-msg)))))
 
-(defun im/git-commit-and-push (&optional commit-msg)
+(defun ln/git-commit-and-push (&optional commit-msg)
   (interactive)
-  (im/git-commit commit-msg)
+  (ln/git-commit commit-msg)
   (let ((proc (start-process "git" "*git-auto-push*" "git" "push")))
     (set-process-filter proc 'gac/prompt-password)
     (set-process-sentinel proc (lambda (_ status)
                                  (run-hooks 'gac/commit-and-push-hook)
                                  (message "Git *PUSH* %s !" (substring status 0 -1))))))
-
 
 (provide 'git-auto-commit)
 

@@ -61,7 +61,7 @@
 
 ;; custom hashtable output
 (defparameter *print-hashtable* nil "Use custom HASH print method.")
-(defun im/toggle-print-hashtable () (setf *print-hashtable* (not *print-hashtable*)))
+(defun ln/toggle-print-hashtable () (setf *print-hashtable* (not *print-hashtable*)))
 (defmethod print-object :around ((object hash-table) stream)
   (if *print-hashtable*
       (format stream "#HashTable {~%    ~{~{~a: ~a~%~}~^    ~}}"
@@ -74,7 +74,7 @@
           alias-package
           import-as
           load-relative
-          im/toggle-print-hashtable
+          ln/toggle-print-hashtable
           add-to-path-asdf
           add-to-path-quicklisp
           ))
