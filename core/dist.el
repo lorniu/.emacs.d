@@ -1,11 +1,11 @@
-;;; dist.el --- Packages -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;; Set special packages demo:
 ;;
-;;   (with-eval-after-load 'predist
+;;   (with-eval-after-load 'dist
 ;;     (p/special
-;;      (sly   . "~/source/sly")
-;;      (go-translate . "~/source/go-translate")
+;;      (sly . "~/source/sly")
+;;      (gt . "~/source/gt.el")
 ;;      (company . nil)
 ;;    ))
 
@@ -17,7 +17,17 @@
 
 ;;; Code:
 
-(defvar p/elpa-repos
+
+(setq package-user-dir (loce "pkgs"))
+
+(package-initialize)
+
+(add-hook 'package-menu-mode-hook (lambda () (hl-line-mode 1)))
+
+
+;;; Archives
+
+(defconst p/elpa-repos
   '(:origin
     (setq package-archives
           `(("gnu"    . "https://elpa.gnu.org/packages/")
@@ -34,241 +44,155 @@
             ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu")
             ("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa")))))
 
+(defvar im.elpa :origin)
+
 (defun p/repo (&optional upstream)
-  (interactive (list (intern (completing-read "package-archives: " (cl-loop for m in p/elpa-repos by #'cddr collect (symbol-name m)) nil t))))
+  (interactive (list (intern (completing-read "package-archives to use: " (cl-loop for m in p/elpa-repos by #'cddr collect (symbol-name m)) nil t))))
   (unless upstream (setq upstream (car p/elpa-repos)))
   (eval (plist-get p/elpa-repos upstream))
-  (if (called-interactively-p 'any) (message "%s" package-archives) (message "[repo:%s]" upstream)))
+  (if (called-interactively-p 'any) (message "%s" package-archives) (message "[ELPA] %s" upstream)))
 
-(defvar ic/elpa :origin)
-(p/repo ic/elpa) ; init package-archives
-
-
-
-(require 'package)
-(setq package-user-dir (loce "elpa"))
-(package-initialize)
-(add-hook 'package-menu-mode-hook (lambda () (hl-line-mode 1)))
-
-(cl-loop for root in (append ic/external-load-path-tops (list (loce "extra") (loce "site-lisp")))
-         for dirs = (ignore-errors (directory-files root t))
-         do (cl-loop for dir in dirs
-                     if (and (not (eq (file-name-extension dir) "")) (file-directory-p dir)) do
-                     (add-to-list 'load-path dir)))
-
-(add-to-list 'custom-theme-load-path (loce "themes"))
-
-(when NATIVECOMP
-  (add-to-list 'native-comp-eln-load-path (locc "eln/"))
-  (setq native-comp-bootstrap-deny-list (list ".*/subr--trampoline.*")))
+(p/repo im.elpa) ; init package-archives
 
 
+;;; Install packages
 
-(defmacro p/loads (&rest packages-required)
-  `(let ((tip "\n(progn\n  (im/proxy (quote SOCK))\n  (setq package-check-signature nil)\n  (p/repo :origin)\n  (p/install)\n)\n"))
-     (defun p/packages ()
-       (cl-loop for o in ',packages-required
-                for p = (if (listp o) (if (eval (cadr o)) (car o)) o)
-                if (and p (not (package-disabled-p p nil))) collect p))
-     (defun p/packages-lacks ()
-       (cl-remove-if #'package-installed-p (p/packages)))
-     (defun p/install (&optional dont-select)
-       (interactive "P")
-       (package-refresh-contents)
-       (dolist (p (p/packages-lacks)) (package-install p dont-select))
-       (message "Install Finished."))
-     (when-let ((lacks (p/packages-lacks)))
-       (if (= (length lacks) (length (p/packages)))
-           (warn "Have you installed any packages?\n\nMaybe:\n%s" tip))
-       (warn "Total %s packages missing:\n\n%s\n\nPlease install first:\n%s\n\n"
-             (length lacks)
-             (with-temp-buffer
-               (insert (format "%s" lacks))
-               (fill-region (point-min) (point-max))
-               (buffer-string))
-             tip))))
+(let ((ps '(diminish ; lighter
+            gcmh vundo emms wgrep trashed xterm-color erc-hl-nicks page-break-lines ; enhanced
+            evil ; viper -> evil-local-mode
+            hide-lines ; like occur
+            ztree ; dir diff
+            dired-dups ; dir dups
+            keycast ; show key-pressed
+            uuidgen aes ; enc
+            cal-china-x ; calc
+            posframe ; childframe
+            pcre2el ; regexp
+            corfu cape vertico orderless marginalia consult hyperbole ; utils
+            yasnippet ; templates
+            nerd-icons ; icons
+            standard-themes nano-theme gruvbox-theme srcery-theme ; themes
+            vlf nov pdf-tools ; file
 
-(p/loads (use-package (< emacs-major-version 29))
-  delight ; lighter
-  rainbow-mode rainbow-delimiters ; colorful
-  page-break-lines
-  xterm-color
-  erc-hl-nicks
-  all-the-icons ; icons
-  posframe ; childframe
-  nano-theme modus-themes gruvbox-theme srcery-theme ; themes
+            ;; external
+            gptel eat
+            disk-usage memory-usage
+            pyim ; input method
+            magit git-timemachine ssh-agency git-modes ghub forge ; git
+            docker dockerfile-mode kubernetes ; container
 
-  bbdb
-  vundo
-  session
-  syntax-subword
-  wgrep
-  rg ; ripgrep
-  dired-dups
-  ztree ; dir diff
-  engine-mode
-  macrostep
-  aes ; encrypt
-  hide-lines ; like occur
-  vlf ; view large file
-  memory-usage
-  pyim pyim-basedict rime sis ; ime
-  mpv emms ; media
-  keycast ; show key-pressed
-  evil ; viper -> evil-local-mode
-  cowsay ;; figlet ; ascii art
-  kubernetes docker dockerfile-mode ; container
-  magit git-timemachine ssh-agency git-modes ghub forge ; git
-  uuidgen
-  htmlize
-  package-lint
-  sx ; stackoverflow
-  (vterm nil) eat ; terminal emulator
-  simple-httpd
+            ;; org
+            org-contrib org-make-toc
+            org-reverse-datetree ; used in org-capture for journal
+            org-present ; simple presentation
+            ox-pandoc
+            denote denote-org org-noter org-noter-pdftools
 
-  corfu cape
-  hyperbole embark embark-consult
-  vertico orderless consult marginalia
-  which-key
-  yasnippet gitignore-templates license-templates ; templates
-  treemacs
-  ace-window
-  citre ; ctags
-  editorconfig
+            ;; drawing/export
+            gnuplot
+            graphviz-dot-mode
+            plantuml-mode
+            auctex ; latex
+            cowsay ; figlet ; ascii art
 
-  org org-contrib
-  org-present
-  org-roam org-roam-ui
-  ox-pandoc
-  pdf-tools org-noter org-noter-pdftools nov ; read & note
+            ;; http
+            plz simple-httpd
+            websocket know-your-http-well
+            restclient ob-restclient httprepl ; rest
 
-  gnuplot
-  graphviz-dot-mode
-  plantuml-mode
-  auctex ; latex
-
-  (eglot (< emacs-major-version 29)) consult-eglot
-  lsp-mode dap-mode lsp-treemacs lsp-ui
-
-  web-mode edit-indirect
-  polymode poly-org poly-markdown
-
-  nhexl-mode ; binary
-  emmet-mode web-beautify sass-mode ; html
-  ob-typescript ; typescript
-  websocket know-your-http-well ; http
-  restclient ob-restclient httprepl ; rest
-  c-eldoc cmake-mode ; c/c++
-  rust-mode ; rust
-  php-mode ; php
-  go-mode ; go
-  robe ; ruby
-  erlang ; erlang
-  alchemist ; elixir
-  lua-mode ; lua
-  haskell-mode hindent attrap ; haskell
-  (csharp-mode (< emacs-major-version 29)) csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
-  kotlin-mode clojure-mode groovy-mode scala-mode ; jvm
-  lsp-java ; better than ever
-  jdecomp ; java decompile, use idea's fernflower.jar
-  android-mode ; easy to run android tools
-  markdown-mode markdown-toc ; md
-  yaml-mode csv-mode
-  sql-indent ; sql
-  powershell ob-powershell
-  systemd udev-mode ; for linux
-
-  ;; freelazy
-  go-translate
-  ox-spectacle)
+            ;; development
+            dape ; debug
+            nhexl-mode ; binary
+            macrostep rainbow-mode rainbow-delimiters package-lint ; elisp
+            c-eldoc cmake-mode citre ; c/c++
+            emmet-mode web-beautify sass-mode web-mode htmlize ; html
+            typescript-mode ob-typescript ; typescript
+            rust-mode ; rust
+            php-mode ; php
+            go-mode ; go
+            robe ; ruby
+            erlang ; erlang
+            lua-mode ; lua
+            haskell-mode hindent attrap ; haskell
+            csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
+            kotlin-mode clojure-mode groovy-mode scala-mode ; jvm
+            jdecomp ; java decompile, use idea's fernflower.jar
+            android-mode ; easy to run android tools
+            markdown-mode markdown-toc ; markdown
+            bbdb sql-indent ; database
+            powershell ob-powershell
+            yaml-mode csv-mode systemd udev-mode
+            edit-indirect)))
+  (cl-macrolet ((ensure-packages-installed ()
+                  `(cl-labels
+                       ((all ()
+                          (cl-loop for o in ps
+                                   for p = (if (listp o) (if (eval (cadr o)) (car o)) o)
+                                   if (and p (not (package-disabled-p p nil))) collect p))
+                        (lacks ()
+                          (cl-remove-if #'package-installed-p (all)))
+                        (report (lacks)
+                          (format
+                           "Total %d packages missing:\n\n%s\n\nPlease install first:\n%s\n\n" (length lacks)
+                           (with-temp-buffer (insert (format "%s" lacks)) (fill-region (point-min) (point-max)) (buffer-string))
+                           "\n(progn\n  (call-interactively (function p/repo))\n  (call-interactively (function im/proxy))\n  (setq package-check-signature nil)\n  (p/install)\n  (restart-emacs)\n )")))
+                     (defun p/install (&optional dont-select)
+                       (interactive "P")
+                       (package-refresh-contents)
+                       (let* ((lacks (lacks)) (len (length lacks)) (i 0))
+                         (dolist (p lacks)
+                           (cl-incf i)
+                           (setq mode-line-process (format ":Installing %d/%d [%s]..." i len p))
+                           (force-mode-line-update)
+                           (redisplay 'force)
+                           (package-install p dont-select)))
+                       (message "Install Finished."))
+                     (when-let* ((lst (lacks)) (msg (report lst)))
+                       (if after-init-time
+                           (display-warning 'packages msg :error "|-Package-Loading-|")
+                         (signal 'user-error msg))))))
+    (ensure-packages-installed)))
 
 
-;;; x-wrapper
+;;; Use-Package
 
-(require 'use-package)
-(require 'bind-key)
-(require 'delight)
+(setq use-package-always-defer t
+      use-package-expand-minimally t
+      package-vc-allow-build-commands t)
 
-(defmacro x (NAME &rest args)
-  "Flags: e/demand d/delight i/incremental x/disabled."
+(defmacro xzz (NAME &rest args)
+  "Flags: e/demand d/diminish i/ensure x/disabled."
+  (declare (indent 1))
   (pcase-let* ((`(,name ,flags) (split-string (symbol-name NAME) "/"))
                (mode-name (replace-regexp-in-string "-mode" "" name))
                (doc-strings (cl-loop for i in args until (keywordp i) collect i))
                (options (cl-set-difference args doc-strings))
                (refs (prog1 (plist-get options :ref) (cl-remf options :ref)))
-               (fopts (delq nil
-                            (list (if (seq-contains flags ?e) :demand :defer) t
-                                  (if (seq-contains flags ?d) :delight)
-                                  (if (seq-contains flags ?x) :disabled))))
+               (refs-name (if (and (cdr-safe refs) (symbolp (car-safe refs))) (pop refs) (intern mode-name)))
+               (fopts (delq-nil (list (if (seq-contains-p flags ?e) :demand :defer) t
+                                      (if (seq-contains-p flags ?d) :diminish)
+                                      (if (seq-contains-p flags ?i) :ensure)
+                                      (if (seq-contains-p flags ?x) :disabled))))
                (name (intern name)))
-    (delq nil
-          `(progn
-             (if idebug (message "Loading %s..." ',name))
-             ,(if (cl-find ?i flags)
-                  (let ((c (plist-get options :if)))
-                    `(if ,(or (eq c nil) c) (load-packages-incrementally '(,name)))))
-             ,(if doc-strings `(defhelper ,(intern mode-name) ,@doc-strings))
-             ,(if refs `(defreference ,(intern mode-name) ,refs))
-             (use-package ,name ,@fopts ,@options)))))
-
-
-;;; Lazy/Incremental Load
-
-(defcustom ic/incremental-packages '(timer calendar find-func format-spec
-                                           org-macs org-compat org-faces
-                                           org-entities org-list org-pcomplete
-                                           org-src org-footnote org-macro ob
-                                           org org-agenda org-capture ox-publish
-                                           emacsql easymenu tree-widget
-                                           (git-commit . git)
-                                           (transient . git)
-                                           (magit . git))
-  "Packages to load incrementally."
-  :type 'list)
-
-(defun load-packages-incrementally (packages &optional now)
-  "Register PACKAGES to be loaded incrementally."
-  (if (not now)
-      (setq ic/incremental-packages (append ic/incremental-packages packages))
-    (while packages
-      (let ((default-directory "~/")
-            (gc-cons-threshold most-positive-fixnum)
-            (req (pop packages)) (existp t))
-        (when (consp req)
-          (setq existp (executable-find (symbol-name (cdr req))))
-          (setq req (car req)))
-        (unless (or (featurep req) (not existp))
-          (message "[loading] %s" req)
-          (condition-case-unless-debug e
-              (or (while-no-input
-                    (let ((inhibit-message t) file-name-handler-alist)
-                      (require req nil t))
-                    t)
-                  (push req packages))
-            (error
-             (message "Failed to load %S package incrementally, because: %s" req e)))
-          (if (not packages)
-              (progn (run-hooks 'load-packages-incrementally-hook)
-                     (message "Incremental loading Done !")
-                     (message ""))
-            (run-with-idle-timer 0.75 nil #'load-packages-incrementally packages t)
-            (setq packages nil)))))))
-
-(defun:hook emacs-startup-hook/incrementally-load ()
-  (run-with-timer 10 nil (lambda () (run-with-idle-timer
-                                     10 nil #'load-packages-incrementally (cdr ic/incremental-packages) t))))
+    (delq-nil
+     `(progn
+        (if init-file-debug (message "Loading %s..." ',name))
+        ,(if doc-strings `(defhelper ,(intern mode-name) ,@doc-strings))
+        ,(if refs `(defreference ,refs-name ,refs))
+        (use-package ,name ,@fopts ,@options)))))
 
 
 ;;; Auxiliaries
 
 (defmacro p/special (&rest pkg-list)
-  "(p/special (delight . path) (simple-httpd . (1 5 1)) (company . nil))"
-  `(progn
-     ,@(cl-loop for (p . v) in pkg-list
-                if (consp v) collect `(add-to-list 'package--builtin-versions '(,p ,@v)) ; pretend installed
-                else if (stringp v) collect `(push ,v load-path) ; use this instead of elpa's one
-                else if (null v) collect `(add-to-list 'package-load-list '(,p . nil)) ; dont load this
-                else collect `',p)))
+  "Specify package path / pin package version / disable specific package:
+   : (p/special (diminish . 'path') (simple-httpd . (1 5 1)) (company . nil))"
+  (macroexp-progn
+   (cl-loop for (p . v) in pkg-list
+            if (consp v) collect `(add-to-list 'package--builtin-versions '(,p ,@v)) ; pretend installed
+            else if (stringp v) collect `(push ,v load-path) ; use this instead of elpa's one
+            else if (null v) collect `(add-to-list 'package-load-list '(,p . nil)) ; don't load this
+            else collect `',p)))
 
 (defun p/clean-dups (&optional dry-run)
   (interactive "P")
@@ -295,5 +219,3 @@
       (message "Nothing to clean."))))
 
 (provide 'dist)
-
-;;; dist.el ends here

@@ -1,11 +1,11 @@
-;;; imod-print.el --- Print -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;; Environment:
 ;;
 ;;   sudo pacman -S cups cups-pdf
 ;;
 ;;   yay -S epson-inkjet-printer-escpr # driver!
-;;   yay -S intlfonts                  # fonts for emacs print
+;;   yay -S intlfonts                  # fonts for emacs print!
 ;;
 ;;   sudo sc enable cups.socket
 ;;
@@ -23,27 +23,29 @@
 
 ;;; Code:
 
-(defvar ic/print-duplex nil)
+(defvar im.print-duplex nil)
 
-(setq ps-paper-type 'a4)
-(setq ps-landscape-mode nil)
-(setq ps-selected-pages nil)
-(setq ps-print-header nil)
+(xzz ps-print
+  :config
+  (setopt ps-paper-type 'a4
+          ps-landscape-mode nil
+          ps-selected-pages nil
+          ps-print-header nil
 
-(setq ps-font-size 8)
-(setq ps-font-family 'Courier)
+          ps-font-size 8
+          ps-font-family 'Courier
 
-(setq ps-print-background-text nil)
-(setq ps-print-background-image nil)
+          ps-print-background-text nil
+          ps-print-background-image nil)
 
-;; ps-lpr-command
-;; ps-lpr-switches
-;; ps-printer-name
+  ;; ps-lpr-command
+  ;; ps-lpr-switches
+  ;; ps-printer-name
 
-(setq bdf-directory-list
-      (if IS-WIN (list (expand-file-name "fonts/bdf" installation-directory))
-        '("/usr/share/emacs/fonts/bdf/" "/usr/local/share/emacs/fonts/bdf"))
-      ps-multibyte-buffer 'bdf-font-except-latin)
+  (setopt bdf-directory-list
+          (if IS-WIN (list (expand-file-name "fonts/bdf" installation-directory))
+            '("/usr/share/emacs/fonts/bdf/" "/usr/local/share/emacs/fonts/bdf"))
+          ps-multibyte-buffer 'bdf-font-except-latin))
 
 
 
@@ -80,17 +82,17 @@
 
 (transient-define-infix impr:duplex-style ()
   :class 'transient-lisp-variable-buffer-local
-  :variable 'ic/print-duplex
+  :variable 'im.print-duplex
   :key "-d"
   :reader (lambda (&rest _)
-            (setq ic/print-duplex
+            (setq im.print-duplex
                   (completing-read "Duplex style: " '("two-sided-long-edge" "two-sided-short-edge" "one-sided")
-                                   nil t nil nil ic/print-duplex))
+                                   nil t nil nil im.print-duplex))
             (make-local-variable 'ps-lpr-switches)
             (setq ps-lpr-switches (cl-remove-if (lambda (x) (string-match-p "-o sides=" x)) ps-lpr-switches))
-            (push (format "-o sides=%s" ic/print-duplex) ps-lpr-switches)
-            (setq-local ps-spool-duplex (not (string-equal "one-sided" ic/print-duplex)))
-            ic/print-duplex))
+            (push (format "-o sides=%s" im.print-duplex) ps-lpr-switches)
+            (setq-local ps-spool-duplex (not (string-equal "one-sided" im.print-duplex)))
+            im.print-duplex))
 
 (transient-define-infix impr:print-header ()
   :class 'transient-lisp-variable-buffer-local
@@ -210,11 +212,7 @@
     ]]
   ["Actions"
    [("p" "ps-print" ipr--ps-print)]
-   [("P" "ps-print with faces" ipr--ps-print-with-faces)]]
+   [("P" "ps-print-with-faces" ipr--ps-print-with-faces)]]
   (interactive)
   (require 'ps-print)
   (transient-setup 'im/print))
-
-(provide 'imod-print)
-
-;;; imod-print.el ends here
