@@ -9,6 +9,7 @@
 !/bin
 !/core
 !/extra
+!/repo
 !/site-lisp
 !/clone
 !/share
