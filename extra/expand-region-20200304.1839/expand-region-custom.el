@@ -105,7 +105,7 @@ If set to nil, always place the cursor at the beginning of the region."
                  (const :tag "Standard behaviour" nil)))
 
 ;;;###autoload
-(define-obsolete-variable-alias 'er/enable-subword-mode?
+(define-obsolete-variable-alias 'er-enable-subword-mode?
   'expand-region-subword-enabled "2019-03-23")
 
 ;;;###autoload

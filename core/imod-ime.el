@@ -72,7 +72,7 @@ To enable, set ic/ism-default like:\n
   (declare (indent 1))
   `(defun ,(intern (format "is/ime-rime:%s" file)) ()
      (interactive)
-     (with-current-buffer (find-file (expand-file-name ,(symbol-name file) (im-ensure-dir rime-user-data-dir)))
+     (with-current-buffer (find-file (expand-file-name ,(symbol-name file) (im:ensure-dir rime-user-data-dir)))
        (goto-char (point-max))
        (insert ,content))))
 

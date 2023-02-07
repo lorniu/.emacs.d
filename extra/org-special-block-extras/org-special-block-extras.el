@@ -5,7 +5,6 @@
 (require 'subr-x)          ;; Extra Lisp functions; e.g., ‘when-let’.
 (require 'cl-lib)          ;; New Common Lisp library; ‘cl-???’ forms.
 (require 's)               ;; “The long lost Emacs string manipulation library”
-(require 'dash)            ;; Function library; ‘-const’, ‘-compose’, ‘-orfn’, ‘-not’, ‘-partial’, etc.
 
 (require 'org)
 (require 'ox-latex)

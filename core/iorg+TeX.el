@@ -46,6 +46,10 @@
 
 ;; tikz + org
 
+(defreference org
+  "LaTex: https://www.overleaf.com/learn/latex/Beamer"
+  "LaTeX: https://www.overleaf.com/learn/latex/TikZ_package")
+
 (defvar org-tikz-default-convert-alias
   '(("imagemagick"  "convert %s.pdf %s.%e")
     ("pdftocairo"   "pdftocairo -svg %s.pdf %s.%e")

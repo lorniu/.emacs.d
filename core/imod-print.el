@@ -5,7 +5,7 @@
 ;;   sudo pacman -S cups cups-pdf
 ;;
 ;;   yay -S epson-inkjet-printer-escpr # driver!
-;;   yay -S intlfonts                  # fonts for emacs print
+;;   yay -S intlfonts                  # fonts for emacs print!
 ;;
 ;;   sudo sc enable cups.socket
 ;;
@@ -210,7 +210,7 @@
     ]]
   ["Actions"
    [("p" "ps-print" ipr--ps-print)]
-   [("P" "ps-print with faces" ipr--ps-print-with-faces)]]
+   [("P" "ps-print-with-faces" ipr--ps-print-with-faces)]]
   (interactive)
   (require 'ps-print)
   (transient-setup 'im/print))

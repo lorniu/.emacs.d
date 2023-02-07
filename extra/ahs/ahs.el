@@ -103,7 +103,7 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
   :group 'ahs
   :type 'boolean)
 
-(defconst ahs-default-symbol-regexp "^[0-9A-Za-z/_.,:;*+=&%|$#@!^?-]\\{2,\\}$"
+(defconst ahs-default-symbol-regexp "^[0-9A-Za-z/_.,:;*+=&%|$#@!^?~-]\\{2,\\}$"
   "Default symbol regular expression.")
 
 (defcustom ahs-include ahs-default-symbol-regexp
