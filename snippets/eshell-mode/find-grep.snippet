@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: find and grep
+# key: findgrep
+# --
+find . -type f -name '${1:*}' -exec grep -H "$0" {} +

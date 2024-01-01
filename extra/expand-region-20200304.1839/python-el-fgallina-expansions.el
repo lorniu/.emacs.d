@@ -1,4 +1,4 @@
-;;; python-el-fgallina-expansions.el --- fgallina/python.el-specific expansions for expand-region
+;;; python-el-fgallina-expansions.el --- fgallina/python.el-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Felix Geller
 
@@ -21,12 +21,12 @@
 ;;; Commentary:
 ;;
 ;;  - Additions implemented here:
-;;    - `er/mark-inside-python-string'
-;;    - `er/mark-outside-python-string'
-;;    - `er/mark-python-statement'
-;;    - `er/mark-python-block'
-;;    - `er/mark-outer-python-block'
-;;    - `er/mark-python-block-and-decorator'
+;;    - `er-mark-inside-python-string'
+;;    - `er-mark-outside-python-string'
+;;    - `er-mark-python-statement'
+;;    - `er-mark-python-block'
+;;    - `er-mark-outer-python-block'
+;;    - `er-mark-python-block-and-decorator'
 ;;  - Supports multi-line strings
 
 ;;; Code:
@@ -53,7 +53,7 @@
       symbol-end)
   "Regular expression string to match the beginning of a Python block.")
 
-(defun er/mark-python-string (mark-inside)
+(defun er-mark-python-string (mark-inside)
   "Mark the Python string that surrounds point.
 
 If the optional MARK-INSIDE is not nil, only mark the region
@@ -72,28 +72,28 @@ delimiters as well."
       (goto-char beginning-of-string)
       (when mark-inside (skip-chars-forward er--python-string-delimiter)))))
 
-(defun er/mark-inside-python-string ()
+(defun er-mark-inside-python-string ()
   "Mark the inside of the Python string that surrounds point.
 
-Command that wraps `er/mark-python-string'."
+Command that wraps `er-mark-python-string'."
   (interactive)
-  (er/mark-python-string t))
+  (er-mark-python-string t))
 
-(defun er/mark-outside-python-string ()
+(defun er-mark-outside-python-string ()
   "Mark the outside of the Python string that surrounds point.
 
-Command that wraps `er/mark-python-string'."
+Command that wraps `er-mark-python-string'."
   (interactive)
-  (er/mark-python-string nil))
+  (er-mark-python-string nil))
 
-(defun er/mark-python-statement ()
+(defun er-mark-python-statement ()
   "Mark the Python statement that surrounds point."
   (interactive)
   (python-nav-end-of-statement)
   (set-mark (point))
   (python-nav-beginning-of-statement))
 
-(defun er/mark-python-block (&optional next-indent-level)
+(defun er-mark-python-block (&optional next-indent-level)
   "Mark the Python block that surrounds point.
 
 If the optional NEXT-INDENT-LEVEL is given, select the
@@ -138,14 +138,14 @@ than NEXT-INDENT-LEVEL."
       (python-util-forward-comment -1)
       (exchange-point-and-mark))))
 
-(defun er/mark-outer-python-block ()
+(defun er-mark-outer-python-block ()
   "Mark the Python block that surrounds the Python block around point.
 
-Command that wraps `er/mark-python-block'."
+Command that wraps `er-mark-python-block'."
   (interactive)
-  (er/mark-python-block (current-indentation)))
+  (er-mark-python-block (current-indentation)))
 
-(defun er/mark-python-block-and-decorator ()
+(defun er-mark-python-block-and-decorator ()
   (interactive)
   (back-to-indentation)
   (if (or (er--python-looking-at-decorator) (er--python-looking-at-decorator -1))
@@ -170,23 +170,23 @@ Command that wraps `er/mark-python-block'."
     (looking-at "@")
     ))
 
-(defun er/add-python-mode-expansions ()
+(defun er-add-python-mode-expansions ()
   "Adds python-mode-specific expansions for buffers in python-mode"
   (let ((try-expand-list-additions '(
-                                     er/mark-inside-python-string
-                                     er/mark-outside-python-string
-                                     er/mark-python-statement
-                                     er/mark-python-block
-				     er/mark-python-block-and-decorator
-                                     er/mark-outer-python-block
+                                     er-mark-inside-python-string
+                                     er-mark-outside-python-string
+                                     er-mark-python-statement
+                                     er-mark-python-block
+				     er-mark-python-block-and-decorator
+                                     er-mark-outer-python-block
                                      )))
     (set (make-local-variable 'expand-region-skip-whitespace) nil)
-    (set (make-local-variable 'er/try-expand-list)
-         (remove 'er/mark-inside-quotes
-                 (remove 'er/mark-outside-quotes
-                         (append er/try-expand-list try-expand-list-additions))))))
+    (set (make-local-variable 'er-try-expand-list)
+         (remove 'er-mark-inside-quotes
+                 (remove 'er-mark-outside-quotes
+                         (append er-try-expand-list try-expand-list-additions))))))
 
-(er/enable-mode-expansions 'python-mode 'er/add-python-mode-expansions)
+(er-enable-mode-expansions 'python-mode 'er-add-python-mode-expansions)
 
 (provide 'python-el-fgallina-expansions)
 

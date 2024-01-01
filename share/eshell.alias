@@ -1,12 +1,8 @@
-alias nil mp3 $*
-alias (nil)  $*
-alias 2  $*
-alias htop proced
-alias fff for i in ${eshell-flatten-list $*} {find-file $i ;break;}
+alias ccc clear-scrollback
 alias ff find-file $1
-alias m make
+alias fff for i in ${eshell-flatten-list $*} {find-file $i ;break;}
+alias grep *grep $*
 alias l ls -al $1
 alias la ls -a $1
 alias ll ls -lF $1
 alias pss ps a -o pid,ppid,stat,args,wchan
-alias ccc clear-scrollback

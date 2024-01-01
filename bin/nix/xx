@@ -1,0 +1,106 @@
+#!/bin/env bash
+
+## Open desktop enviroment nested or alone
+
+if [[ "$DISPLAY" ]]; then
+    ## In nested X session, do with Xephyr
+    ## i.e. combine xmonad and xfce together!
+
+    # Variables
+
+    case "$1" in
+        kde|plasma)
+            WM=plasma-session
+            shift
+            ;;
+        monad|xmonad)
+            WM=xmonad
+            shift
+            ;;
+        fce|xfce)
+            WM=xfce4-session
+            shift
+            ;;
+        *)
+            WM=xfce4-session
+            ;;
+    esac
+
+    DSP=1
+    DPI=120
+    SIZE="1920x1200"
+
+    # Utilities
+
+    wm_pid() { pgrep -fn "$WMCOMMAND"; }
+    xephyr_pid() { pgrep -f xephyr_$DSP; }
+    errorout() { echo "error: $*" >&2; exit 1; }
+
+    # Check
+
+    WMCOMMAND=$(which $WM)
+    XEPHYR=$(which Xephyr)
+
+    [[ -x "$WMCOMMAND" ]] || errorout "Please install ${WM} first"
+    [[ -x "$XEPHYR" ]] || errorout 'Please install Xephyr first'
+
+    # Functions
+
+    usage() {
+      ME=$(basename ${0})
+      cat <<EOF
+${ME} [ xfce ] [ -d display ] [ -p dpi ] [ -s windowsize ]
+
+  -d|--display  Specify the display to use (e.g. 1)
+  -p|--dpi      Specify the dpi (e.g. 96)
+  -s|--size     Specify the window size (e.g. 1920x1200)
+  -h|--help     Show this help text
+
+examples:
+${ME} (uses defaults)
+${ME} -d 3 -p 96 -s 1920x1200
+
+The defaults are: -d ${DSP} -p ${DPI} -s ${SIZE}.
+
+EOF
+        exit 0
+    }
+
+    parse_options() {
+        while [[ -n "$1" ]]; do
+            case "$1" in
+                -d|--display)   shift; DSP="$1"; [[ ! "$DSP" =~ ^[0-9] ]] && errorout "$DSP is not a valid display number" ;;
+                -p|--dpi)       shift; DPI="$1"  ;;
+                -s|--size)      shift; SIZE="$1" ;;
+                -h|--help)      usage            ;;
+                *)              args+=( "$1" )   ;;
+            esac
+            shift
+        done
+    }
+
+    start() {
+        if pgrep -xa Xephyr |grep -q my_xephyr_$DSP >/dev/null 2>&1; then
+            errorout "Xephyr on :$DSP is already started..."
+        fi
+        "$XEPHYR" -name my_xephyr_$DSP -ac -br -noreset -no-host-grab -resizeable -dpi $DPI -screen $SIZE :$DSP >/dev/null 2>&1 &
+        sleep 1
+        DISPLAY=:$DSP.0 "$WMCOMMAND" >/dev/null 2>&1 &
+        sleep 1
+        echo
+        echo "Using display $DSP"
+        echo "$DSP: ${WM} PID is $(wm_pid)"
+        echo "$DSP: Xephyr PID is $(xephyr_pid)"
+        echo "$DSP: dpi is $DPI"
+        echo "$DSP: screen is $SIZE"
+        echo
+    }
+
+    # Let's go.
+
+    parse_options "$@"
+    start "${args[@]}"
+else
+    ## open directly when not nested
+    if [ -n "$1" ]; then x $*; else x xfce; fi
+fi

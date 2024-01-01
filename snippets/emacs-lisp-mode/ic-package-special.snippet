@@ -1,5 +1,6 @@
 # -*- mode: snippet -*-
-# name: ic/package-special
+# name: im.package-special
 # key: ic
 # --
-(p/special ($0eglot . "/home/vip/source/emacs-eglot/"))
+(with-eval-after-load 'dist
+  (p/special (eglot . "/home/vip/source/emacs-eglot/")$0))

@@ -1,4 +1,4 @@
-;;; ahs.el --- auto-highlight-symbol, Automatic highlighting current symbol minor mode
+;;; ahs.el --- auto-highlight-symbol, Automatic highlighting current symbol minor mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009 2010 Mitsuo Saito
 ;; Created date 2009-03-03 21:44 +0900
@@ -13,11 +13,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'color)
-
-(eval-when-compile
-  (require 'cl)
-  (defvar dropdown-list-overlays nil))
 
 (defgroup ahs nil
   "Automatic highlighting current symbol minor mode"
@@ -103,7 +100,7 @@ Affects only overlay(hidden text) has a property `isearch-open-invisible'."
   :group 'ahs
   :type 'boolean)
 
-(defconst ahs-default-symbol-regexp "^[0-9A-Za-z/_.,:;*+=&%|$#@!^?-]\\{2,\\}$"
+(defconst ahs-default-symbol-regexp "^[0-9A-Za-z/_.,:;*+=&%|$#@!^?~-]\\{2,\\}$"
   "Default symbol regular expression.")
 
 (defcustom ahs-include ahs-default-symbol-regexp
