@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: :results
 # key: :
-# condition: (im-grab-line "^[[:blank:]]*#\\+begin_.*")
+# condition: (im:grab-line "^[[:blank:]]*#\\+begin_.*")
 # --
 :results ${$$(yas-choose-value '("output" "table" "value" "vector" "list" "file" "raw" "silent" "append" "replace"))}

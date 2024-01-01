@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: :dir/reading..
 # key: dir
-# condition: (im-grab-line "^[[:blank:]]*#\\+begin_.*")
+# condition: (im:grab-line "^[[:blank:]]*#\\+begin_.*")
 # --
 :dir `(file-relative-name (read-directory-name "Working directory: "))`$0

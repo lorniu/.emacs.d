@@ -1,0 +1,26 @@
+# -*- mode: snippet -*-
+# name: im.org-mode (vip)
+# key: ic
+# --
+
+;; sync published notes to vps & reload web server on vps
+
+(defun im.sync-notes.html-to-vps (&optional _)
+  (interactive)
+  (let ((script "~/.notes/scripts/notes-publish-to-vps.sh"))
+    (if (file-exists-p script)
+        (im.interactive-script script "*note-publish-post-script-log*")
+      (message "[sync-notes] No file %s found" script))))
+
+(defun im.reload-notes.server-on-vps ()
+  (interactive)
+  (when (and default-directory (string-match-p "/.notes/" default-directory))
+    (alert "Reloading remote server..." :timeout 120 :severity 'low :title "Reload" :id 12879)
+    (url-retrieve (format "https://%s/sys/pull-and-reload" im.host)
+                  (lambda (_)
+                    (re-search-forward "\n\n")
+                    (alert (format "%s" (buffer-substring (point) (point-max))) :title "Reload" :id 12879)
+                    (kill-buffer)))))
+
+(add-hook 'note-publish-post-hook #'im.sync-notes.html-to-vps)
+(add-hook 'gac/commit-and-push-hook #'im.reload-notes.server-on-vps)

@@ -1,4 +1,4 @@
-;;; subword-mode-expansions.el --- Expansions for subword-mode to be used for CamelCase
+;;; subword-mode-expansions.el --- Expansions for subword-mode to be used for CamelCase  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014 Lefteris Karapetsas
 
@@ -31,7 +31,7 @@
 (require 'expand-region-core)
 (require 'subword)
 
-(defun er/mark-subword ()
+(defun er-mark-subword ()
   "Mark a subword, a part of a CamelCase identifier."
   (interactive)
   (when (and subword-mode
@@ -40,13 +40,13 @@
     (set-mark (point))
     (subword-left 1)))
 
-(defun er/add-subword-mode-expansions ()
+(defun er-add-subword-mode-expansions ()
   "Add expansions for buffers in `subword-mode'."
-  (set (make-local-variable 'er/try-expand-list)
-       (append er/try-expand-list
-               '(er/mark-subword))))
+  (set (make-local-variable 'er-try-expand-list)
+       (append er-try-expand-list
+               '(er-mark-subword))))
 
-(er/enable-minor-mode-expansions 'subword-mode 'er/add-subword-mode-expansions)
+(er-enable-minor-mode-expansions 'subword-mode 'er-add-subword-mode-expansions)
 
 (provide 'subword-mode-expansions)
 ;;; subword-mode-expansions.el ends here

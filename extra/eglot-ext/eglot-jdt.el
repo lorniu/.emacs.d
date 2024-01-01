@@ -3,7 +3,6 @@
 ;;; Code:
 
 (require 's)
-(require 'dash)
 (require 'eglot)
 
 (defvar eglot-jdt-lombok-path "~/.m2/repository/org/projectlombok/lombok/1.18.22/lombok-1.18.22.jar")
@@ -11,7 +10,7 @@
 (defvar eglot-jdt-cache-dir (locate-user-emacs-file "eglot-cache/jdt-ls"))
 
 
-;;; Contact
+;;; Contract
 
 (defclass eglot-jdt-server (eglot-lsp-server) ()
   :documentation "Eclipse's Java Development Tools Language Server.")
@@ -46,9 +45,13 @@
       (make-directory workspace t))
     workspace))
 
-(defun eglot-jdt-contact (_interactive)
+(defun eglot-jdt-contract (_interactive)
   "Return cons (CLASS . ARGS) for connecting to Eclipse JDT.
 If INTERACTIVE, prompt user for details."
+  (unless (executable-find "jdtls")
+    (user-error "You should install 'jdtls' first"))
+  (unless (file-exists-p eglot-jdt-lombok-path)
+    (user-error "You should install 'lombok' to .m2 dir"))
   (cons 'eglot-jdt-server
         (list
          "jdtls"
@@ -56,7 +59,7 @@ If INTERACTIVE, prompt user for details."
          "-configuration" (expand-file-name "config" eglot-jdt-cache-dir)
          "-data" (eglot-jdt-workspace-dir))))
 
-(add-to-list 'eglot-server-programs '(java-mode . eglot-jdt-contact))
+(add-to-list 'eglot-server-programs '(java-mode . eglot-jdt-contract))
 
 (defun eglot-jdt-project-try-eglot (dir)
   "Xref outside project directory."
@@ -82,9 +85,10 @@ If INTERACTIVE, prompt user for details."
   (or (save-match-data
         (when (string-match "jdt://contents/\\(.*?\\)/\\(.*\\)\.class\\?" url)
           (format "%s.java" (replace-regexp-in-string "/" "." (match-string 2 url) t t))))
-      (-when-let ((_ file-name _ jar)
-                  (s-match "jdt://.*?/\\(.*?\\)\\?=\\(.*?\\)/.*/\\(.*\\)" (url-unhex-string url)))
-        (format "%s(%s)" file-name (replace-regexp-in-string "\\\\\\|/" "" jar)))
+      (pcase-let ((`(_ ,file-name _ ,jar)
+                   (s-match "jdt://.*?/\\(.*?\\)\\?=\\(.*?\\)/.*/\\(.*\\)" (url-unhex-string url))))
+        (when (and file-name jar)
+          (format "%s(%s)" file-name (replace-regexp-in-string "\\\\\\|/" "" jar))))
       (save-match-data
         (when (string-match "chelib://\\(.*\\)" url)
           (let ((matched (match-string 1 url)))

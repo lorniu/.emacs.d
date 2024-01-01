@@ -1,13 +1,11 @@
 # -*- mode: snippet -*-
-# name: ic/org-mode
+# name: im.org-mode
 # key: ic
 # --
 
 (setq org-directory ".../notes/.src/"
-      note-publish-directory ".../notes/html/"
+      org-publish-directory ".../notes/html/"
+      agenda-directory org-directory
+      org-roam-directory org-directory)
 
-      org-agenda-notes (append
-                        (file-expand-wildcards (expand-file-name "*/*.org" org-directory))
-                        (file-expand-wildcards (expand-file-name "*/*/*.org" org-directory)))
-
-      org-roam-directory ".../notes/.src")
+(setq org-agenda-files (file-expand-wildcards (expand-file-name "*.org" agenda-directory)))

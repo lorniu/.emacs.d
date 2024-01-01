@@ -1,4 +1,4 @@
-;;; js-mode-expansions.el --- JS-specific expansions for expand-region
+;;; js-mode-expansions.el --- JS-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011 Magnar Sveen
 
@@ -22,12 +22,12 @@
 
 ;; Extra expansions for JavaScript that I've found useful so far:
 ;;
-;;    er/mark-js-function
-;;    er/mark-js-object-property-value
-;;    er/mark-js-object-property
-;;    er/mark-js-if
-;;    er/mark-js-inner-return
-;;    er/mark-js-outer-return
+;;    er-mark-js-function
+;;    er-mark-js-object-property-value
+;;    er-mark-js-object-property
+;;    er-mark-js-if
+;;    er-mark-js-inner-return
+;;    er-mark-js-outer-return
 ;;
 ;; Feel free to contribute any other expansions for JavaScript at
 ;;
@@ -37,7 +37,7 @@
 
 (require 'expand-region-core)
 
-(defun er/mark-js-function ()
+(defun er-mark-js-function ()
   "Mark the current JavaScript function."
   (interactive)
   (condition-case nil
@@ -53,7 +53,7 @@
   (forward-list)
   (exchange-point-and-mark))
 
-(defun er/mark-js-outer-return ()
+(defun er-mark-js-outer-return ()
   "Mark the current return statement, including return and ending semi-colon"
   (interactive)
   (condition-case nil
@@ -71,7 +71,7 @@
   (forward-char)
   (exchange-point-and-mark))
 
-(defun er/mark-js-inner-return ()
+(defun er-mark-js-inner-return ()
   "Mark contents of the current return statement, not including return or semi-colon"
   (interactive)
   (condition-case nil
@@ -89,7 +89,7 @@
       (forward-char)))
   (exchange-point-and-mark))
 
-(defun er/mark-js-if ()
+(defun er-mark-js-if ()
   "Mark the current if-statement."
   (interactive)
   (condition-case nil
@@ -108,7 +108,7 @@
   (forward-list)
   (exchange-point-and-mark))
 
-(defun er/mark-js-object-property-value ()
+(defun er-mark-js-object-property-value ()
   "Mark the current object property value, ie. from : to , or }"
   (interactive)
   (unless (er--point-inside-pairs-p)
@@ -122,18 +122,18 @@
     (if (looking-at "\\s(")
         (forward-list)
       (forward-char)))
-  (when (er/looking-back-max "[\s\n]" 400)
+  (when (er-looking-back-max "[\s\n]" 400)
     (search-backward-regexp "[^\s\n]")
     (forward-char))
   (exchange-point-and-mark))
 
-(defun er/mark-js-object-property ()
+(defun er-mark-js-object-property ()
   "Mark js-object-property presumes that point is at the assignment part of key: value.
 If point is inside the value, that will be marked first anyway."
   (interactive)
   (when (or (looking-at "\"?\\(\\s_\\|\\sw\\| \\)*\":")
             (looking-at "\\(\\s_\\|\\sw\\)*:")
-            (er/looking-back-max ": ?" 2))
+            (er-looking-back-max ": ?" 2))
     (search-backward-regexp "[{,]")
     (forward-char)
     (search-forward-regexp "[^\s\n]")
@@ -145,17 +145,17 @@ If point is inside the value, that will be marked first anyway."
       (if (looking-at "\\s(")
           (forward-list)
         (forward-char)))
-    (when (er/looking-back-max "[\s\n]" 400)
+    (when (er-looking-back-max "[\s\n]" 400)
       (search-backward-regexp "[^\s\n]")
       (forward-char))
     (exchange-point-and-mark)))
 
-(defun er/mark-js-call ()
+(defun er-mark-js-call ()
   "Mark the current symbol (including dots) and then parens or squares."
   (interactive)
   (let ((symbol-regexp "\\(\\s_\\|\\sw\\|\\.\\)+"))
     (when (or (looking-at symbol-regexp)
-              (er/looking-back-on-line symbol-regexp))
+              (er-looking-back-on-line symbol-regexp))
       (skip-syntax-backward "_w.")
       (when (looking-at "!")
         (forward-char 1))
@@ -166,21 +166,21 @@ If point is inside the value, that will be marked first anyway."
           (forward-list))
       (exchange-point-and-mark))))
 
-(defun er/add-js-mode-expansions ()
+(defun er-add-js-mode-expansions ()
   "Adds JS-specific expansions for buffers in js-mode"
-  (set (make-local-variable 'er/try-expand-list) (append
-                                                  er/try-expand-list
-                                                  '(er/mark-js-function
-                                                    er/mark-js-object-property-value
-                                                    er/mark-js-object-property
-                                                    er/mark-js-if
-                                                    er/mark-js-inner-return
-                                                    er/mark-js-outer-return
-                                                    er/mark-js-call))))
+  (set (make-local-variable 'er-try-expand-list) (append
+                                                  er-try-expand-list
+                                                  '(er-mark-js-function
+                                                    er-mark-js-object-property-value
+                                                    er-mark-js-object-property
+                                                    er-mark-js-if
+                                                    er-mark-js-inner-return
+                                                    er-mark-js-outer-return
+                                                    er-mark-js-call))))
 
-(er/enable-mode-expansions 'js-mode 'er/add-js-mode-expansions)
-(er/enable-mode-expansions 'js2-mode 'er/add-js-mode-expansions)
-(er/enable-mode-expansions 'js3-mode 'er/add-js-mode-expansions)
+(er-enable-mode-expansions 'js-mode 'er-add-js-mode-expansions)
+(er-enable-mode-expansions 'js2-mode 'er-add-js-mode-expansions)
+(er-enable-mode-expansions 'js3-mode 'er-add-js-mode-expansions)
 
 (provide 'js-mode-expansions)
 

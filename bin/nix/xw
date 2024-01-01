@@ -1,0 +1,30 @@
+#!/bin/sh
+
+### Open desktop under wayland
+
+export GDK_BACKEND=wayland
+export QT_QPA_PLATFORM=wayland
+export MOZ_ENABLE_WAYLAND=1
+
+# input method
+
+export QT_IM_MODULE=fcitx
+export SDL_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+
+# session
+
+case ${1:-niri} in
+    kde|plasma)
+        # pacman -S plasma-meta
+        exec startplasma-wayland
+        ;;
+    fce|xface)
+        # pacman -S xfce4 labwc
+        exec startxfce4 --wayland
+        ;;
+    *)
+        # pacman -S niri xwayland-satellite
+        exec niri-session
+        ;;
+esac

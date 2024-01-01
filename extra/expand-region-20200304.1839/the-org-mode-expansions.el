@@ -1,4 +1,4 @@
-;;; the-org-mode-expansions.el --- Expansions for expand-region to be used in org-mode
+;;; the-org-mode-expansions.el --- Expansions for expand-region to be used in org-mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Magnar Sveen
 
@@ -31,13 +31,15 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'org-fold))
+
 (require 'expand-region-core)
 (require 'org-macs)
 
 (declare-function org-up-element "org")
 (declare-function org-mark-subtree "org")
 
-(defun er/mark-org-element ()
+(defun er-mark-org-element ()
   (interactive)
   (let* ((el (org-element-at-point))
          (begin (plist-get (cadr el) :begin))
@@ -47,7 +49,7 @@
     (goto-char end)
     (exchange-point-and-mark)))
 
-(defun er/mark-org-element-parent ()
+(defun er-mark-org-element-parent ()
   (interactive)
   (let* ((el (plist-get (cadr (org-element-at-point)) :parent))
          (begin (plist-get (cadr el) :begin))
@@ -58,7 +60,7 @@
       (goto-char end)
       (exchange-point-and-mark))))
 
-(defun er/mark-org-code-block ()
+(defun er-mark-org-code-block ()
   "Marks an org-code-block."
   (interactive)
   (let ((case-fold-search t)
@@ -69,7 +71,7 @@
     (search-forward (concat "#+end_" (match-string 1)))
     (exchange-point-and-mark)))
 
-(defun er/mark-org-code-inner-block ()
+(defun er-mark-org-code-inner-block ()
   "Marks an org-code-block's content."
   (interactive)
   (let ((element (org-element-at-point)))
@@ -81,32 +83,32 @@
       (goto-char (org-element-property :begin element))
       (forward-line 1))))
 
-(defun er/mark-org-parent ()
+(defun er-mark-org-parent ()
   "Marks a heading 1 level up from current subheading"
   (interactive)
   (org-up-element)
   (org-mark-subtree))
 
-(defun er/save-org-mode-excursion (action)
+(defun er-save-org-mode-excursion (action)
   "Save outline visibility while expanding in org-mode"
-  (org-save-outline-visibility t
+  (org-fold-save-outline-visibility t
     (funcall action)))
 
-(defun er/add-org-mode-expansions ()
+(defun er-add-org-mode-expansions ()
   "Adds org-specific expansions for buffers in org-mode"
-  (set (make-local-variable 'er/try-expand-list)
+  (set (make-local-variable 'er-try-expand-list)
        (append
-        (remove #'er/mark-defun er/try-expand-list)
+        (remove #'er-mark-defun er-try-expand-list)
         '(org-mark-subtree
-          er/mark-org-element
-          er/mark-org-element-parent
-          er/mark-org-code-inner-block
-          er/mark-org-code-block
-          er/mark-paragraph
-          er/mark-org-parent)))
-  (set (make-local-variable 'er/save-mode-excursion)
-       #'er/save-org-mode-excursion))
+          er-mark-org-element
+          er-mark-org-element-parent
+          er-mark-org-code-inner-block
+          er-mark-org-code-block
+          er-mark-paragraph
+          er-mark-org-parent)))
+  (set (make-local-variable 'er-save-mode-excursion)
+       #'er-save-org-mode-excursion))
 
-(er/enable-mode-expansions 'org-mode 'er/add-org-mode-expansions)
+(er-enable-mode-expansions 'org-mode 'er-add-org-mode-expansions)
 
 (provide 'the-org-mode-expansions)

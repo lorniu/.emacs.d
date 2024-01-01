@@ -18,7 +18,7 @@
 (defvar eglot-fsac-log-verbose nil)
 
 
-;;; Contact
+;;; Contract
 
 (defclass eglot-fsac-server (eglot-lsp-server) ()
   :documentation "FSharp Language Server.")
@@ -49,12 +49,15 @@
          :EnableReferenceCodeLens nil
          :GenerateBinlog nil))))))
 
-(defun eglot-fsac-contact (_interactive)
-  (let ((cmd (append '("fsautocomplete" "--adaptive-lsp-server-enabled")
-                     (if eglot-fsac-log-verbose '("-v")))))
-    (cons 'eglot-fsac-server cmd)))
+(defun eglot-fsac-contract (_interactive)
+  (let ((fsac "fsautocomplete"))
+    (unless (executable-find fsac)
+      (user-error "You should install fsac first:  dotnet tool install -g %s" fsac))
+    (cons 'eglot-fsac-server
+          (append `(,fsac "--adaptive-lsp-server-enabled")
+                  (if eglot-fsac-log-verbose '("-v"))))))
 
-(add-to-list 'eglot-server-programs '(fsharp-mode . eglot-fsac-contact))
+(add-to-list 'eglot-server-programs '(fsharp-mode . eglot-fsac-contract))
 
 (provide 'eglot-fsac)
 

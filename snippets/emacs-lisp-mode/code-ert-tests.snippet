@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: ert-tests
+# key: code
+# --
+(require 'ert)
+
+(ert-deftest test1 ()
+  (should (= a b))
+  (should-error (f)))

@@ -1,0 +1,17 @@
+# -*- mode: snippet -*-
+# name: Github Actions
+# key: action
+# expand-env: ((yas-indent-line 'fixed))
+# --
+name: workflow1
+on:
+  push:
+    branches: [master, main]
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Echo Something
+        run: |
+          echo Hello Actions

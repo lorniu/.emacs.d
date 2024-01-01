@@ -1,4 +1,4 @@
-;;; enh-ruby-mode-expansions.el --- Expansions for enh-ruby-mode
+;;; enh-ruby-mode-expansions.el --- Expansions for enh-ruby-mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011 Magnar Sveen
 
@@ -28,15 +28,15 @@
 
 ;;; Code:
 
-(defun er/add-enh-ruby-mode-expansions ()
+(defun er-add-enh-ruby-mode-expansions ()
   "Adds Ruby-specific expansions for buffers in enh-ruby-mode"
   (require 'ruby-mode-expansions)
 
-  (set (make-local-variable 'er/try-expand-list) (append
-                                                  (remove 'er/mark-defun er/try-expand-list)
-                                                  '(er/mark-ruby-instance-variable
-                                                    er/mark-ruby-block-up))))
+  (set (make-local-variable 'er-try-expand-list) (append
+                                                  (remove 'er-mark-defun er-try-expand-list)
+                                                  '(er-mark-ruby-instance-variable
+                                                    er-mark-ruby-block-up))))
 
-(er/enable-mode-expansions 'enh-ruby-mode 'er/add-enh-ruby-mode-expansions)
+(er-enable-mode-expansions 'enh-ruby-mode 'er-add-enh-ruby-mode-expansions)
 
 (provide 'enh-ruby-mode-expansions)

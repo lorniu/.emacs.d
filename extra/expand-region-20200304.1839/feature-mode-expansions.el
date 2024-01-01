@@ -1,4 +1,4 @@
-;;; feature-mode-expansions.el --- cucumber-specific expansions for expand-region
+;;; feature-mode-expansions.el --- cucumber-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Raimon Grau
 
@@ -27,8 +27,8 @@
 ;; Expansions:
 ;;
 ;;
-;;  er/mark-feature-scenario
-;;  er/mark-feature-step
+;;  er-mark-feature-scenario
+;;  er-mark-feature-step
 
 (require 'expand-region-core)
 
@@ -48,21 +48,21 @@
    (forward-line 0)
    (exchange-point-and-mark)))
 
-(defun er/mark-feature-scenario ()
+(defun er-mark-feature-scenario ()
   (interactive)
   (er--block-between-keywords "\\(Background:\\|Scenario:\\|Feature:\\)"))
 
-(defun er/mark-feature-step ()
+(defun er-mark-feature-step ()
   (interactive)
   (er--block-between-keywords "\\(And\\|Given\\|When\\|Then\\)"  "\\(And\\|Given\\|When\\|Then\\|Scenario:\\)"))
 
-(defun er/add-feature-mode-expansions ()
+(defun er-add-feature-mode-expansions ()
   "Adds cucumber-specific expansions for buffers in feature-mode"
-  (set (make-local-variable 'er/try-expand-list) (append
-                                                  er/try-expand-list
-                                                  '(er/mark-feature-scenario
-                                                    er/mark-feature-step))))
+  (set (make-local-variable 'er-try-expand-list) (append
+                                                  er-try-expand-list
+                                                  '(er-mark-feature-scenario
+                                                    er-mark-feature-step))))
 
-(er/enable-mode-expansions 'feature-mode 'er/add-feature-mode-expansions)
+(er-enable-mode-expansions 'feature-mode 'er-add-feature-mode-expansions)
 
 (provide 'feature-mode-expansions)

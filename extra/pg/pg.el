@@ -1,4 +1,4 @@
-;;; pg.el --- Emacs Lisp interface to the PostgreSQL RDBMS
+;;; pg.el --- Emacs Lisp interface to the PostgreSQL RDBMS  -*- lexical-binding: t; -*-
 ;;;
 ;;; Author: Eric Marsden <emarsden@laas.fr>
 ;;; Maintainer: Helmut Eller <heller@common-lisp.net>

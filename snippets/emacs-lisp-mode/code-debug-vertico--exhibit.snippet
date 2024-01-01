@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: debug-vertico--exhibit
+# key: code
+# --
+(defun force-debug (func &rest args)
+(condition-case e
+(apply func args)
+((debug error) (signal (car e) (cdr e)))))
+
+(advice-add #'vertico--exhibit :around #'force-debug)

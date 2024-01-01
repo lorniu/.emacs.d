@@ -1,4 +1,4 @@
-;;; sqlplus.el --- User friendly interface to SQL*Plus and support for PL/SQL compilation
+;;; sqlplus.el --- User friendly interface to SQL*Plus and support for PL/SQL compilation  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007, 2008 Peter Karpiuk, Scott Tiger S.A.
 
