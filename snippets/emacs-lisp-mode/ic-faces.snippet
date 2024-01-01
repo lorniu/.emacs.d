@@ -1,10 +1,25 @@
 # -*- mode: snippet -*-
-# name: ic/faces
+# name: im.faces
 # key: ic
 # --
 
-(setq ic/faces (list
-               :title "imfine"
-               :frame 'max
-               :theme 'zero-dark
-               :font (cons "Consolas" 120)))
+(setq im.faces
+      `((def
+         :title "imfine"
+         :theme gruvbox-dark-hard
+         :font "LXGW WenKai Mono 17"
+         :font-cn "SimSun-17:bold"
+         :font-emoji "twemoji"
+         :mode-line-height 120
+         :bound max or (100 30 nil nil)
+         :alpha 88
+         :hook ,(lambda () (message "Done")))
+        (reading.
+         :theme nano-light
+         :font "Source Serif Pro"
+         :font-cn "STZhongsong"
+         :height 200
+         :line-spacing 0.1
+         :mode-line-height 100
+         :cursor-type 'hbar
+         :alpha 98)))

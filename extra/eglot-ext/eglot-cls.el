@@ -12,7 +12,7 @@
 (defvar eglot-cls-solution-file nil)
 
 
-;;; Contact
+;;; Contract
 
 (defclass eglot-cls-server (eglot-lsp-server) ()
   :documentation "CSharp Language Server.")
@@ -28,13 +28,16 @@
          (diags (cl-delete-if fn diagnostics)))
     (cl-call-next-method _server _method :uri uri :diagnostics diags)))
 
-(defun eglot-cls-contact (_interactive)
-  (let ((cmd (append (list "csharp-ls")
-                     (when eglot-cls-solution-file
-                       (list "-s" eglot-cls-solution-file)))))
-    (cons 'eglot-cls-server cmd)))
+(defun eglot-cls-contract (_interactive)
+  (let ((cls "csharp-ls"))
+    (unless (executable-find cls)
+      (user-error "You should install cls first:  dotnet tool install -g %s" cls))
+    (let ((cmd (append (list cls)
+                       (when eglot-cls-solution-file
+                         (list "-s" eglot-cls-solution-file)))))
+      (cons 'eglot-cls-server cmd))))
 
-(add-to-list 'eglot-server-programs '(csharp-mode . eglot-cls-contact))
+(add-to-list 'eglot-server-programs '(csharp-mode . eglot-cls-contract))
 
 
 ;;; URI resolver

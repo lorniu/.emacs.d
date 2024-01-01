@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: is/walk-directory
+# key: is
+# --
+
+(is/walk-directory ("~/vvv" ".el")
+  ;; cw-1 :: dir/its/it idx/cnt
+  (with-current-buffer (find-file-noselect it)
+    (unwind-protect (cw "Mode: {major-mode}")
+      (if (buffer-modified-p) (save-buffer)))))

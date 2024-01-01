@@ -1,4 +1,4 @@
-;;; python-el-expansions.el --- Python-specific expansions for expand-region
+;;; python-el-expansions.el --- Python-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Ivan Andrus
 
@@ -25,13 +25,13 @@
 ;;  - Mark functionality taken from python.el:
 ;;    - `python-mark-block'
 ;;  - Additions implemented here:
-;;    - `er/mark-python-statement'
-;;    - `er/mark-inside-python-string'
-;;    - `er/mark-outside-python-string'
+;;    - `er-mark-python-statement'
+;;    - `er-mark-inside-python-string'
+;;    - `er-mark-outside-python-string'
 ;;  - Supports multi-line strings
 
-;; There is no need for a er/mark-python-defun since
-;; er/mark-python-block will mark it
+;; There is no need for a er-mark-python-defun since
+;; er-mark-python-block will mark it
 
 ;; Feel free to contribute any other expansions for Python at
 ;;
@@ -46,14 +46,14 @@
 
 (defvar er--python-string-delimiter "'\"")
 
-(defun er/mark-python-statement ()
+(defun er-mark-python-statement ()
   "Marks one Python statement, eg. x = 3"
   (interactive)
   (python-nav-end-of-statement)
   (set-mark (point))
   (python-nav-beginning-of-statement))
 
-(defun er/mark-outside-python-string ()
+(defun er-mark-outside-python-string ()
   "Marks region outside a (possibly multi-line) Python string"
   (interactive)
   (python-beginning-of-string)
@@ -61,7 +61,7 @@
   (forward-sexp)
   (exchange-point-and-mark))
 
-(defun er/mark-inside-python-string ()
+(defun er-mark-inside-python-string ()
   "Marks region inside a (possibly multi-line) Python string"
   (interactive)
   (when (eq 'string (syntax-ppss-context (syntax-ppss)))
@@ -73,19 +73,19 @@
       (goto-char string-beginning)
       (skip-chars-forward er--python-string-delimiter))))
 
-(defun er/add-python-mode-expansions ()
+(defun er-add-python-mode-expansions ()
   "Adds Python-specific expansions for buffers in python-mode"
-  (let ((try-expand-list-additions '(er/mark-python-statement
-                                     er/mark-inside-python-string
-                                     er/mark-outside-python-string
+  (let ((try-expand-list-additions '(er-mark-python-statement
+                                     er-mark-inside-python-string
+                                     er-mark-outside-python-string
                                      python-mark-block)))
     (set (make-local-variable 'expand-region-skip-whitespace) nil)
-    (set (make-local-variable 'er/try-expand-list)
-         (remove 'er/mark-inside-quotes
-                 (remove 'er/mark-outside-quotes
-                         (append er/try-expand-list try-expand-list-additions))))))
+    (set (make-local-variable 'er-try-expand-list)
+         (remove 'er-mark-inside-quotes
+                 (remove 'er-mark-outside-quotes
+                         (append er-try-expand-list try-expand-list-additions))))))
 
-(er/enable-mode-expansions 'python-mode 'er/add-python-mode-expansions)
+(er-enable-mode-expansions 'python-mode 'er-add-python-mode-expansions)
 
 (provide 'python-el-expansions)
 

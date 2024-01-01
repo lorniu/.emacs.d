@@ -4,11 +4,11 @@
 # condition: (<= (current-column) 4)
 # --
 `(concat
-   (if (im-org-in-drawer-p) "" ":PROPERTIES:\n")
+   (if (im:org-in-drawer-p) "" ":PROPERTIES:\n")
    (pcase (completing-read "DB: " '("SQLite" "MySQL" "mssql" "PostgreSQL" "Oracle") nil t)
      ("SQLite"     ":header-args:sqlite+: :db ~/vvv/aaa.sqlite")
      ("MySQL"      ":header-args:sql+: :engine mysql :dbhost localhost :dbuser root :dbpassword root :database mysql")
      ("mssql"      ":header-args:sql+: :engine mssql :dbhost localhost :dbuser sa :dbpassword sa :database master")
      ("PostgreSQL" ":header-args:sql+: :engine mssql :dbhost localhost :dbuser postgres :database vip")
      ("Oracle"     ":header-args:sql+: :engine oracle :dbuser system"))
-   (if (im-org-in-drawer-p) "" "\n:END:"))`
+   (if (im:org-in-drawer-p) "" "\n:END:"))`

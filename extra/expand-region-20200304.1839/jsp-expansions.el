@@ -1,4 +1,4 @@
-;;; jsp-expansions.el --- JSP-specific expansions for expand-region
+;;; jsp-expansions.el --- JSP-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011 Magnar Sveen
 
@@ -23,7 +23,7 @@
 ;; Extra expansions for editing JSP files. To be used in conjunction
 ;; with the html-mode expansions
 ;;
-;;     er/mark-jstl-escape
+;;     er-mark-jstl-escape
 ;;
 ;; These expansions aren't loaded by default, so you'll have to explicitly
 ;; ask for them in your init file with:
@@ -38,12 +38,12 @@
 
 (require 'expand-region-core)
 
-(defun er/mark-jstl-escape ()
+(defun er-mark-jstl-escape ()
     "Mark jstl-escape presumes that point is outside the brackets.
 If point is inside the brackets, they will be marked first anyway."
     (interactive)
       (when (or (looking-at "\\${")
-            (er/looking-back-exact "$"))
+            (er-looking-back-exact "$"))
     (forward-char 1)
     (search-backward "\$")
     (set-mark (point))
@@ -51,13 +51,13 @@ If point is inside the brackets, they will be marked first anyway."
     (forward-list)
     (exchange-point-and-mark)))
 
-(defun er/add-jsp-expansions ()
+(defun er-add-jsp-expansions ()
   "Adds JSP-specific expansions to the buffer"
-  (set (make-local-variable 'er/try-expand-list) (append
-                                                  er/try-expand-list
-                                                  '(er/mark-jstl-escape))))
+  (set (make-local-variable 'er-try-expand-list) (append
+                                                  er-try-expand-list
+                                                  '(er-mark-jstl-escape))))
 
-(er/enable-mode-expansions 'html-mode 'er/add-jsp-expansions)
+(er-enable-mode-expansions 'html-mode 'er-add-jsp-expansions)
 
 (provide 'jsp-expansions)
 

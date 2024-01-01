@@ -1,4 +1,4 @@
-;;; sml-mode-expansions.el --- Expansions for expand-region to be used in sml-mode
+;;; sml-mode-expansions.el --- Expansions for expand-region to be used in sml-mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Alexis Gallagher
 
@@ -24,9 +24,9 @@
 ;; Provides extra expansions for sml-mode:
 ;; - various expression (case, if, let)
 ;; - fun bindings
-;; 
+;;
 ;; Tested with sml-mode version 6.3
-;; 
+;;
 ;; Feel free to contribute any other expansions for SML at
 ;;
 ;;     https://github.com/magnars/expand-region.el
@@ -41,23 +41,23 @@
 ;; TODO: individual field, record type
 ;; TODO: head-or-tail, then cons expression
 
-(defun er/sml-mark-keyword-prefixed-expression ()
+(defun er-sml-mark-keyword-prefixed-expression ()
   "Mark the surrounding expression."
   (interactive)
-  (progn 
+  (progn
     (sml-find-matching-starter '("case" "let" "if" "raise"))
     (mark-sexp)))
 
 
-(defun er/add-sml-mode-expansions ()
+(defun er-add-sml-mode-expansions ()
   "Adds expansions for buffers in `sml-mode'."
-  (set (make-local-variable 'er/try-expand-list)
-       (append er/try-expand-list
+  (set (make-local-variable 'er-try-expand-list)
+       (append er-try-expand-list
 	       '(sml-mark-function
-		 er/sml-mark-keyword-prefixed-expression
+		 er-sml-mark-keyword-prefixed-expression
 		 mark-sexp))))
 
-(er/enable-mode-expansions 'sml-mode 'er/add-sml-mode-expansions)
+(er-enable-mode-expansions 'sml-mode 'er-add-sml-mode-expansions)
 
 (provide 'sml-mode-expansions)
 

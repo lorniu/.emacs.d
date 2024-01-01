@@ -1,4 +1,4 @@
-;;; cperl-mode-expansions.el --- perl-specific expansions for expand-region
+;;; cperl-mode-expansions.el --- perl-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Kang-min Liu
 
@@ -22,7 +22,7 @@
 
 (require 'expand-region-core)
 
-(defun er/mark-cperl-variable-name ()
+(defun er-mark-cperl-variable-name ()
   "Marks one perl variable"
   (interactive)
   (forward-word)
@@ -34,7 +34,7 @@
   (backward-char)
   (exchange-point-and-mark))
 
-(defun er/mark-cperl-package-name ()
+(defun er-mark-cperl-package-name ()
   "Marks one perl package name"
   (interactive)
   (forward-sexp)
@@ -44,23 +44,23 @@
   (search-backward "::" (line-beginning-position))
   (exchange-point-and-mark))
 
-(defun er/mark-cperl-subroutine ()
+(defun er-mark-cperl-subroutine ()
   "Marks current subroutine body."
   (interactive)
   (end-of-defun)
   (set-mark (point))
   (beginning-of-defun))
 
-(defun er/add-cperl-mode-expansions ()
+(defun er-add-cperl-mode-expansions ()
   "Add cprel mode expansinos"
-  (set (make-local-variable 'er/try-expand-list) (append
-                                                  er/try-expand-list
-                                                  '(er/mark-cperl-variable-name
-                                                    er/mark-cperl-package-name
-                                                    er/mark-cperl-subroutine
+  (set (make-local-variable 'er-try-expand-list) (append
+                                                  er-try-expand-list
+                                                  '(er-mark-cperl-variable-name
+                                                    er-mark-cperl-package-name
+                                                    er-mark-cperl-subroutine
                                                     ))))
 
-(er/enable-mode-expansions 'cperl-mode 'er/add-cperl-mode-expansions)
+(er-enable-mode-expansions 'cperl-mode 'er-add-cperl-mode-expansions)
 
 (provide 'cperl-mode-expansions)
 

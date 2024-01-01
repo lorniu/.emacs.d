@@ -44,7 +44,6 @@
                                  (run-hooks 'gac/commit-and-push-hook)
                                  (message "Git *PUSH* %s !" (substring status 0 -1))))))
 
-
 (provide 'git-auto-commit)
 
 ;;; git-auto-commit.el ends here
