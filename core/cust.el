@@ -1,55 +1,80 @@
-;;; cust.el --- Customization -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;;; Code:
 
-(setq user-full-name "imfine")
-(setq user-mail-address "lorniu@gmail.com")
+(defgroup imfine nil
+  "Private custom variables"
+  :group 'emacs
+  :prefix "im.")
 
-
-;;; User definitions
+(defcustom org-directory (im:the-file "~/.notes/" "~/org")
+  "Main Directory for Agenda/Notes/Diary and others."
+  :type 'directory)
 
-(defgroup imfine nil "Private custom variables"
-  :group 'emacs :prefix "ic/")
-
-(defcustom org-directory (let ((d "~/.notes")) (expand-file-name (if (file-exists-p d) d "~/org")))
-  "Main Directory for GTD/Notes/Diary and others."
-  :type 'string :group 'imfine)
-
-(defcustom ic/up nil
-  "Private Host"
+(defcustom im.srcdir "~/source/"
+  "Source directory."
   :type 'string)
 
-(defcustom ic/external-paths (list (loce "bin/x") (loco "bin"))
+(defcustom im.workdir "~/workdir/"
+  "Personal work directory."
+  :type 'string)
+
+(defcustom im.downdir (im:the-file (expand-file-name "Downloads/" (getenv (if IS-WIN "USERPROFILE" "HOME"))))
+  "Directory used to download."
+  :type 'string)
+
+(defcustom im.host "127.0.0.1"
+  "My remote server. Ip or host."
+  :type 'string)
+
+(defcustom im.host-user "vip"
+  "Default username of remote server."
+  :type 'string)
+
+(defcustom im.backup-dir (locc "backup-files")
+  "Directory used to backup files."
+  :type 'file)
+
+(defcustom im.auto-save-dir (locc "auto-save")
+  "Directory used to auto save files."
+  :type 'file)
+
+(defun im:host (&optional user host) (concat (or user im.host-user) "@" (or host im.host)))
+
+(defcustom im.external-paths (list (loco "bin"))
   "Extend the PATH environment."
   :type '(repeat string))
 
-(defcustom ic/external-load-path-tops (list (loco "share/emacs/"))
+(defcustom im.external-load-path-roots (list (loco "share/emacs/"))
   "Extra load-path root."
-  :type 'list)
+  :type '(repeat string))
 
-(defcustom ic/find-file-readonly-regexp nil
-  "Regexp to decide whether file should be readonly after opened."
-  :type 'string)
-
-(defcustom ic/system-terminal (cond (IS-WIN "start cmd %s")
+(defcustom im.system-terminal (cond (IS-WIN "start cmd %s")
                                     ((executable-find "alacritty") "alacritty --working-directory %s -t floater"))
   "System terminal, %s for workding directory."
   :type 'string)
 
-(defcustom ic/shengciben (loco "000/words.org")
-  "Shengciben"
-  :type 'string)
+;; personal minor mode
 
-(defvar im-keys-mode-map (make-sparse-keymap))
-(define-minor-mode im-keys-mode "Global override map" :init-value t :global t)
+(defvar imfine-mode-map (make-sparse-keymap))
+
+(define-minor-mode imfine-mode "Personal mode" :init-value t :global t)
 
 
 ;;; Better default
 
-(setq default-directory "~/"
+(setq-default tab-width 4
+              tab-always-indent 'complete
+              indent-tabs-mode nil
 
-      inhibit-default-init t
-      inhibit-startup-message t
+              fill-column 80
+
+              truncate-lines t
+              fringes-outside-margins t
+
+              lexical-binding t)
+
+(setq default-directory "~/"
 
       track-eol t
       custom-unlispify-tag-names nil
@@ -64,231 +89,108 @@
       ad-redefinition-action 'accept
       read-extended-command-predicate #'command-completion-default-include-p
 
-      undo-limit 10000000
+      kill-ring-max 500
+      mark-ring-max 50
+      undo-limit 3200000
+      message-log-max 100000
 
-      byte-compile-warnings '(cl-functions)
-      comp-async-buffer-name " *Async-native-compile-log*")
-
-(setq resize-mini-windows t
+      resize-mini-windows t
       enable-recursive-minibuffers t
-      suggest-key-bindings nil)
+      suggest-key-bindings nil
 
-(add-hook 'minibuffer-setup-hook (lambda () (setq truncate-lines nil)))
-
-(setq column-number-mode 1
-      fringes-outside-margins t)
-
-(setq kill-do-not-save-duplicates t
-      kill-ring-max 250
-      mark-ring-max 10
-      select-enable-clipboard t
-      select-enable-primary nil)
-
-(setq use-dialog-box nil
+      use-short-answers t
+      use-dialog-box nil
+      column-number-mode t
       woman-use-own-frame nil
       help-window-select t
       mouse-autoselect-window -0.05
       x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING)
-      man-notify-method 'pushy)
+      man-notify-method 'pushy
+      confirm-kill-processes nil
 
-(setq confirm-kill-processes nil)
+      auto-mode-case-fold nil
+      word-wrap-by-category t
+      redisplay-skip-fontification-on-input t
 
-(setq-default tab-width 4
-              indent-tabs-mode nil
-              truncate-lines t)
+      kill-do-not-save-duplicates t
+      select-enable-clipboard t
+      select-enable-primary nil
+      shared-game-score-directory (locc "shared-game-score/"))
 
-(fset 'yes-or-no-p 'y-or-n-p)
+;; files
 
-(setq request-storage-directory    (locc "request")
-      pcache-directory             (locc "pacache/")
-      shared-game-score-directory  (locc "shared-game-score/"))
+(setq trusted-content :all
+      create-lockfiles nil ; .#lock-file
+      delete-by-moving-to-trash t)
+
+(setq vc-make-backup-files t  ; backup versioned files
+      backup-inhibited nil    ; version backup file~~
+      backup-by-copying t
+      kept-new-versions 6 kept-old-versions 2 delete-old-versions t version-control t
+      backup-directory-alist `(("." . ,im.backup-dir)))
+
+(setq auto-save-default t ; save #periodically# to avoid crashes
+      auto-save-interval 300
+      auto-save-timeout 30
+      auto-save-list-file-prefix (expand-file-name ".saves-" im.auto-save-dir))
+
+;; Sentence
+
+(setq sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*"
+      sentence-end-double-space nil)
+
+(mapc (lambda (c) (modify-syntax-entry c "." (standard-syntax-table))) '( ?， ?。 ?！ ?； ?？ ?： ?/ ))
 
 
-;;; Data security
+;;; Load-Path
 
-(setq create-lockfiles nil) ;; .#lock-file
+(cl-loop with ds = (list (loce "core") (loce "extra") (loce "repo") (loce "site-lisp"))
+         for root in (append im.external-load-path-roots ds)
+         for dirs = (ignore-errors (directory-files root t))
+         do (cl-loop for dir in dirs
+                     if (and (not (equal (file-name-extension dir) "")) (file-directory-p dir))
+                     do (add-to-list 'load-path dir)))
 
-(setq backup-inhibited nil  ;; version backup file~~
-      backup-by-copying t
-      version-control t kept-new-versions 4 kept-old-versions 2 delete-old-versions t
-      backup-directory-alist `(("\\.cache\\|\\.git\\|\\.ssh")
-                               ("." . ,(locc "backup-files/"))))
+
+;;; Exec-Path
 
-(setq auto-save-default t   ;; save #periodically# to avoid crashes
-      auto-save-interval 300 auto-save-timeout 30
-      auto-save-file-name-transforms `((".*" ,(locc "auto-save/") t))
-      auto-save-list-file-prefix (locc "auto-save/"))
+(cond (IS-WIN   (add-to-list 'im.external-paths (loce "bin/win")))
+      (IS-MAC   (add-to-list 'im.external-paths (loce "bin"))
+                (add-to-list 'im.external-paths (loce "bin/mac"))
+                (add-to-list 'im.external-paths "/opt/homebrew/bin")
+                (add-to-list 'im.external-paths "~/.local/bin/"))
+      (IS-LINUX (add-to-list 'im.external-paths (loce "bin"))
+                (add-to-list 'im.external-paths (loce "bin/nix"))))
 
-(setq delete-by-moving-to-trash t)
+(dolist (d im.external-paths exec-path)
+  (when (file-exists-p d)
+    (setenv "PATH" (concat d (if IS-WIN ";" ":") (getenv "PATH")))
+    (add-to-list 'exec-path d)))
 
 
 ;;; Environments
 
 (setenv "TZ" "est-8")
 (setenv "LC_COLLATE" "C")
-(setenv "LC_ALL" "en_US.UTF-8")
+;; (setenv "LC_ALL" "en_US.UTF-8")
 
 (when IS-WIN
-  (when-let (realhome (and (null (getenv-internal "HOME"))
-                           (getenv "USERPROFILE")))
+  (when-let* ((realhome (and (null (getenv-internal "HOME")) (getenv "USERPROFILE"))))
     (setenv "HOME" realhome)
     (setq abbreviated-home-dir nil)))
 
 
-;;; Encoding/Sentence
-
-(set-locale-environment   "utf-8")
-(prefer-coding-system     'gb2312)
-(prefer-coding-system     'cp936)
-(prefer-coding-system     'utf-16)
-(prefer-coding-system     'utf-8-unix)
-
-(defun im/local-encoding (&optional encoding)
-  "Reset local system encoding, default is CP936."
-  (interactive)
-  (let ((encoding (or encoding 'cp936-dos)))
-    (when (called-interactively-p 'any)
-      (setq encoding (read-coding-system "Choose charset: " 'utf-8)))
-    (set-buffer-file-coding-system encoding)
-    (ignore-errors
-      (set-process-coding-system (get-buffer-process (current-buffer)) encoding encoding))
-    (message "Changed local coding to %s." encoding)))
-
-(when IS-WIN
-  ;; generic encoding
-  (set-language-environment "chinese-gbk")
-  (prefer-coding-system 'utf-8)
-
-  ;; process global encoding
-  (setq process-coding-system-alist '(("what?" utf-8 . utf-8)))
-
-  ;; specified encoding
-  (setq file-name-coding-system 'cp936-dos)
-  (set-terminal-coding-system 'cp936-dos))
-
-(setq sentence-end-double-space nil)
-(setq sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*")
-(mapc (lambda (c) (modify-syntax-entry c "." (standard-syntax-table))) '( ?， ?。 ?！ ?； ?？ ?： ?/ ))
-
-
-;;; Exec-Path
-
-(cond (IS-WIN
-       (add-to-list 'ic/external-paths (loce "bin/w") t)))
-
-(cl-loop for d in ic/external-paths
-         if (file-exists-p d) do
-         (setenv "PATH" (concat d (if IS-WIN ";" ":") (getenv "PATH")))
-         (add-to-list 'exec-path d))
-
-
-;;; Custom File
-
-(setq custom-file
-      (if (boundp 'custome-file-private) custome-file-private
-        (let ((n (format "%s@%s.el"
-                         (string-join (reverse (split-string (downcase (system-name)) "\\.")) ".")
-                         (user-real-login-name)))
-              (d (loco "share/emacs/inits/")))
-          (if (file-exists-p d) (expand-file-name n d) (loce (concat "init-" n))))))
-
-(unless (file-exists-p custom-file)
-  (with-temp-file custom-file (insert (format ";; %s" (system-name)))))
-
-(advice-add #'custom-set-faces :around
-            (defun %make-custom-set-face-the-highest-period (f &rest args)
-              (eval-after-load 'imover (apply f args))))
-
-(condition-case _err
-    (load custom-file t t)
-  )
-
-
-;;; Global List
-
-(setq auto-mode-alist
-      (append '(("\\.class\\'"           . class-mode)
-                ("\\.scm\\'"             . scheme-mode)
-                ("\\.\\(ba\\)?sh\\'"     . sh-mode)
-                ("\\.xaml\\'"            . nxml-mode)
-                ("\\.\\(ini\\|inf\\)\\'" . conf-mode))
-              auto-mode-alist))
-
-(setq jka-compr-compression-info-list
-      (prog1 ;; for .rar, you should install `unarchiver'
-          (append `(["\\.plist$"
-                     "converting text XML to binary plist" "plutil" ("-convert" "binary1" "-o" "-" "-")
-                     "converting binary plist to text XML" "plutil" ("-convert" "xml1" "-o" "-" "-")
-                     nil nil "bplist"])
-                  jka-compr-compression-info-list)
-        (jka-compr-update)))
-
-(setq display-buffer-alist
-      `(("\\*Compile-Log\\*"            ; regexp to filter buffer-name
-         (display-buffer-reuse-window)  ; functions to deal with display
-         (window-height . 0.3)          ; parameters to pass to functions above
-         (window-width . 0.3))
-
-        ("\\*[cC]ompilation\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom))
-
-        ("\\*Messages\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom)
-         (reusable-frames . t))
-
-        ("\\*sly-macroexpansion\\*\\|\\*Pp Macroexpand Output\\*"
-         (display-buffer-reuse-window %display-buffer-in-direction-or-below-selected)
-         (direction . right))
-
-        ("\\*Youdao Dictionary\\*\\|\\*Help\\*\\|\\*Shell Command Output\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom)
-         (window-height . 0.3)
-         (reusable-frames . t))
-
-        ("\\*\\(e?shell[-+]?\\|PowerShell\\|Python\\)\\*\\|[-+]\\(shell\\)[-+]"
-         (display-buffer-same-window)
-         (reusable-frames . t))
-
-        ("\\*Async Shell Command\\*"
-         (%display-buffer-at-bottom-follows-with-quit)
-         (window-height . 0.3))
-
-        ("\\*org-roam\\*"
-         (display-buffer-in-direction)
-         (direction . right)
-         (window-width . 0.33)
-         (window-height . fit-window-to-buffer))
-
-        ("." nil (reusable-frames . t))))
-
-(defmacro im/make-fun--display-my-buffer-in-direction-or- (other)
-  (let ((fname (intern (format "%%display-buffer-in-direction-or-%s" other)))
-        (dname (intern (format "display-buffer-%s" other))))
-    `(defun ,fname (buffer alist)
-       (if (and (> (frame-width) 120)
-                (null (window-in-direction 'right))
-                (null (window-in-direction 'left)))
-           (display-buffer-in-direction buffer alist)
-         (,dname buffer alist)))))
-
-(im/make-fun--display-my-buffer-in-direction-or- below-selected)
-(im/make-fun--display-my-buffer-in-direction-or- at-bottom)
-
-(defun %display-buffer-at-bottom-follows-with-quit (buffer alist)
-  (display-buffer-at-bottom buffer alist)
-  (select-window (get-buffer-window buffer))
-  (with-current-buffer buffer (view-mode 1)))
-
-
 ;;; Global Hooks
+
+(defvar im.find-file-readonly-regexp nil)
 
 (defun:hook find-file-hook/readonly ()
   "Files that should be readonly."
   (let* ((case-fold-search nil)
-         (match? (lambda (&rest items) (string-match-p (apply #'join-as-regor-group items) buffer-file-name))))
+         (match? (lambda (&rest items) (string-match-p (apply #'im:join-as-regor-group items) buffer-file-name))))
     (when (and buffer-file-name
-               (or (and ic/find-file-readonly-regexp
-                        (string-match-p ic/find-file-readonly-regexp buffer-file-name))
+               (or (and im.find-file-readonly-regexp
+                        (string-match-p im.find-file-readonly-regexp buffer-file-name))
                    (and (not
                          (funcall match? ; exclude
                                   "/usr/home"
@@ -315,37 +217,26 @@
         (byte-compile-file (buffer-file-name))))))
 
 
-;;; Global Proxy
+;;; Assist actions for current mode (C-c m / <f12>)
 
-(defvar ic/proxy-type nil "nil, :http or :sock")
-(defvar ic/proxy-http '("127.0.0.1:1081" nil nil))
-(defvar ic/proxy-sock '("Default server" "127.0.0.1" 1080 5))
+(defun im/local-assist ()
+  "Run the command define by `im:local-assist' method."
+  (interactive)
+  (im:local-assist major-mode))
 
-(setq url-gateway-local-host-regexp
-      (concat "^" (regexp-opt '("localhost" "127.0.0.1" "192.168." "10."))))
-
-(defun im/proxy (&optional type)
-  (interactive (list (intern (completing-read "type: " '(disable :sock :http) nil t))))
-  (pcase type
-    (:http (pcase-let ((`(,url ,user ,password) ic/proxy-http))
-             (setq url-gateway-method 'native
-                   url-proxy-services `(("no_proxy" . ,url-gateway-local-host-regexp) ("http" . ,url) ("https" . ,url))
-                   url-http-proxy-basic-auth-storage (if user `((,url (,user . ,password))))
-                   socks-server nil)
-             (message "Http proxy %s enabled." url)))
-    (:sock (setq url-gateway-method 'socks
-                 url-proxy-services nil
-                 socks-server ic/proxy-sock)
-           (message "Sock proxy %s enabled." ic/proxy-sock))
-    (_ (setq url-gateway-method 'native
-             url-proxy-services nil
-             socks-server nil)
-       (message "Proxy canceled."))))
-
-(if ic/proxy-type (im/proxy ic/proxy-type)) ; initial proxy
+(cl-defmethod im:local-assist (_default)
+  "The general assist actions for current major mode."
+  (let ((bn (intern (format "im/assist-%s" (buffer-name)))))
+    (if (commandp bn)
+        (call-interactively bn)
+      (let ((tn (intern (format "im/assist-%s" major-mode))))
+        (if (commandp tn)
+            (call-interactively tn)
+          (message "This is %s, nice to meet you."
+                   (propertize (format "%s" major-mode) 'face 'warning)))))))
 
 
-;;; Server Daemon
+;;; Daemon server
 
 (when IS-G
   (condition-case err
@@ -355,6 +246,45 @@
              (unless (server-running-p) (server-start)))
     (error (message "Server starting error: %s" err))))
 
-(provide 'cust)
+
+;;; OS / Others
 
-;;; cust.el ends here
+(when IS-MAC
+  ;;(setq ns-command-modifier 'meta)
+  ;;(setq ns-alternate-modifier 'super)
+  (setq ns-auto-hide-menu-bar nil))
+
+(when NATIVECOMP
+  (add-to-list 'native-comp-eln-load-path (locc "eln/"))
+  (setq native-comp-bootstrap-deny-list (list ".*/subr--trampoline.*")))
+
+
+;;; Dynamic config file
+
+(defcustom im.custom-file-directory (loco "share/emacs/inits/")
+  "Directory of custom-file."
+  :group 'imfine
+  :type 'file)
+
+(defcustom im.custom-file-file-name
+  (format "init-%s@%s.el"
+          (string-join (reverse (split-string (downcase (system-name)) "\\.")) ".")
+          (user-real-login-name))
+  "File name of custom-file."
+  :group 'imfine
+  :type 'string)
+
+(unless (and (boundp 'custom-file) custom-file)
+  (makunbound 'custom-file)) ; Remove it when not config before, then defvar below will work.
+
+(defvar custom-file
+  (if (file-exists-p im.custom-file-directory)
+      (expand-file-name im.custom-file-file-name im.custom-file-directory)
+    (loce im.custom-file-file-name))
+  "Change this in \\='init-aux.el' if you want.")
+
+(unless (file-exists-p custom-file)
+  (with-temp-file custom-file (insert (format ";; %s" (system-name)))))
+
+(message "[CUST] %s" custom-file)
+(load custom-file nil t nil 'must-suffix)
