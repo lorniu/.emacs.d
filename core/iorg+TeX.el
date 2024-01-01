@@ -1,50 +1,46 @@
-;;; iorg+TeX.el --- LaTeX -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;;; Code:
 
-(x latex
-   :if (executable-find "latex")
-   :init
-   (setq-default TeX-engine 'xetex)
-   :config
-   (defun:hook LaTeX-mode-hook/my-latex ()
-     (setq TeX-command-default "LaTeX")
+(xzz latex
+  :config
+  (setopt TeX-engine 'xetex)
+  (defun:hook LaTeX-mode-hook/my-latex ()
+    (setopt TeX-command-default "LaTeX"
 
-     (setq TeX-master t)
-     (setq TeX-auto-save t)
-     (setq TeX-parse-self t)
+            TeX-master t
+            TeX-auto-save t
+            TeX-parse-self t
 
-     (setq TeX-source-correlate-mode t)
-     (setq TeX-source-correlate-method 'synctex)
-     (setq reftex-plug-into-AUCTeX t)
+            TeX-source-correlate-mode t
+            TeX-source-correlate-method 'synctex
+            reftex-plug-into-AUCTeX t))
+  (reftex-mode 1))
 
-     (reftex-mode t)))
-
-(x ox-latex
-   :init
-   (setq org-latex-listings t
-
-         org-latex-pdf-process
-         '("xelatex -interaction nonstopmode %f"
-           "xelatex -interaction nonstopmode %f")
-
-         org-latex-default-packages-alist
-         '(("UTF8" "ctex"      t)
-           (""     "graphicx"  t)
-           (""     "longtable" nil)
-           (""     "wrapfig"   nil)
-           (""     "rotating"  nil)
-           ("normalem" "ulem"  t)
-           (""     "amsmath"   t)
-           (""     "textcomp"  t)
-           (""     "amssymb"   t)
-           (""     "capt-of"   nil)
-           (""     "hyperref"  nil))
-
-         org-babel-latex-htlatex "make4ht -u -x"))
+(xzz ox-latex
+  :config
+  (setopt org-latex-listings t
+          org-latex-pdf-process '("xelatex -interaction nonstopmode %f"
+                                  "xelatex -interaction nonstopmode %f")
+          org-latex-default-packages-alist '(("UTF8" "ctex"      t)
+                                             (""     "graphicx"  t)
+                                             (""     "longtable" nil)
+                                             (""     "wrapfig"   nil)
+                                             (""     "rotating"  nil)
+                                             ("normalem" "ulem"  t)
+                                             (""     "amsmath"   t)
+                                             (""     "textcomp"  t)
+                                             (""     "amssymb"   t)
+                                             (""     "capt-of"   nil)
+                                             (""     "hyperref"  nil))
+          org-babel-latex-htlatex "make4ht -u -x"))
 
 
 ;; tikz + org
+
+(defreference org
+  "LaTex: https://www.overleaf.com/learn/latex/Beamer"
+  "LaTeX: https://www.overleaf.com/learn/latex/TikZ_package")
 
 (defvar org-tikz-default-convert-alias
   '(("imagemagick"  "convert %s.pdf %s.%e")
@@ -153,7 +149,3 @@
                                                t))
           (if errorp (error "File produced with errors: %s, detail from %s." warnings log-buf))))
       nil)))
-
-(provide 'iorg+TeX)
-
-;;; iorg+TeX.el ends here

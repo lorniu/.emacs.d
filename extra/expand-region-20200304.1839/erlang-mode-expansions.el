@@ -33,14 +33,14 @@
 
 (require 'expand-region-core)
 
-(defun er/add-erlang-mode-expansions ()
+(defun er-add-erlang-mode-expansions ()
   "Adds Erlang-specific expansions for buffers in erlang-mode"
-  (set (make-local-variable 'er/try-expand-list) (append
-                                                  er/try-expand-list
+  (set (make-local-variable 'er-try-expand-list) (append
+                                                  er-try-expand-list
                                                   '(erlang-mark-function
                                                     erlang-mark-clause))))
 
-(er/enable-mode-expansions 'erlang-mode 'er/add-erlang-mode-expansions)
+(er-enable-mode-expansions 'erlang-mode 'er-add-erlang-mode-expansions)
 
 (provide 'erlang-mode-expansions)
 
