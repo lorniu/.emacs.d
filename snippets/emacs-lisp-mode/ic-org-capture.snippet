@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: im.org-capture-templates
+# key: ic
+# --
+
+(with-over
+ (setq org-capture-templates
+       `(,@org-capture-templates
+         ("c" "Work/Class" entry (file+headline ,org-default-working-file "Timeline/Class") "* %t %i%?" :prepend t)
+         ("s" "Work/School" entry (file+headline ,org-default-working-file "Timeline/School") "* %t %i%?" :prepend t))))

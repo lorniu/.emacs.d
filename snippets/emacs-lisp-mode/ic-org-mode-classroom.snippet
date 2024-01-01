@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: im.org-mode (classroom)
+# key: ic
+# --
+
+(global-set-key [f8] 'im.note-publish)
+
+;;; one-key publish, used in classroom
+
+(defun im:note-publish-post-hook (_)
+  (let ((default-directory org-directory))
+    (im.git-commit-and-push "best_try_and_best_chance")))
+
+(add-hook 'note-publish-post-hook #'im:note-publish-post-hook)

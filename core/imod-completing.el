@@ -1,64 +1,242 @@
-;;; imod-completing.el --- Completing. -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;; vertico/orderless/consult/marginalia
 ;; 2021-10-30, migrate selectrum to vertico, and persist to orderless
 ;; 2021-12-06, migrate company to corfu/cape
+;; 2023-03-19, vanilla *Completions* buffer is good enough now. https://robbmann.io/posts/emacs-29-completions/
 
 ;;; Code:
 
-(x corfu
-   :ref "minad/corfu"
-   :bind (:map corfu-map ([tab] . %first-yas-then-complete))
-   :init
-   (setq corfu-auto nil)
-   (setq corfu-auto-delay 0)
-   (setq corfu-auto-prefix 1)
-   (setq corfu-quit-at-boundary t)
-   (setq corfu-preview-current nil)
+;;; Helpers
 
-   (dolist (m '(prog-mode sqlplus-mode org-mode java-mode sly-mrepl-mode typescript-mode))
-     (let ((hook (intern (format "%s-hook" m))))
-       (add-hook hook (lambda () (setq-local corfu-auto t)))))
-   (global-corfu-mode 1)
+(defun im:smart-completions-sort (all)
+  (pcase (im:completion-metadata-get 'category)
+    ('kill-ring all)
+    (_ (let ((hist (minibuffer-history-value)))
+         (thread-first all
+                       (sort (lambda (c1 c2) (< (length c1) (length c2))))
+                       (sort (lambda (c1 c2) (> (length (member c1 hist))
+                                                (length (member c2 hist))))))))))
 
-   (require 'corfu-kind-grouping)
-   (require 'kind-all-the-icons)
-   (add-to-list 'corfu-margin-formatters #'kind-all-the-icons-margin-formatter))
+(defun im/minibuffer-delete-char ()
+  (interactive)
+  (unless (and (eolp)
+               (when (and (> (point) (minibuffer-prompt-end))
+                          (eq 'file (im:completion-metadata-get 'category)))
+                 (let ((path (buffer-substring (minibuffer-prompt-end) (point))))
+                   (when (string-match-p "\\`~[^/]*/\\'" path)
+                     (delete-minibuffer-contents)
+                     (insert (expand-file-name path)))
+                   (save-excursion
+                     (let ((end (point)))
+                       (goto-char (1- end))
+                       (when (search-backward "/" (minibuffer-prompt-end) t)
+                         (delete-region (1+ (point)) end)))))
+                 t))
+    (call-interactively #'delete-char)))
 
-(x cape
-   :ref "minad/cape"
-   :init
-   (dolist (v (list #'cape-file #'cape-abbrev
-                    ;; #'cape-dabbrev #'cape-keyword #'cape-ispell #'cape-dict
-                    ;; #'cape-symbol #'cape-line #'cape-sgml #'cape-rfc1345
-                    ))
-     (add-to-list 'completion-at-point-functions v)))
+(defun im/minibuffer-kill-line ()
+  (interactive)
+  (if (eolp)
+      (let ((contents (minibuffer-contents)))
+        (delete-minibuffer-contents)
+        (unless (string-match-p " URL" (minibuffer-prompt))
+          (when (and IS-WIN (string= contents "~/"))
+            (insert (file-name-as-directory (getenv "USERPROFILE"))))
+          (when (and (eq 'file (im:completion-metadata-get 'category)) (not (string= contents "~/")))
+            (insert "~/"))))
+    (call-interactively #'kill-line)))
 
-(x orderless
-   :ref "oantolin/orderless"
-   :init
-   (setq tab-always-indent 'complete
-         completion-styles '(substring orderless)
-         completion-category-defaults nil
-         completion-category-overrides '((file (styles . (partial-completion)))))
-   :config
-   (advice-add #'completion-all-completions :around #'%completion-flex-way))
+(defun im:capf-functions-of-mode (mode)
+  "Get value of `completion-at-point-functions' by MODE."
+  (condition-case _
+      (with-temp-buffer (funcall mode) completion-at-point-functions)
+    (error completion-at-point-functions)))
 
-(defun %completion-flex-way (fn &rest args)
-  (let* ((prefix (car args))
-         (orderless-component-separator "[ .]")
-         (completion-styles (cond ((string-match-p "^ " (buffer-name (current-buffer))) completion-styles) ; minibuffer
-                                  ((and (string-match-p "\\." prefix) (> (length prefix) 2)) '(basic substring orderless))
-                                  (t '(basic partial-completion)))))
-    (apply fn args)))
+(defmacro im:exit-minibuffer-with-message (args &rest body)
+  "Make it possible to preserve message when exit minibuffer."
+  (declare (indent 1))
+  (if (symbolp (car args)) (setq args (list args)))
+  `(progn (put 'quit 'error-message "")
+          (run-at-time nil nil
+                       (lambda (,@(mapcar #'car args))
+                         (put 'quit 'error-message "Quit")
+                         (with-demoted-errors "Error: %S"
+                           ,@body))
+                       ,@(mapcar #'cadr args))
+          (abort-recursive-edit)))
 
-(defun %first-yas-then-complete ()
+(defmacro im:with-completions-window (&rest body)
+  `(when-let* ((window (or (get-buffer-window "*Completions*" 0)
+                           (progn (minibuffer-completion-help) (get-buffer-window "*Completions*" 0)))))
+     (with-selected-window window (switch-to-completions) ,@body)))
+
+(cl-macrolet ((make-minibuffer-command (name &rest body)
+                `(defun ,(intern (format "im/minibuffer-%s" name)) ()
+                   (interactive)
+                   (im:with-completions-window ,@body))))
+  (make-minibuffer-command next-page            (scroll-up-command))
+  (make-minibuffer-command previous-page        (scroll-down-command))
+  (make-minibuffer-command end-of-buffer        (goto-char (point-max)))
+  (make-minibuffer-command beginning-of-buffer  (goto-char (point-min)))
+  (make-minibuffer-command recenter-top-bottom  (recenter-top-bottom)))
+
+(defun im:completion-compat (type)
+  "Bridge of different completion-plugins."
+  (cond ((get-buffer-window "*Completions*" 0)
+         (im:with-completions-window
+          (pcase type
+            (:index (let ((first (save-excursion (first-completion) (array-current-line))))
+                      (- (array-current-line) first)))
+            (:total (let ((first (save-excursion (first-completion) (array-current-line))))
+                      (- (save-excursion (goto-char (point-max)) (array-current-line)) first -1)))
+            (:current (get-text-property (point) 'completion--string))
+            (:delete (let ((inhibit-read-only t) (kill-whole-line t))
+                       (beginning-of-line) (kill-line) (set-buffer-modified-p nil)))
+            ((pred numberp) (let ((first (save-excursion (first-completion) (array-current-line))))
+                              (goto-char (point-min))
+                              (forward-line (+ first type)))))))
+        (vertico-mode
+         (pcase type
+           (:index (if (> vertico--index -1) vertico--index))
+           (:total vertico--total)
+           (:current (and (> vertico--index -1) (nth vertico--index vertico--candidates)))
+           (:delete (setq vertico--candidates (im:remove-nth vertico--index vertico--candidates))
+                    (setq vertico--total (length vertico--candidates)))
+           ((pred numberp) (vertico--goto vertico--index))))))
+
+(defun im:completion-metadata-get (what)
+  "Return completion for WHAT: category/display-sort-function/etc."
+  (when-let* ((window (active-minibuffer-window)))
+    (with-current-buffer (window-buffer window)
+      (completion-metadata-get
+       (completion-metadata (buffer-substring-no-properties
+                             (minibuffer-prompt-end)
+                             (max (minibuffer-prompt-end) (point)))
+                            minibuffer-completion-table
+                            minibuffer-completion-predicate)
+       what))))
+
+
+
+(setq completion-ignore-case t
+      read-file-name-completion-ignore-case t
+      read-buffer-completion-ignore-case t
+      completion-styles '(orderless basic)
+      completion-category-overrides '((file (styles basic partial-completion)))
+      completion-category-defaults nil)
+
+(setq minibuffer-completion-auto-choose t
+      completion-show-help nil
+      completion-auto-help 'always
+      completion-show-inline-help nil
+      completion-auto-select t
+      completions-format 'one-column
+      completions-max-height 10
+      completions-detailed t
+      completions-sort #'im:smart-completions-sort)
+
+(xzz minibuffer
+  :bind ( :map minibuffer-local-map
+          ("C-d"      . im/minibuffer-delete-char)
+          ("C-k"      . im/minibuffer-kill-line)
+          :map minibuffer-local-completion-map
+          ("SPC"      . nil)
+          ("<down>"   . minibuffer-next-completion)
+          ("<up>"     . minibuffer-previous-completion)
+          ("C-n"      . minibuffer-next-completion)
+          ("C-p"      . minibuffer-previous-completion)
+          ("C-v"      . im/minibuffer-next-page)
+          ("M-v"      . im/minibuffer-previous-page)
+          ("C-l"      . im/minibuffer-recenter-top-bottom)
+          ("M->"      . im/minibuffer-end-of-buffer)
+          ("M-<"      . im/minibuffer-beginning-of-buffer)
+          :map completion-list-mode-map
+          ("e"        . switch-to-minibuffer)
+          :map completion-in-region-mode-map
+          ("<down>"   . minibuffer-next-completion)
+          ("<up>"     . minibuffer-previous-completion)
+          ("C-n"      . minibuffer-next-completion)
+          ("C-p"      . minibuffer-previous-completion)
+          ("C-v"      . im/minibuffer-next-page)
+          ("M-v"      . im/minibuffer-previous-page)
+          ("C-l"      . im/minibuffer-recenter-top-bottom)
+          ("M->"      . im/minibuffer-end-of-buffer)
+          ("M-<"      . im/minibuffer-beginning-of-buffer))
+  :config
+  (defun:hook minibuffer-setup-hook ()
+    (setq-local truncate-lines nil))
+  (defun:hook completion-list-mode-hook ()
+    "Custom *Completions* buffer."
+    (setq-local display-line-numbers-offset -1)
+    (display-line-numbers-mode +1)
+    (setq-local mode-line-format nil)))
+
+
+
+(xzz vertico
+  :ref "minad/vertico"
+  :init (vertico-mode 1))
+
+(xzz marginalia
+  :ref "minad/marginalia"
+  :bind (:map minibuffer-local-map ("M-t" . marginalia-cycle))
+  :init (marginalia-mode))
+
+(xzz orderless/e
+  :ref "oantolin/orderless")
+
+(define-minor-mode im/smart-completion-styles-mode nil :global t
+  (if im/smart-completion-styles-mode
+      (defun:around completion-all-completions (fn &rest args)
+        (if (or (memq (cadr args) '(im:rg-completion-table)))
+            (apply fn args) ; exceptions
+          (let* ((prefix (car args))
+                 (orderless-component-separator "[ .]")
+                 (completion-styles (cond ((string-match-p "^ " (buffer-name (current-buffer))) completion-styles) ; minibuffer
+                                          ((and (string-match-p "\\." prefix) (> (length prefix) 2)) '(basic substring orderless))
+                                          (t '(basic partial-completion)))))
+            (apply fn args))))
+    (advice-remove #'completion-all-completions #'imadv:completion-all-completions)))
+
+(im/smart-completion-styles-mode 1)
+
+
+
+(xzz corfu
+  :ref "minad/corfu"
+  :bind (:map corfu-map ([tab] . im:first-yas-then-corfu))
+  :init
+  (setopt corfu-auto nil
+          corfu-auto-delay 0.0
+          corfu-auto-prefix 1
+          corfu-quit-at-boundary t
+          corfu-preview-current nil)
+
+  (dolist (m '(prog-mode sqlplus-mode org-mode java-mode sly-mrepl-mode typescript-mode))
+    (let ((hook (intern (format "%s-hook" m))))
+      (add-hook hook (lambda () (setq-local corfu-auto t)))))
+  (global-corfu-mode 1)
+
+  (require 'corfu-grouping)
+  (require 'corfu-nerd-icons))
+
+(xzz cape
+  :ref "minad/cape"
+  :init
+  (dolist (v (list #'cape-file #'cape-abbrev
+                   ;; #'cape-dabbrev #'cape-keyword #'cape-ispell #'cape-dict
+                   ;; #'cape-symbol #'cape-line #'cape-sgml #'cape-rfc1345
+                   ))
+    (add-to-list 'completion-at-point-functions v)))
+
+(defun im:first-yas-then-corfu ()
   (interactive)
   (if yas-minor-mode
       (let ((old-point (point))
             (old-tick (buffer-chars-modified-tick)))
         (yas-expand)
-        (when (and (eq old-point (point))
+         (when (and (eq old-point (point))
                    (eq old-tick (buffer-chars-modified-tick)))
           (ignore-errors (yas-next-field))
           (when (and (eq old-point (point))
@@ -68,39 +246,7 @@
 
 
 
-(x vertico
-   :ref "minad/vertico"
-   :init (vertico-mode))
-
-(x consult/e
-   :ref "minad/consult"
-   :init
-   (setq register-preview-delay 0
-         register-preview-function #'consult-register-format)
-   (advice-add #'register-preview :override #'consult-register-window)
-
-   :config
-   (setq consult-narrow-key "<") ;
-   (setq consult-preview-key (list (kbd "C-o")))
-   (setq consult-buffer-sources
-         '(consult--source-hidden-buffer
-           consult--my-source-buffer
-           consult--my-source-erc-buffer
-           consult--my-eaf-buffer
-           consult--source-bookmark
-           consult--source-recent-file
-           consult--source-project-buffer
-           consult--source-project-recent-file)))
-
-(x marginalia
-   :ref "minad/marginalia"
-   :bind (:map minibuffer-local-map ("M-t" . marginalia-cycle))
-   :init (marginalia-mode))
-
-
-;;; Enhanced consult-buffer
-
-(defvar consult--my-source-buffer
+(defvar im:consult--source-buffer
   `( :name "Buffer"
      :narrow   ?b
      :category buffer
@@ -108,20 +254,18 @@
      :history  buffer-name-history
      :state    ,#'consult--buffer-state
      :default  t
-     :items
-     ,(lambda ()
-        (mapcar #'buffer-name
-                (seq-remove
-                 (lambda (b)
-                   (with-current-buffer b
-                     (or (string-match-p (consult--regexp-filter consult-buffer-filter) (buffer-name))
-                         (equal major-mode 'erc-mode)
-                         (equal major-mode 'eaf-mode)
-                         (ignore-errors
-                           (string-match-p "/.*ls-metadata/\\|/jdt.ls-java-project/" (buffer-file-name))))))
-                 (consult--buffer-query)))) ))
+     :items    ,(lambda ()
+                  (mapcar #'buffer-name
+                          (seq-remove
+                           (lambda (b)
+                             (with-current-buffer b
+                               (or (string-match-p (consult--regexp-filter consult-buffer-filter) (buffer-name))
+                                   (equal major-mode 'erc-mode)
+                                   (ignore-errors
+                                     (string-match-p "/.*ls-metadata/\\|/jdt.ls-java-project/" (buffer-file-name))))))
+                           (consult--buffer-query))))))
 
-(defvar consult--my-source-erc-buffer
+(defvar im:consult--source-erc-buffer
   `( :name "irc/matrix"
      :narrow   ?i
      :category erc
@@ -129,29 +273,31 @@
      :history  buffer-name-history
      :state    ,#'consult--buffer-state
      :default  t
-     :items
-     ,(lambda ()
-        (seq-filter (lambda (x)
-                      (with-current-buffer x (equal major-mode 'erc-mode)))
-                    (mapcar #'buffer-name (consult--buffer-query)))) ))
+     :items    ,(lambda ()
+                  (seq-filter (lambda (x)
+                                (with-current-buffer x (equal major-mode 'erc-mode)))
+                              (mapcar #'buffer-name (consult--buffer-query))))))
 
-(defvar consult--my-eaf-buffer
-  `( :name "eaf-qt"
-     :narrow   ?e
-     :category eaf
-     :face     consult-buffer
-     :history  buffer-name-history
-     :state    ,#'consult--buffer-state
-     :default  nil
-     :items
-     ,(lambda ()
-        (seq-filter (lambda (x)
-                      (with-current-buffer x (equal major-mode 'eaf-mode)))
-                    (mapcar #'buffer-name (consult--buffer-query)))) ))
+(xzz consult
+  :ref "minad/consult"
+  :init
+  (setopt register-preview-delay 0
+          register-preview-function #'consult-register-format)
+  (advice-add #'register-preview :override #'consult-register-window)
+
+  :config
+  (setopt consult-preview-key "C-o"
+          consult-buffer-sources '(consult--source-hidden-buffer
+                                   im:consult--source-buffer
+                                   im:consult--source-erc-buffer
+                                   consult--source-bookmark
+                                   consult--source-recent-file
+                                   consult--source-project-buffer
+                                   consult--source-project-recent-file)))
 
 
 
-(defvar myc-pages+ nil)
+(defvar im:pages nil)
 
 (defun im/pages+ ()
   "Fast jump to page position."
@@ -172,249 +318,7 @@
                  :prompt "Pages: "
                  :require-match t
                  :sort nil
-                 :history 'myc-pages+
-                 :lookup (lambda (p ps _input _nv)
+                 :history 'im:pages
+                 :lookup (lambda (p ps &rest _)
                            (goto-char (cdr (assoc p ps)))
                            (recenter-top-bottom 1))))
-
-
-
-(defvar myc-views nil)
-
-(defun im/views+ ()
-  "Toggle the window layout with this single command.
-
-You will see the candidates after invoke this command.
-
-Select a candidate can:
-- Add the current window configuration to the candidates
-- Update the current window configuration
-- Toggle to the choosen window layout.
-
-'C-d' to delete current candidate, and 'C-S-d' to delete all.
-"
-  (interactive)
-  (cl-labels ((view-exist-p (name)
-                (assoc name myc-views))
-              (view-config ()
-                "Get the window configuration (layout)"
-                (dolist (w (window-list))
-                  (set-window-parameter w 'view-data
-                                        (with-current-buffer (window-buffer w)
-                                          (cond (buffer-file-name
-                                                 (list 'file buffer-file-name (point)))
-                                                ((eq major-mode 'dired-mode)
-                                                 (list 'file default-directory (point)))
-                                                (t (list 'buffer (buffer-name) (point)))))))
-                (let ((window-persistent-parameters
-                       (append window-persistent-parameters (list (cons 'view-data t)))))
-                  (current-window-configuration)))
-              (restore-view (view)
-                "Restore the window configuration (layout)."
-                (cond ((window-configuration-p view) ; window
-                       (set-window-configuration view)
-                       (dolist (w (window-list))
-                         (with-selected-window w
-                           (restore-view (window-parameter w 'view-data)))))
-                      ((eq (car view) 'file) ; file
-                       (let* ((name (nth 1 view)) buffer)
-                         (cond ((setq buffer (get-buffer name))
-                                (switch-to-buffer buffer nil 'force-same-window))
-                               ((file-exists-p name)
-                                (find-file name))))
-                       (goto-char (nth 2 view)))
-                      ((eq (car view) 'buffer) ; buffer
-                       (switch-to-buffer (nth 1 view))
-                       (goto-char (nth 2 view))))))
-    (let ((current (cl-loop for w in (window-list)
-                            for b = (window-buffer w)
-                            for f = (buffer-file-name b)
-                            collect (if f (file-name-nondirectory f) (buffer-name b)) into bs
-                            finally (return (cl-loop for item in (sort bs #'string-lessp)
-                                                     concat (format " %s" item) into rs
-                                                     finally (return (concat "{}" rs)))))))
-      (consult--read (cl-loop for view in myc-views
-                              unless (string-equal (car view) current) collect (car view) into vs
-                              with face = (if (view-exist-p current) 'font-lock-builtin-face `(:underline t :inherit font-lock-builtin-face))
-                              finally (return (cons (propertize current 'face face) vs)))
-                     :prompt "Views: "
-                     :keymap (let ((map (make-sparse-keymap)))
-                               (define-key map (kbd "C-d")
-                                           (myc-make-action (c)
-                                             (when (y-or-n-p (format "Delete this item `%s' ? " c))
-                                               (setq myc-views (cl-remove c myc-views :test 'string-equal :key 'car)))
-                                             (im/views+)))
-                               (define-key map (kbd "C-S-d")
-                                           (myc-make-action ()
-                                             (if (y-or-n-p (format "Clear *ALL* views? "))
-                                                 (progn (setq myc-views nil) (message "Clear Done!"))
-                                               (message "Nothing Done."))))
-                               map)
-                     :lookup (lambda (view &rest _)
-                               (cond
-                                ;; check
-                                ((not (string-match-p "^{} " (or view "")))
-                                 (message "Error view-name detected."))
-                                ;; update/add
-                                ((or (string-equal current view)
-                                     (not (view-exist-p view)))
-                                 (let ((x (assoc view myc-views))
-                                       (config (view-config)))
-                                   (if x (setcdr x (list config))
-                                     (push (list (substring-no-properties view) config) myc-views))))
-                                ;; switch
-                                ((view-exist-p view)
-                                 (let ((inhibit-message t))
-                                   (delete-other-windows)
-                                   (restore-view (cadr (assoc view myc-views)))))))
-                     :sort nil))))
-
-
-
-(defvar myc-rg-limit-length 3)
-
-(defvar myc-rg-completion-groups
-  '(("c" "current" (lambda (input) (cons 'dir (myc-rg-get-candicates input))))
-    ("p" "project" (lambda (input) (if-let ((d (project-root (project-current))))
-                                       (cons 'project (myc-rg-get-candicates input d))
-                                     (user-error "No project found"))))
-    ("n" "notes"   (lambda (input) (cons 'note (myc-rg-get-candicates input org-directory))))))
-
-(defvar myc-rg-search-history nil)
-
-(defvar myc-rg-cands nil "list: type cands normin dir prefix input")
-
-(defmacro myc-rg-show-in-rg.el (cands)
-  `(myc-make-action (c)
-     ;; use rg.el to show the results in Occur buffer
-     (require 'rg)
-     (require 'compile)
-     ;; jump to current candidate in the *rg* buffer.
-     ;; rg implemented with `compile', so I make it work like below.
-     ;; let-bound method not working, unkown reason.
-     (let ((old-compilation-finish-functions compilation-finish-functions)
-           (input (cl-third ,cands)))
-       (setq compilation-finish-functions
-             (list
-              (lambda (_a _b)
-                (unwind-protect
-                    (progn
-                      (pop-to-buffer (current-buffer))
-                      (when (string-match "\\`\\(.*?\\):\\([0-9]+\\):\\(.*\\)\\'" c)
-                        (let ((file-name (match-string-no-properties 1 c))
-                              (line-number (match-string-no-properties 2 c)))
-                          (if rg-group-result
-                              (progn
-                                (re-search-forward (format "^File: %s" file-name) nil t)
-                                (re-search-forward (format "^ *%s" line-number) nil t)
-                                (re-search-forward input (point-at-eol) t))
-                            (re-search-forward (format "%s:%s:" file-name line-number) nil t)
-                            (re-search-forward input (point-at-eol) t)))))
-                  (setq compilation-finish-functions old-compilation-finish-functions)))))
-       ;; dispatch to rg.el search.
-       (cond ((eq (car ,cands) 'project) (rg-project input "*"))
-             (t                          (rg input "*" (cl-fourth ,cands)))))))
-
-(defun myc-rg-get-candicates (input &optional dir)
-  (cl-loop with default-directory = (or dir default-directory)
-           with cmd = (if (memq system-type '(ms-dos windows-nt))
-                          "rg -M 1024 --with-filename --no-heading --line-number --color never -S -e <R> ."
-                        "rg -M 1024 --with-filename --no-heading --line-number --color never -S -e <R>")
-           with nin = (replace-regexp-in-string " +" (rx space) (replace-regexp-in-string "\\([^ ]\\) \\([^ ]\\)" "\\1.+?\\2" input))
-           with result = (shell-command-to-string (grep-expand-template cmd nin))
-           for c in (split-string result "\n")
-           if (string-match "\\`\\([^:]+\\):\\([^:]+\\):" c)
-           do (progn
-                (add-face-text-property (match-beginning 1) (match-end 1) 'compilation-info nil c)
-                (add-face-text-property (match-beginning 2) (match-end 2) '(:underline t :inherit compilation-line-number) nil c))
-           collect c into cs
-           finally (return (list cs nin default-directory))))
-
-(defun myc-rg-make-completion-table (input _pred action)
-  (if (equal action 'metadata)
-      '(metadata (category . ripgrep) (cycle-sort-function . identity) (display-sort-function . identity))
-    (pcase-let* ((input (if (equal (car-safe action) 'boundaries) input (minibuffer-contents-no-properties)))
-                 (regexp (format "^\\([%s]\\) +\\(.*\\)" (mapconcat #'car myc-rg-completion-groups "")))
-                 (`(,prefix . ,in) (if (string-match regexp input) (cons (match-string 1 input) (match-string 2 input)) (cons nil input)))
-                 (too-short-p (< (length in) myc-rg-limit-length)))
-      (pcase action
-        (`(boundaries . ,suffix)
-         `(boundaries . ,(cons (if too-short-p (length input) (if prefix 2 0)) (length suffix))))
-        (_ (let ((cands (if too-short-p
-                            (list (format "At least %d chars" myc-rg-limit-length))
-                          (let* ((config (if prefix (assoc prefix myc-rg-completion-groups) (car myc-rg-completion-groups)))
-                                 (result (funcall (caddr config) in)))
-                            (setq myc-rg-cands (append result (list prefix in input)))
-                            (cadr result)))))
-             (complete-with-action action cands "" nil)))))))
-
-(defun im/search-ripgrep+ ()
-  "Search with ripgrep.
-
-Default, search for current directory, if the input begin with 'p ' then
-will search current project, if begin with 'n ' then will search org-directory.
-
-'C-c C-o' to pop the rg.el's Occur view, make sure package `rg' is installed."
-  (interactive)
-  (unless (executable-find "rg")
-    (user-error "ripgrep must be installed."))
-  (require 'grep)
-  (require 'xref)
-  (require 'consult)
-  (let* ((word (im-thing-at-region-or-point
-                (lambda ()
-                  (let* ((sym (symbol-at-point)) (symn (symbol-name sym)))
-                    (if (and sym (> 50 (length symn) 3)) symn nil)))))
-         (current (minibuffer-with-setup-hook
-                      (lambda ()
-                        (setq myc-rg-cands nil)
-                        (let ((map (make-composed-keymap nil (current-local-map))))
-                          (define-key map (kbd "C-c C-o") (myc-rg-show-in-rg.el myc-rg-cands))
-                          (use-local-map map)))
-                    (completing-read "Candidates: " #'myc-rg-make-completion-table nil nil word 'myc-rg-search-history)))
-         (input (cl-sixth myc-rg-cands)))
-    (if (string-match (format "\\`\\(?:[%s] \\)?\\(.*?\\):\\([0-9]+\\):\\(.*\\)\\'" (mapconcat #'car myc-rg-completion-groups ""))
-                      current)
-        (let ((file-name (match-string-no-properties 1 current))
-              (line-number (match-string-no-properties 2 current)))
-          (xref-push-marker-stack) ; use M-, to go back!
-          (setq isearch-string input)
-          (isearch-update-ring isearch-string t)
-          (find-file (expand-file-name file-name (cl-fourth myc-rg-cands)))
-          (goto-char (point-min))
-          (forward-line (1- (string-to-number line-number)))
-          (re-search-forward input (point-at-eol) t)
-          (recenter)
-          ;; notify line
-          (let ((ov (make-overlay (line-beginning-position) (line-end-position))))
-            (overlay-put ov 'face '(:background "#aa3344"))
-            (run-with-timer 0.3 nil (lambda () (delete-overlay ov))))
-          (myc-history-replace 'myc-rg-search-history (cl-seventh myc-rg-cands)))
-      (message "Bad candidate?"))))
-
-
-
-(defun myc-history-replace (hist-sym value)
-  "Replace origin history ITEM with this new VALUE."
-  (set hist-sym (cdr (symbol-value hist-sym)))
-  (add-to-history hist-sym value))
-
-(cl-defmacro myc-make-action ((&rest args) &body body)
-  (declare (indent 1))
-  `(lambda ()
-     (interactive)
-     (put 'quit 'error-message "")
-     (run-at-time nil nil
-                  (lambda (,@args)
-                    (put 'quit 'error-message "Quit")
-                    (with-demoted-errors "Error: %S"
-                      ,@body))
-                  ,@(seq-take
-                     `((consult-vertico--candidate)
-                       (minibuffer-contents))
-                     (length args)))
-     (abort-recursive-edit)))
-
-(provide 'imod-completing)
-
-;; imod-completing.el ends here

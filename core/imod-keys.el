@@ -1,0 +1,100 @@
+;;; -*- lexical-binding: t -*-
+
+;;; Code:
+
+(global-unset-key (kbd "C-x i"))
+(global-unset-key (kbd "C-x C-z"))
+(global-unset-key (kbd "C-x C-k"))
+(global-set-key [mouse-2] 'mouse-drag-region)
+(global-set-key [C-down-mouse-1] 'mouse-drag-region)
+
+(bind-keys
+ ( [f2]            .  im/kmacros                                  )
+ ( [f5]            .  gt-translate                                )
+ ( [f7]            .  toggle-truncate-lines                       )
+ ( [f8]            .  mpvi-control                                )
+ ( [f9]            .  compile                                     )
+ ( [f10]           .  im/silly                                    )
+ ( [f11]           .  im/toggle-layout                            )
+ ( [(control f11)] .  toggle-frame-fullscreen                     )
+ ( [f12]           .  im/local-assist                             )
+
+ ( "C-."           .  im/transient-retrieve                       )
+ ( "C-x C-r"       .  im/transient-quicker                        )
+ ( "C-x i"         .  im/transient-goto                           )
+ ( "C-x w"         .  im/transient-windows                        )
+ ( "C-x /"         .  find-dired                                  )
+ ( "C-C /"         .  im/rg-smart-search                          )
+ ( "C-c a"         .  org-agenda                                  )
+ ( "C-c c"         .  im/transient-agenda                         )
+ ( "C-c d"         .  im/transient-dashbox                        )
+ ( "C-c C-d"       .  im/transient-dashbox                        )
+ ( "C-c g"         .  magit-status                                )
+ ( "C-c m"         .  im/local-assist                             )
+ ( "C-c i"         .  im/transient-insert                         )
+ ( "C-c p"         .  org-capture                                 )
+ ( "C-c s"         .  f/setup                                     )
+ ( "C-c '"         .  edit-indirect-region                        )
+ ( "C-c `"         .  im/toggle-diagnostics-buffer                )
+ ( "C-c RET"       .  im/dispatch-macroexpand                     )
+
+ ( "%"             .  im/match-paren                              )
+ ( "C-#"           .  cua-rectangle-mark-mode                     )
+ ( "C-s"           .  im/isearch-smart                            )
+ ( "M-w"           .  im/smart-kill-ring-save                     )
+ ( "C-y"           .  im/smart-yank                               )
+ ( "C-S-y"         .  im/duplicate-lines                          )
+ ( "M-y"           .  consult-yank-pop                            ) ; temporary, yank-pop in emacs28 not put the pop item to the front now.
+ ( "C-o"           .  im/smart-open-line                          )
+ ( "M-q"           .  im/tiny-code                                )
+ ( "M-Q"           .  im/tiny-code-buffer                         )
+ ( "M-P"           .  previous-buffer                             )
+ ( "M-N"           .  next-buffer                                 )
+ ( "<C-backspace>" .  im/backward-delete-word                     )
+ ( "s-k"           .  (lambda () (interactive) (if IS-MAC (ns-next-frame))))
+
+ ( "<insertchar>"  .  undo                                        )
+ ( "C-{"           .  shrink-window                               )
+ ( "C-}"           .  enlarge-window                              )
+
+ ( "C-x f"         .  project-find-file                           )
+ ( "C-x F"         .  find-dired                                  )
+ ( "C-x d"         .  im/project-find-directory                   )
+ ( "C-x C-b"       .  ibuffer                                     )
+ ( "C-x b"         .  consult-buffer                              )
+ ( "C-x l"         .  consult-line                                )
+ ( "C-c l"         .  consult-line                                )
+ ( "C-x n"         .  im/transient-narrow                         )
+ ( "C-x 4 b"       .  consult-buffer-other-window                 )
+ ( "C-x 5 b"       .  consult-buffer-other-frame                  )
+ ( "C-x C-j"       .  ffap                                        )
+ ( "C-x C-k"       .  kill-this-buffer                            )
+ ( "C-x r N"       .  im/rectangle-number-lines                   )
+
+ ( "M-g g"         .  consult-goto-line                           )
+ ( "M-g M-g"       .  consult-goto-line                           )
+
+ ( "M-s m"         .  consult-multi-occur                         )
+
+ ( "M-."           .  xref-find-definitions+citre                 )
+ ( "C-,"           .  er-expand-region                            )
+
+ ( "C-h C-h"       .  im/transient-help                           )
+ ( "C-h c"         .  quick-calc                                  )
+ ( "C-h C-c"       .  calc                                        )
+ ( "C-h C"         .  calc-embedded                               )
+ ( "C-h g"         .  im/toggle-gnus                              )
+ ( "C-h t"         .  im/popup-system-terminal                    )
+ ( "C-h C-t"       .  im/popup-system-terminal                    )
+ ( "C-h e"         .  im/toggle-eat-buffer                        )
+ ( "C-h C-e"       .  im/toggle-eshell-buffer                     )
+ ( "C-h s"         .  im/toggle-ielm-buffer                       )
+ ( "C-h C-s"       .  im/toggle-scratch-buffer                    )
+ ( "C-h w"         .  im/toggle-messages-buffer                   )
+ ( "C-h C-w"       .  im/toggle-messages-buffer                   )
+ ( "C-h l"         .  im/toggle-common-lisp-dev-buffer            )
+ ( "C-h C-l"       .  im/toggle-common-lisp-dev-buffer            ))
+
+
+
+(xzz keycast :ref "tarsius/keycast")

@@ -1,4 +1,4 @@
-;;; octave-expansions.el --- octave-mode expansions for expand-region
+;;; octave-expansions.el --- octave-mode expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Mark Hepburn
 
@@ -36,22 +36,22 @@
 ;;; changed slightly.  So, in order to behave identically across both
 ;;; versions we need to check which is which in a few places and
 ;;; adjust accordingly:
-(defconst er/old-octave-mod-p (fboundp 'octave-up-block))
+(defconst er-old-octave-mod-p (fboundp 'octave-up-block))
 
-(defalias 'er/up-block
-  (if er/old-octave-mod-p 'octave-up-block 'up-list))
+(defalias 'er-up-block
+  (if er-old-octave-mod-p 'octave-up-block 'up-list))
 
-(defun er/octave-mark-up-block ()
+(defun er-octave-mark-up-block ()
   "Mark the containing block, assuming the current block has
 already been marked."
   (interactive)
   (when (use-region-p)
     (when (< (point) (mark))
       (exchange-point-and-mark))
-    (er/up-block -1)                    ; -1 means backwards, ie to the front
+    (er-up-block -1)                    ; -1 means backwards, ie to the front
     (octave-mark-block)))
 
-(defun er/octave-mark-block ()
+(defun er-octave-mark-block ()
   "Not for general use; this is a work-around for the different
 behaviour of `octave-mark-block' between emacs versions 23 and
 24."
@@ -59,20 +59,20 @@ behaviour of `octave-mark-block' between emacs versions 23 and
   (forward-word)
   (octave-mark-block))
 
-(defun er/add-octave-expansions ()
+(defun er-add-octave-expansions ()
   "Adds octave/matlab-specific expansions for buffers in octave-mode"
-  (let ((try-expand-list-additions (if er/old-octave-mod-p
+  (let ((try-expand-list-additions (if er-old-octave-mod-p
                                        '(octave-mark-block
-                                         er/octave-mark-up-block
+                                         er-octave-mark-up-block
                                          octave-mark-defun)
                                      '(octave-mark-block
-                                       er/octave-mark-block
-                                       er/octave-mark-up-block
+                                       er-octave-mark-block
+                                       er-octave-mark-up-block
                                        mark-defun))))
-    (set (make-local-variable 'er/try-expand-list)
-         (append er/try-expand-list try-expand-list-additions))))
+    (set (make-local-variable 'er-try-expand-list)
+         (append er-try-expand-list try-expand-list-additions))))
 
-(er/enable-mode-expansions 'octave-mode 'er/add-octave-expansions)
+(er-enable-mode-expansions 'octave-mode 'er-add-octave-expansions)
 
 (provide 'octave-expansions)
 ;;; octave-expansions.el ends here

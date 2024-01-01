@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if [ ".$1" = ".-h" -o ".$1" = ".--help" ]; then
+    echo "x  xmonad  : for x11"
+    echo "xw   niri  : for wayland"
+    echo "xx   xfce  : for nested"
+    exit
+elif [ ".$1" = ".niri" ]; then
+    xw niri
+fi
+
+SESSION=${1:-xmonad}
+
+/usr/bin/startx "$HOME/.emacs.d/bin/nix/.xinitrc" $SESSION 1>$HOME/.xsession-log 2>$HOME/.xsession-error

@@ -1,8 +1,8 @@
-;;; bm.el --- Benchmark -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
 ;;; Code:
 
-(defvar benchmark-require nil)
+(defvar bm-require nil)
 
 
 
@@ -14,13 +14,18 @@
 (defun %time-subtract-millis (b a)
   (* 1000.0 (%time-subtract-seconds b a)))
 
-(defun imload (mod &optional noerror)
-  (bm/record-imload-time mod (require mod nil noerror)))
+(defun imload (mod &optional maybe)
+  (let ((start-time (current-time)))
+    ;; `require' waste much more time than `load' directly
+    (if maybe
+        (require mod nil 'noerror)
+      (condition-case err
+	      (load (expand-file-name (format "core/%s.el" mod) user-emacs-directory) nil (not init-file-debug) nil 'must-suffix)
+        (user-error (user-error (cdr err)))
+        (error (display-warning 'imload (format "%s.el - %s" mod err) nil "|-Package-Loading-|"))))
+    (push (cons mod (%time-subtract-millis (current-time) start-time)) bm/imload-times)))
 
-(defmacro bm/record-imload-time (label &rest rest)
-  `(let ((start-time (current-time)))
-     ,@rest
-     (push (cons ,label (%time-subtract-millis (current-time) start-time)) bm/imload-times)))
+(defalias 'imload- #'ignore)
 
 (defun bm/show-imload-time (&optional nsortp)
   (pp/list (if nsortp
@@ -42,8 +47,8 @@
 (defvar bm/require-times nil)
 (defvar bm/require-times-from-last-diff nil)
 
-(when benchmark-require
-  (defun bm/require-statics-advice (oldfun feature &optional filename noerror)
+(when bm-require
+  (defun bm:require-statics-advice (oldfun feature &optional filename noerror)
     (let* ((already-loaded (memq feature features))
            (start-time (and (not already-loaded) (current-time))))
       (prog1
@@ -52,7 +57,7 @@
           (let ((time (%time-subtract-millis (current-time) start-time)))
             (add-to-list 'bm/require-times (cons feature time) t))))))
 
-  (add-function :around (symbol-function 'require) 'bm/require-statics-advice)
+  (add-function :around (symbol-function 'require) 'bm:require-statics-advice)
 
   (defun bm/show-require-times (&optional not-sortp)
     (pp/list (if not-sortp
@@ -67,5 +72,3 @@
     (setq bm/require-times-from-last-diff  (copy-tree bm/require-times)) t))
 
 (provide 'bm)
-
-;;; bm.el ends here

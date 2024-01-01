@@ -1,266 +1,296 @@
-;;; iwww-gnus.el --- GNUS -*- lexical-binding: t -*-
+;;; -*- lexical-binding: t -*-
 
+;; For Email, can use gnus/rmail/mu4e/notmuch and so on.
+;; For RSS, can use gnus/elfeed/newsticker and so on.
+
+;; Rmail:
 ;;
-;; Main config demo:
+;;  pacman -S mailutils (for movemail)
+;;  movemail -v 'imaps://lorniu:pass@imap.qq.com:993' ~/RMAIL
+
+;; GNUS:
 ;;
-;;   (setq ic/gnus-mails-reciever
-;;         '((nnimap "tmail"
-;;                   (nnimap-address "imap.qq.com")
-;;                   (nnimap-server-port 993)
-;;                   (nnimap-stream ssl)
-;;                   (nnir-search-engine imap)
-;;                   (nnmail-expiry-target "nnimap+tmail:Deleted Messages")
-;;                   (nnmail-expiry-wait 'immediate))))
+;;   - nntp.aioe.org
+;;   - free.xsusenet.com
+;;   - freenews.netfront.net
+;;   - news.eternal-september.org
+
+;; [Servers - Groups - Articles]
 ;;
-;;   (setq ic/gnus-mails-sender
-;;         `((".*"
-;;            (name "yaoliuyao")
-;;            (address "161616161@qq.com"))))
+;;  - In Group Buffer, use `^' to Open Servers Buffer, where list all servers
+;;  - Add or config servers via `gnus-select-method' or `gnus-secondary-select-methods'
+;;  - Subscribe Groups in Servers Buffer; Add foreign groups via `G_mRu..' or `B' in Group Buffer
 ;;
+;;  - Set group level with `Sl'. Use `gnus-activate-level' to judge which groups refresh at startup
+;;  - Change group behavior via parameter by `Gc' or `Gp', recommended to make some groups always visiable by add `(visiable . t) to the group parameter
+;;  - Use `t' to toggle topic-mode, use `l' and 'L' to toggle show active level, use `c' to clean unread
+;;  - Use `SPC' to select group and read the first unread article.
+;;  - Use `Enter' to select group and show all unread articles, with C-u prefix to submit how many to display
+;;
+;;  - Use `SPC', `nN.j..' to nav next article
+;;  - `g' to show article, with `C-u' prefix to show raw, `t' to toggle show header
+;;  - `h' to switch between Summary and Article buffer
+;;  - `^' to goto parent article, `A_RT' to show all ancestor
 
 ;;; Code:
 
-(defcustom ic/gnus-nntps (list
-                          "nntp.aioe.org"
-                          "free.xsusenet.com"
-                          "freenews.netfront.net"
-                          "news.eternal-september.org")
-  "NNTP Servers."
-  :type 'list)
+(defvar im.gnus-rss-urls
+  (list "https://vdaily.iu.vc/weekly.xml"
+        "http://feeds.feedburner.com/zhihu-daily"
+        "http://feed.williamlong.info"
+        "http://www.matrix67.com/blog/feed"))
 
-(defcustom ic/gnus-rss-feeds (list
-                              "https://vdaily.iu.vc/weekly.xml"
-                              "http://feeds.feedburner.com/zhihu-daily"
-                              "http://feed.williamlong.info"
-                              "http://www.matrix67.com/blog/feed")
-  "RSS feeds."
-  :type 'list)
+(setq user-full-name "lorniu"
+      user-mail-address "lorniu@gmail.com")
 
-(defcustom ic/gnus-mails-reciever
-  '((nnimap "gmail"
-            (nnimap-address "imap.gmail.com")
-            (nnimap-server-port 993)
-            (nnimap-stream ssl)
-            (nnir-search-engine imap)
-            (nnmail-expiry-target "nnimap+gmail:[Gmail]/Trash")
-            (nnmail-expiry-wait 'immediate))
+;; https://myaccount.google.com/apppasswords
+;; machine smtp.gmail.com port 587 login [EMAIL] password [APPPASS]
+(setq smtpmail-smtp-server "smtp.gmail.com"
+      smtpmail-smtp-service 587
+      smtpmail-stream-type 'starttls
+      smtpmail-smtp-user user-mail-address
+      send-mail-function 'smtpmail-send-it
+      message-send-mail-function 'smtpmail-send-it)
 
-    (nnimap "tmail"
-            (nnimap-address "imap.qq.com")
-            (nnimap-server-port 993)
-            (nnimap-stream ssl)
-            (nnir-search-engine imap)
-            (nnmail-expiry-target "nnimap+tmail:Deleted Messages")
-            (nnmail-expiry-wait 'immediate)))
+(setq gnus-select-method '(nnnil "") ; legacy, not use
+      gnus-secondary-select-methods
+      `((nntp "news.gmane.io")
+        (nntp "news.gwene.org")
+        (nnatom "https://www.reddit.com/r/emacs/.rss") ; reddit
+        (nnimap "gmail"
+                ;; machine gmail port imaps login [EMAIL] password [APPPASS]
+                (nnimap-address "imap.gmail.com")
+                (nnimap-server-port 993)
+                (nnimap-stream ssl)
+                (nnir-search-engine imap)
+                (nnmail-expiry-target "nnimap+gmail:[Gmail]/Trash")
+                (nnmail-expiry-wait 'immediate))
+        (nnimap "tmail"
+                (nnimap-address "imap.qq.com")
+                (nnimap-server-port 993)
+                (nnimap-stream ssl)
+                (nnir-search-engine imap)
+                (nnmail-expiry-target "nnimap+tmail:Deleted Messages")
+                (nnmail-expiry-wait 'immediate)))
+      gnus-posting-styles
+      `((".*"
+         (name ,user-full-name)
+         (address ,user-mail-address)
+         (signature "Mess.\n"))
+        ("nnimap\\+tmail:"
+         (name "nch")
+         (address "lorniu@qq.com")
+         ("X-Message-SMTP-Method" "smtp smtp.qq.com 465") ; explicit server
+         (signature ""))
+        ((header "Reply-To" ".*@replay.github.com")
+         (name ,user-full-name)
+         (address ,user-mail-address)
+         (signature nil)
+         (mail-citation-hook)
+         (organization nil)
+         (eval (set (make-local-variable 'message-cite-style) nil))))
+      ;; groups
+      gnus-inhibit-startup-message t
+      gnus-use-dribble-file nil
+      gnus-use-full-window nil ; don't take the entire window every time
+      gnus-check-new-newsgroups nil
+      gnus-asynchronous t
+      gnus-activate-level 2 ; when startup, only fetch group leval <= 2, Use S l to change group level
+      gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\"]\"[#'()]"
+      ;; summary
+      gnus-thread-hide-subtree nil
+      gnus-user-date-format-alist '(((gnus-seconds-today) . "Today %H:%M") ((gnus-seconds-year)  . "%m/%d %H:%M") (t . " %Y.%m/%d"))
+      gnus-summary-line-format "%U%R%z%I%(%[ %&user-date;: %-21,21f %]%) %s\n"
+      ;; article
+      gnus-visible-headers (mapconcat 'regexp-quote
+                                      '("From:" "To:" "Newsgroups:" "Subject:" "Date:" "Cc:" "Followup-To" "Gnus-Warnings:" "Organization:"
+                                        "X-Sent:" "X-URL:" "User-Agent:" "X-Newsreader:" "X-Mailer:" "Reply-To:"
+                                        "X-Spam:" "X-Spam-Status:" "X-Now-Playing" "X-Attachments" "X-Diagnostic")
+                                      "\\|")
+      ;; encoding
+      gnus-default-charset 'utf-8
+      gnus-newsgroup-ignored-charsets '(unknown-8bit x-unknown iso-8859-1 unknown-8bit x-unknown)
+      gnus-summary-show-article-charset-alist '((1 . gb2312) (2 . gb18030) (3 . gbk) (4 . big5) (5 . utf-8))
+      gnus-group-name-charset-group-alist '(("\\.weixin" . utf-8)
+                                            ("\\.zhihu\\.com:" . utf-8)
+                                            (".*" . utf-8)))
 
-  "Mails opened by GNUS."
-  :type 'list)
+(xzz gnus-start
+  :ref (gnus "https://www.gnu.org/software/emacs/manual/html_node/gnus/index.html")
+  :config
 
-(defcustom ic/gnus-mails-sender
-  `((".*"
-     (name ,user-full-name)
-     (address user-mail-address)
-     (signature "Mess.\n"))
+  ;; filter select methods
+  (setopt gnus-secondary-select-methods
+          (cl-remove-if (lambda (method) (or (assoc 'disable method) (and (eq (car method) 'nnimap) (null (lookup-password :host (cadr method))))))
+                        gnus-secondary-select-methods))
 
-    ("nnimap\\+tmail:"
-     (name "nch")
-     (address "lorniu@qq.com")
-     ("X-Message-SMTP-Method" "smtp smtp.qq.com 465") ; explicit server
-     (signature ""))
+  ;; display inline first
+  (add-to-list 'mm-attachment-override-types "image/*")
 
-    ((header "Reply-To" ".*@replay.github.com")
-     (name ,user-full-name)
-     (address ,user-mail-address)
-     (signature nil)
-     (mail-citation-hook)
-     (organization nil)
-     (eval (set (make-local-variable 'message-cite-style) nil))))
+  ;; Hooks
+  (defun:hook gnus-group-mode-hook ()
+    ;; enable topic mode
+    (gnus-topic-mode 1)
+    ;; After some idle time, check for new groups & activate groups to level 3
+    (run-with-idle-timer 60 nil (lambda ()
+                                  (gnus-find-new-newsgroups)
+                                  (gnus-activate-all-groups 3))))
+  (defun:hook gnus-sum-load-hook/keys-overrides ()
+    (define-key gnus-summary-mode-map "t"
+                (lambda ()
+                  (interactive)
+                  (call-interactively
+                   (if (cl-find-if (lambda (w) (string-match-p "^\\*Article" (buffer-name (window-buffer w))))
+                                   (window-list))
+                       'gnus-summary-toggle-header
+                     'gnus-summary-toggle-threads))))
+    (define-key gnus-summary-mode-map "q"
+                (lambda ()
+                  (interactive)
+                  (call-interactively
+                   (if (cl-find-if (lambda (w) (string-match-p "^\\*Article" (buffer-name (window-buffer w))))
+                                   (window-list))
+                       'gnus-summary-expand-window
+                     'gnus-summary-exit)))))
+  (add-hook 'gnus-article-prepare-hook 'gnus-article-date-local) ; use local-time
+  (add-hook 'gnus-select-group-hook 'gnus-group-set-timestamp)   ; refresh timestamp
 
-  "Send mail strategy in GNUS."
-  :type 'list)
+  ;; Keybinds
+  (define-key gnus-group-mode-map (kbd "C-c m") 'im/assist-gnus-group-mode)
+  (define-key gnus-summary-mode-map (kbd "C-c m") 'im/assist-gnus-summary-mode)
+  (define-key gnus-article-mode-map (kbd "C-c m") 'im/assist-gnus-article-mode)
+  (define-key gnus-group-mode-map (kbd "G R") 'im/gnus-make-rss-group))
 
-(setq gnus-inhibit-startup-message t)
+
+;;; Helpers
 
-(x gnus-start
-   "For Email, can use mu4e/notmuch and so on.
-   "
-   "For RSS, can use elfeed/newsticker and so on.
-   "
-   :ref ("https://www.gnu.org/software/emacs/manual/html_node/gnus/index.html")
-   :init
-   ;; default/secondary/foreign
-   (setq gnus-select-method '(nnnil nil))
-   (setq gnus-secondary-select-methods (append ic/gnus-mails-reciever     ; mails
-                                               '((nntp "news.gmane.io")   ; emacs.devel
-                                                 (nntp "news.gwene.org")  ; rss
-                                                 )))
-   (setq gnus-secondary-servers ic/gnus-nntps)
-
-   ;; send mail
-   (setq send-mail-function 'smtpmail-send-it)
-   (setq smtpmail-smtp-server "smtp.gmail.com"
-         smtpmail-smtp-service 465
-         smtpmail-stream-type  'ssl) ; default
-   (setq gnus-posting-styles ic/gnus-mails-sender)
-
-   ;; gnus
-   (setq gnus-use-cache t)
-   (setq gnus-asynchronous t)
-   (setq gnus-use-full-window nil) ; don't take the entire window every time
-
-   ;; group-buffer
-   (setq gnus-thread-hide-subtree t)
-   (setq gnus-permanently-visible-groups "")
-   (setq gnus-group-line-format "%M%S%p%P%5y:%B%(%g%)\n")
-   (setq gnus-activate-level 3) ; group can refresh when level < this
-
-   ;; summary-buffer
-   (setq gnus-thread-indent-level 0)
-   (setq gnus-summary-same-subject "")
-   (setq gnus-sum-thread-tree-root nil)
-   (setq gnus-sum-thread-tree-indent "  ")
-   (setq gnus-sum-thread-tree-false-root nil)
-   (setq gnus-sum-thread-tree-single-indent nil)
-   (setq gnus-sum-thread-tree-single-leaf "    `-> ")
-   (setq gnus-sum-thread-tree-vertical "   |")
-   (setq gnus-sum-thread-tree-leaf-with-other "   |-> ")
-   ;;
-   (setq gnus-ancient-mark 32)
-   (setq gnus-unread-mark 42)
-   (setq gnus-thread-sort-functions 'gnus-thread-sort-by-most-recent-date)
-   (setq gnus-summary-thread-gathering-function 'gnus-gather-threads-by-references)
-   (setq gnus-fetch-old-headers nil) ; be careful
-   ;;
-   (setq gnus-user-date-format-alist '(((gnus-seconds-today) . "      %H:%M") ((gnus-seconds-year)  . "%m/%d %H:%M") (t . " %Y.%m/%d")))
-   (setq gnus-summary-line-format "%U%R%z%O %&user-date; | [%1{%N%}] %I%B (%3{%f%})\n")
-
-   ;; article-buffer
-   (setq mm-text-html-renderer 'shr) ; simple html render, part of eww
-   (setq shr-bullet "  ")            ; unordered list
-   (setq gnus-visible-headers (mapconcat 'regexp-quote
-                                         '("From:" "To:" "Newsgroups:" "Subject:" "Date:" "Cc:" "Followup-To" "Gnus-Warnings:" "Organization:"
-                                           "X-Sent:" "X-URL:" "User-Agent:" "X-Newsreader:" "X-Mailer:" "Reply-To:"
-                                           "X-Spam:" "X-Spam-Status:" "X-Now-Playing" "X-Attachments" "X-Diagnostic")
-                                         "\\|"))
-
-   ;; encoding
-   (setq gnus-default-charset 'utf-8)
-   (setq gnus-summary-show-article-charset-alist '((1 . gb2312) (2 . gb18030) (3 . gbk) (4 . big5) (5 . utf-8)))
-   (setq gnus-group-name-charset-group-alist '(("\\.zhihu\\.com:" . utf-8) ("\\.weixin" . utf-8) (".*" . utf-8)))
-   ;;(gnus-group-charset-alist '(("\\(^\\|:\\)hk\\|\\(^\\|:\\)tw" big5) ("\\(^\\|:\\)cn" gbk)))
-   (setq gnus-newsgroup-ignored-charsets '(unknown-8bit x-unknown iso-8859-1 unknown-8bit x-unknown))
-
-   :config
-   ;; Scan news every 30 Minutes (invoke 'gnus-demon-init to active it)
-   (gnus-demon-add-handler 'gnus-demon-scan-news 30 30)
-
-   ;; display inline first
-   (add-to-list 'mm-attachment-override-types "image/*")
-
-   ;; hooks
-   (add-hook 'gnus-group-mode-hook 'gnus-topic-mode)
-   (add-hook 'gnus-article-prepare-hook 'gnus-article-date-local) ; use local-time
-   (add-hook 'gnus-select-group-hook 'gnus-group-set-timestamp)   ; refresh timestamp
-   (defun:hook gnus-summary-mode-hook () (setq line-spacing 5))
-
-   ;; keybinds
-   (transient-my-bind-service gnus-group-mode)
-   (transient-my-bind-service gnus-summary-mode)
-   (transient-my-bind-service gnus-article-mode)
-   (define-key gnus-group-mode-map (kbd "G R") 'im/gnus-make-rss-group)
-   (defun:hook gnus-sum-load-hook/keys-overrides ()
-     (define-key gnus-summary-mode-map "q"  'im/gnus-summary-smart-quit)))
-
-(defun im/gnus-summary-smart-quit ()
-  (interactive)
-  (if (cl-find-if (lambda (w) (string-match-p "^\\*Article" (buffer-name (window-buffer w))))
-                  (window-list))
-      (call-interactively 'gnus-summary-expand-window)
-    (call-interactively 'gnus-summary-exit)))
-
-(defun im/gnus-make-rss-group ()
+(defun im/gnus-group-toggle-level-number ()
+  "Toggle show level number in the group line."
   (interactive nil gnus-group-mode)
-  (let ((url (completing-read "URL to Search for RSS: " ic/gnus-rss-feeds)))
-    (gnus-group-make-rss-group (and (> (length url) 0) url))))
-
-(defun im/gnus-group-toggle-show-level ()
-  (interactive)
   (let ((fmt "%M%S%p%P%5y:%B%(%g%)\n"))
-    (setq gnus-group-line-format
-          (if (string= gnus-group-line-format fmt)
-              (concat "%L " fmt)
-            fmt))
+    (setopt gnus-group-line-format
+            (if (string= gnus-group-line-format fmt) (concat "%L " fmt) fmt))
     (call-interactively 'gnus-group-list-groups)))
 
-(defun im/gnus-set-activate-level ()
-  (interactive)
-  (let ((n (read-number "Set activate-level to: " gnus-activate-level)))
-    (if (or (> n 9) (< n 1) (= n gnus-activate-level))
-        (user-error "Nothing to do.")
-      (setq gnus-activate-level n)
-      (message "Activate-Level to %s, only groups with level < %s are actived." n n))))
+(defun im/gnus-threads-setup ()
+  (interactive nil gnus-summary-mode gnus-group-mode)
+  (let* ((subtree (completing-read "Thread hide subtree: " '("yes" "no") nil t nil nil
+                                   (if gnus-thread-hide-subtree "yes" "no")))
+         (gathering (completing-read "Threads gather by: " '("subject" "references") nil t nil nil
+                                     (if (eq gnus-summary-thread-gathering-function 'gnus-gather-threads-by-subject)
+                                         "subject" "references")))
+         (sorts '(gnus-thread-sort-by-number
+                  gnus-thread-sort-by-author
+                  gnus-thread-sort-by-recipient
+                  gnus-thread-sort-by-subject
+                  gnus-thread-sort-by-date
+                  gnus-thread-sort-by-score
+                  gnus-thread-sort-by-most-recent-number
+                  gnus-thread-sort-by-most-recent-date
+                  gnus-thread-sort-by-newsgroups
+                  gnus-thread-sort-by-random
+                  gnus-thread-sort-by-total-score))
+         (sort (completing-read-multiple "Threads sort by (main at last):"
+                                         sorts nil t nil nil
+                                         (mapcar #'symbol-name (ensure-list gnus-thread-sort-functions)))))
+    (setopt gnus-thread-hide-subtree (equal subtree "yes"))
+    (setopt gnus-summary-thread-gathering-function (if (equal gathering "references")
+                                                       #'gnus-gather-threads-by-references
+                                                     #'gnus-gather-threads-by-subject))
+    (setopt gnus-thread-sort-functions (mapcar #'intern-soft sort))
+    (message "gnus-thread-hide-subtree: %s\ngnus-summary-thread-gathering-function: %s\ngnus-thread-sort-functions: %s"
+             gnus-thread-hide-subtree gnus-summary-thread-gathering-function gnus-thread-sort-functions)))
+
+(defun im/gnus-make-rss-group ()
+  "Subscribe RSS group from URL."
+  (interactive nil gnus-group-mode)
+  (let ((url (completing-read "URL to Search for RSS: " im.gnus-rss-urls)))
+    (gnus-group-make-rss-group (and (> (length url) 0) url))))
 
 (defun im/gnus-article-toggle-show-image ()
-  (interactive)
+  (interactive nil gnus-group-mode)
   (let ((regexp "\\.gif-or-what"))
-    (setq gnus-blocked-images
-          (if (functionp gnus-blocked-images)
-              (progn
-                (message "Show images in all groups.")
-                regexp)
-            (message "Allow images only in newsgroups.")
-            #'gnus-block-private-groups))))
+    (setopt gnus-blocked-images
+            (if (functionp gnus-blocked-images)
+                (progn
+                  (message "Show images in all groups.")
+                  regexp)
+              (message "Allow images only in newsgroups.")
+              #'gnus-block-private-groups))))
 
-(transient-define-prefix imtt/transient-gnus-group-mode ()
+(transient-define-prefix im/assist-gnus-group-mode ()
   :transient-non-suffix 'transient--do-exit
-  [[("" (lambda () (!tdesc "t | T..   " "Topic.."))     ignore :format " %d")
-    ("" (lambda () (!tdesc "^ | B     " "Server List")) ignore :format " %d")
-    ("" (lambda () (!tdesc "l | L | A." "Server View")) ignore :format " %d")
+  [[("" (lambda () (!tdesc "^/B" "Server..")) ignore :format " %d")
+    ("G" "  Group.." (lambda ()
+                       (interactive)
+                       (im:execute-command-matching "Groups: "
+                         '("^gnus-group.*\\(group$\\|edit-group\\|virtual$\\|directory$\\)"
+                           im/gnus-make-rss-group
+                           im/gnus-group-toggle-level-number))))
+    ("t" "  Topic.." (lambda ()
+                       (interactive)
+                       (im:execute-command-matching "Topic: " "^gnus-topic" "sort")))]
+   [("l" "  List.." (lambda ()
+                      (interactive)
+                      (im:execute-command-matching "View list: "
+                        '("^gnus-group.*\\(list\\|apropos\\)" gnus-topic-mode))))
+    ("s" "  Sort.." (lambda ()
+                      (interactive)
+                      (im:execute-command-matching "Sort: " "^gnus-.*sort")))
+    ("L" "  Level.." (lambda ()
+                       (interactive)
+                       (im:execute-command-matching "Group level: " "gnus-group.*level")))]
+   [("" (lambda () (!tdesc "RET/SPC" "Read..")) ignore :format " %d")
+    ("" (lambda () (!tdesc "g/M-g  " "Refresh..")) ignore :format " %d")
+    ("" (lambda () (!tdesc "c/C/M-c" "Clean..")) ignore :format " %d")
     ]
-   [
-    ("" (lambda () (!tdesc "c/C    " "Clean Topics"))   ignore :format " %d")
-    ("" (lambda () (!tdesc "C-u RET" "Show Topics.."))  ignore :format " %d")
-    ("" (lambda () (!tdesc "G GSp.." "Topics Search/Sort/Edit..")) ignore :format " %d")
-    ]
-   [("v v    " "Show Levels"  im/gnus-group-toggle-show-level)
-    ("v l    " "Active level" im/gnus-set-activate-level)
-    ("" (lambda () (!tdesc "Al | Sl" "Show/Change Level")) ignore :format " %d")
-    ]
-   ]
+   [("" (lambda () (!tdesc "G G" "Query..")) ignore :format " %d")
+    ("" (lambda () (!tdesc "M-e/G epc/W e" "Edit..")) ignore :format " %d")
+    ("" (lambda () (!tdesc "s/u/#/F/R/ami, im/gnus-make-rss-group, im/gnus-threads-setup" "")) ignore :format " %d")
+    ]]
   (interactive)
   (if (eq major-mode 'gnus-group-mode)
-      (transient-setup 'imtt/transient-gnus-group-mode)
-    (user-error "You should invoke this in gnus-group-mode.")))
+      (transient-setup 'im/assist-gnus-group-mode)
+    (user-error "You should invoke this in gnus-group-mode")))
 
-(transient-define-prefix imtt/transient-gnus-summary-mode ()
+(transient-define-prefix im/assist-gnus-summary-mode ()
   :transient-non-suffix 'transient--do-exit
-  [[("" (lambda () (!tdesc "A T | ^" "All/Parent Article")) ignore :format " %d")
-    ("" (lambda () (!tdesc "C-u M-g" "Show Topics.."))      ignore :format " %d")
-    ("" (lambda () (!tdesc "/ owN.." "Limit Locally"))      ignore :format " %d")
-    ]
-   [("" (lambda () (!tdesc "T E      " "Mark Expired"))     ignore :format " %d")
-    ("" (lambda () (!tdesc "! | MMdd " "Ticked/Uncache"))   ignore :format " %d")
-    ("" (lambda () (!tdesc "T i | C-M-l | I | L | V." "Score..")) ignore :format " %d")
-    ]
-   [("v i" "Toggle Show Image"  im/gnus-article-toggle-show-image)]
-   ]
+  [[("m" "Mark.." (lambda ()
+                    (interactive)
+                    (im:execute-command-matching "Mark: "
+                      "^gnus-summary.*\\(mark\\|tick\\|expire\\|kill\\)\\|gnus-cache.*art"
+                      "put-mark\\|limit-")))
+    ("/" "Limit.." (lambda ()
+                     (interactive)
+                     (im:execute-command-matching "Limit to: " "^gnus-summary.*limit")))]
+   [("s  " "Score.." (lambda ()
+                       (interactive)
+                       (im:execute-command-matching "Score: "
+                         '("^gnus-summary.*score"
+                           gnus-score-edit-all-score
+                           gnus-score-edit-current-scores
+                           gnus-summary-raise-thread
+                           gnus-summary-lower-thread))))
+    ("v i" "Toggle Show Image"  im/gnus-article-toggle-show-image)]
+   [("" (lambda () (!tdesc "M-g | / N" "Refresh Topics.."))   ignore :format " %d")
+    ("" (lambda () (!tdesc "A T | ^  " "All/Parent Article")) ignore :format " %d")]]
   (interactive)
   (if (eq major-mode 'gnus-summary-mode)
-      (transient-setup 'imtt/transient-gnus-summary-mode)
-    (user-error "You should invoke this in gnus-summary-mode.")))
+      (transient-setup 'im/assist-gnus-summary-mode)
+    (user-error "You should invoke this in gnus-summary-mode")))
 
-(transient-define-prefix imtt/transient-gnus-article-mode ()
+(transient-define-prefix im/assist-gnus-article-mode ()
   :transient-non-suffix 'transient--do-exit
-  [[("s    "   "Show Summary"  ignore)
-    ("T E  "   "Mark Expired"  ignore)]
-   [("" (lambda () (!tdesc "t | C-u g " "Show Header/Raw")) ignore :format " %d")
-    ("" (lambda () (!tdesc "m|a|f|r|Sw" "Compose/Reply..")) ignore :format " %d")]
-   ]
+  [[("r" "Reply.." (lambda ()
+                     (interactive)
+                     (im:execute-command-matching "Send: "
+                       '(gnus-summary-reply
+                         gnus-summary-followup
+                         gnus-summary-post-news
+                         gnus-article-reply-with-original
+                         gnus-article-wide-reply-with-original
+                         gnus-article-followup-with-original))))]]
   (interactive)
   (if (eq major-mode 'gnus-article-mode)
-      (transient-setup 'imtt/transient-gnus-article-mode)
+      (transient-setup 'im/assist-gnus-article-mode)
     (user-error "You should invoke this in gnus-article-mode.")))
-
-(provide 'iwww-gnus)
-
-;;; iwww-gnus.el ends here

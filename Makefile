@@ -4,8 +4,8 @@ help:
 	@echo - make clean
 
 update:
-	git submodule foreach "git checkout -q master && git pull --rebase && echo"
 	git pull --rebase
+	git submodule update
 
 pack:
 	@echo Packing current emacs configs...

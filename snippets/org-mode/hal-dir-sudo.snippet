@@ -1,6 +1,6 @@
 # -*- mode: snippet -*-
 # name: :dir/sudo
 # key: sudo
-# condition: (im-grab-line "^[[:blank:]]*#\\+begin_.*")
+# condition: (im:grab-line "^[[:blank:]]*#\\+begin_.*")
 # --
 :dir "/sudo::`(file-relative-name (read-directory-name "Working directory: "))`$0"

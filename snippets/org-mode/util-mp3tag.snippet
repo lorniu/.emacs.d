@@ -1,0 +1,20 @@
+# -*- mode: snippet -*-
+# name: mp3tag (id3v2)
+# key: util
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region 'nil))
+# --
+#+begin_src emacs-lisp
+  (loop with fs = (directory-files "~/x/$0" t "^[^.].*\\\\.mp3$")
+        for f in fs for i from 1
+        for n = (file-name-nondirectory f)
+        for ns = (if (string-match "^\\\\(.+\\\\) - \\\\([^.]+\\\\)" n) ; 确保格式: 张三、李四 - 歌名.mp3
+                     (cons (split-string (match-string 1 n) "、\\\\| & ") (match-string 2 n))
+                   (user-error "歌曲 %s 命名错误." f))
+        for c1 = (format "eyeD3 --remove-all \\"%s\\"" f)
+        for c2 = (format "eyeD3 --encoding gbk -a \\"%s\\" -t \\"%s\\" \\"%s\\"" (string-join (car ns) "; ") (cdr ns) f)
+        do (when (>= i 1)
+             (message "-> [%3d]  %s" i c2)
+             ;;(call-process-shell-command c1)
+             ;;(call-process-shell-command c2)
+             ))
+#+end_src

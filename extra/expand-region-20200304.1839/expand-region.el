@@ -1,4 +1,4 @@
-;;; expand-region.el --- Increase selected region by semantic units.
+;;; expand-region.el --- Increase selected region by semantic units  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011 Magnar Sveen
 
@@ -35,9 +35,9 @@
 ;; You can set it up like this:
 
 ;;     (require 'expand-region)
-;;     (global-set-key (kbd "C-=") 'er/expand-region)
+;;     (global-set-key (kbd "C-=") 'er-expand-region)
 
-;; There's also `er/contract-region` if you expand too far.
+;; There's also `er-contract-region` if you expand too far.
 
 ;; ## Video
 
@@ -48,21 +48,21 @@
 ;; Expand region works fairly well with most languages, due to the general
 ;; nature of the basic expansions:
 
-;;     er/mark-word
-;;     er/mark-symbol
-;;     er/mark-method-call
-;;     er/mark-inside-quotes
-;;     er/mark-outside-quotes
-;;     er/mark-inside-pairs
-;;     er/mark-outside-pairs
+;;     er-mark-word
+;;     er-mark-symbol
+;;     er-mark-method-call
+;;     er-mark-inside-quotes
+;;     er-mark-outside-quotes
+;;     er-mark-inside-pairs
+;;     er-mark-outside-pairs
 
 ;; However, most languages also will benefit from some specially crafted
 ;; expansions. For instance, expand-region comes with these extra expansions for
 ;; html-mode:
 
-;;     er/mark-html-attribute
-;;     er/mark-inner-tag
-;;     er/mark-outer-tag
+;;     er-mark-html-attribute
+;;     er-mark-inner-tag
+;;     er-mark-outer-tag
 
 ;; You can add your own expansions to the languages of your choice simply by
 ;; creating a function that looks around point to see if it's inside or looking
@@ -71,7 +71,7 @@
 ;; There's plenty of examples to look at in these files.
 
 ;; After you make your function, add it to a buffer-local version of
-;; the `er/try-expand-list`.
+;; the `er-try-expand-list`.
 
 ;; **Example:**
 
@@ -79,14 +79,14 @@
 ;; text-mode. Incidentally Emacs already comes with `mark-paragraph` and
 ;; `mark-page`. To add it to the try-list, do this:
 
-;;     (defun er/add-text-mode-expansions ()
-;;       (make-variable-buffer-local 'er/try-expand-list)
-;;       (setq er/try-expand-list (append
-;;                                 er/try-expand-list
+;;     (defun er-add-text-mode-expansions ()
+;;       (make-variable-buffer-local 'er-try-expand-list)
+;;       (setq er-try-expand-list (append
+;;                                 er-try-expand-list
 ;;                                 '(mark-paragraph
 ;;                                   mark-page))))
 
-;;     (er/enable-mode-expansions 'text-mode 'er/add-text-mode-expansions)
+;;     (er-enable-mode-expansions 'text-mode 'er-add-text-mode-expansions)
 
 ;; Add that to its own file, and require it at the bottom of this one,
 ;; where it says "Mode-specific expansions"
@@ -120,7 +120,7 @@
 
 ;; ## Contributors
 
-;; * [Josh Johnston](https://github.com/joshwnj) contributed `er/contract-region`
+;; * [Josh Johnston](https://github.com/joshwnj) contributed `er-contract-region`
 ;; * [Le Wang](https://github.com/lewang) contributed consistent handling of the mark ring, expanding into pairs/quotes just left of the cursor, and general code clean-up.
 ;; * [Matt Briggs](https://github.com/mbriggs) contributed expansions for ruby-mode.
 ;; * [Ivan Andrus](https://github.com/gvol) contributed expansions for python-mode, text-mode, LaTeX-mode and nxml-mode.
@@ -140,24 +140,24 @@
 (require 'er-basic-expansions)
 
 ;;;###autoload
-(defun er/expand-region (arg)
+(defun er-expand-region (arg)
   "Increase selected region by semantic units.
 
 With prefix argument expands the region that many times.
-If prefix argument is negative calls `er/contract-region'.
+If prefix argument is negative calls `er-contract-region'.
 If prefix argument is 0 it resets point and mark to their state
-before calling `er/expand-region' for the first time."
+before calling `er-expand-region' for the first time."
   (interactive "p")
   (if (< arg 1)
-      (er/contract-region (- arg))
+      (er-contract-region (- arg))
     (er--prepare-expanding)
     (while (>= arg 1)
       (setq arg (- arg 1))
       (when (eq 'early-exit (er--expand-region-1))
         (setq arg 0)))
     (when (and expand-region-fast-keys-enabled
-               (not (memq last-command '(er/expand-region er/contract-region))))
-      (er/prepare-for-more-expansions))))
+               (not (memq last-command '(er-expand-region er-contract-region))))
+      (er-prepare-for-more-expansions))))
 
 (eval-after-load 'clojure-mode   '(require 'clojure-mode-expansions))
 (eval-after-load 'css-mode       '(require 'css-mode-expansions))

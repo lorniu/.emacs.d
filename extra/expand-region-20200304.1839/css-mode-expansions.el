@@ -1,4 +1,4 @@
-;;; css-mode-expansions.el --- CSS-specific expansions for expand-region
+;;; css-mode-expansions.el --- CSS-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011 Magnar Sveen
 
@@ -30,7 +30,7 @@
 
 (require 'expand-region-core)
 
-(defun er/mark-css-declaration ()
+(defun er-mark-css-declaration ()
   "Marks one CSS declaration, eg. font-weight: bold;"
   (interactive)
   (search-backward-regexp "[;{] ?" (line-beginning-position))
@@ -39,13 +39,13 @@
   (search-forward ";" (line-end-position))
   (exchange-point-and-mark))
 
-(defun er/add-css-mode-expansions ()
+(defun er-add-css-mode-expansions ()
   "Adds CSS-specific expansions for buffers in css-mode"
-  (set (make-local-variable 'er/try-expand-list) (append
-                                                  er/try-expand-list
-                                                  '(er/mark-css-declaration))))
+  (set (make-local-variable 'er-try-expand-list) (append
+                                                  er-try-expand-list
+                                                  '(er-mark-css-declaration))))
 
-(er/enable-mode-expansions 'css-mode 'er/add-css-mode-expansions)
+(er-enable-mode-expansions 'css-mode 'er-add-css-mode-expansions)
 
 (provide 'css-mode-expansions)
 

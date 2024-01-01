@@ -155,7 +155,7 @@ It's inserted before the image link and is used to annotate it.")
 
 (defun oi/url (link)
   "Save image at address LINK."
-  (interactive "sUrl: ")
+  (interactive "sUrl: " org-mode)
   (let* ((link-and-ext (org-img--parse-link link))
          (filename
           (cond ((eq org-img-method 'attach)
@@ -176,13 +176,13 @@ It's inserted before the image link and is used to annotate it.")
 
 (defun oi/url-yank ()
   "Call `org-img-url' with current kill."
-  (interactive)
+  (interactive nil org-mode)
   (oi/url
    (replace-regexp-in-string "\n+$" "" (current-kill 0))))
 
 (defun oi/clipboard ()
   "Capture from clipboard and insert the resulting file."
-  (interactive)
+  (interactive nil org-mode)
   (let ((default-directory "~")
         (method (or org-img-clipboard-method (error "No proper tool, may config to use xclip, powershell or others."))))
     (make-directory (file-name-directory org-img-temporary-file) t)
@@ -194,7 +194,7 @@ It's inserted before the image link and is used to annotate it.")
 
 (defun oi/screenshot ()
   "Capture screenshot and insert the resulting file."
-  (interactive)
+  (interactive nil org-mode)
   (let ((default-directory "~")
         (method (or org-img-screenshot-method (error "No suitable screen-shoot-tool configed."))))
     (make-directory (file-name-directory org-img-temporary-file) t)
@@ -206,7 +206,7 @@ It's inserted before the image link and is used to annotate it.")
 
 (defun oi/edit ()
   "Open the image at point for editing."
-  (interactive)
+  (interactive nil org-mode)
   (let ((context (org-element-context)))
     (if (not (eq (car-safe context) 'link))
         (user-error "Not on a link")
@@ -219,7 +219,7 @@ It's inserted before the image link and is used to annotate it.")
 
 (defun oi/rename ()
   "Rename file at point."
-  (interactive)
+  (interactive nil org-mode)
   (let* ((path-info (org-img--link-paths))
          (new-path (let* ((path (read-file-name (format "Rename ’%s’ to: " (plist-get path-info :ofile))
                                                 (let ((d (expand-file-name (plist-get path-info :odir))))
@@ -239,7 +239,7 @@ It's inserted before the image link and is used to annotate it.")
 
 (defun oi/delete ()
   "Delete inline image link on current line, and the file that it points to."
-  (interactive)
+  (interactive nil org-mode)
   (cond ((org-img--at-comment-p)
          (delete-region (line-beginning-position) (line-end-position))
          (org-img--delete (line-beginning-position) nil 1))
@@ -258,7 +258,7 @@ It's inserted before the image link and is used to annotate it.")
 
 (defun oi/open-dired ()
   "Open in dired."
-  (interactive)
+  (interactive nil org-mode)
   (find-file (plist-get (org-img--link-paths) :dir)))
 
 
