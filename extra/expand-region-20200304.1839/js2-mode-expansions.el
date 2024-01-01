@@ -1,4 +1,4 @@
-;;; js2-mode-expansions.el --- Additional expansions for js2-mode
+;;; js2-mode-expansions.el --- Additional expansions for js2-mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011 Magnar Sveen
 
@@ -37,7 +37,7 @@
 
 (defun js2-mark-parent-statement ()
   (interactive)
-  (let* ((parent-statement (if (not (er/looking-back-exact ";"))
+  (let* ((parent-statement (if (not (er-looking-back-exact ";"))
                                (js2-node-parent-stmt (js2-node-at-point))
                              (forward-char -1)
                              (js2-node-at-point)))
@@ -46,13 +46,13 @@
     (goto-char beg)
     (set-mark end)))
 
-(defun er/add-js2-mode-expansions ()
+(defun er-add-js2-mode-expansions ()
   "Adds expansions for buffers in js2-mode"
-  (set (make-local-variable 'er/try-expand-list) (append
-                                                  er/try-expand-list
+  (set (make-local-variable 'er-try-expand-list) (append
+                                                  er-try-expand-list
                                                   '(js2-mark-parent-statement))))
 
-(er/enable-mode-expansions 'js2-mode 'er/add-js2-mode-expansions)
+(er-enable-mode-expansions 'js2-mode 'er-add-js2-mode-expansions)
 
 (provide 'js2-mode-expansions)
 

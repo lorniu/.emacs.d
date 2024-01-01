@@ -1,4 +1,4 @@
-;;; er-basic-expansions.el --- Words, symbols, strings, et al
+;;; er-basic-expansions.el --- Words, symbols, strings, et al  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2013 Magnar Sveen
 
@@ -26,34 +26,34 @@
 
 (require 'expand-region-core)
 
-(defun er/mark-word ()
+(defun er-mark-word ()
   "Mark the entire word around or in front of point."
   (interactive)
   (let ((word-regexp "\\sw"))
     (when (or (looking-at word-regexp)
-              (er/looking-back-on-line word-regexp))
+              (er-looking-back-on-line word-regexp))
       (skip-syntax-forward "w")
       (set-mark (point))
       (skip-syntax-backward "w"))))
 
-(defun er/mark-symbol ()
+(defun er-mark-symbol ()
   "Mark the entire symbol around or in front of point."
   (interactive)
   (let ((symbol-regexp "\\s_\\|\\sw"))
     (when (or (looking-at symbol-regexp)
-              (er/looking-back-on-line symbol-regexp))
+              (er-looking-back-on-line symbol-regexp))
       (skip-syntax-forward "_w")
       (set-mark (point))
       (skip-syntax-backward "_w"))))
 
-(defun er/mark-symbol-with-prefix ()
+(defun er-mark-symbol-with-prefix ()
   "Mark the entire symbol around or in front of point, including prefix."
   (interactive)
   (let ((symbol-regexp "\\s_\\|\\sw")
         (prefix-regexp "\\s'"))
     (when (or (looking-at prefix-regexp)
               (looking-at symbol-regexp)
-              (er/looking-back-on-line symbol-regexp))
+              (er-looking-back-on-line symbol-regexp))
       (skip-syntax-forward "'")
       (skip-syntax-forward "_w")
       (set-mark (point))
@@ -62,7 +62,7 @@
 
 ;; Mark method call
 
-(defun er/mark-next-accessor ()
+(defun er-mark-next-accessor ()
   "Presumes that current symbol is already marked, skips over one
 period and marks next symbol."
   (interactive)
@@ -75,12 +75,12 @@ period and marks next symbol."
         (skip-syntax-forward "_w")
         (exchange-point-and-mark)))))
 
-(defun er/mark-method-call ()
+(defun er-mark-method-call ()
   "Mark the current symbol (including dots) and then paren to closing paren."
   (interactive)
   (let ((symbol-regexp "\\(\\s_\\|\\sw\\|\\.\\)+"))
     (when (or (looking-at symbol-regexp)
-              (er/looking-back-on-line symbol-regexp))
+              (er-looking-back-on-line symbol-regexp))
       (skip-syntax-backward "_w.")
       (set-mark (point))
       (when (looking-at symbol-regexp)
@@ -96,7 +96,7 @@ period and marks next symbol."
   (or (nth 4 (syntax-ppss))
       (memq (get-text-property (point) 'face) '(font-lock-comment-face font-lock-comment-delimiter-face))))
 
-(defun er/mark-comment ()
+(defun er-mark-comment ()
   "Mark the entire comment around point."
   (interactive)
   (when (er--point-is-in-comment-p)
@@ -127,7 +127,7 @@ period and marks next symbol."
   "Move point backward until it exits the current quoted string."
   (goto-char (nth 8 (syntax-ppss))))
 
-(defun er/mark-inside-quotes ()
+(defun er-mark-inside-quotes ()
   "Mark the inside of the current string, not including the quotation marks."
   (interactive)
   (when (er--point-inside-string-p)
@@ -138,13 +138,13 @@ period and marks next symbol."
     (backward-char)
     (exchange-point-and-mark)))
 
-(defun er/mark-outside-quotes ()
+(defun er-mark-outside-quotes ()
   "Mark the current string, including the quotation marks."
   (interactive)
   (if (er--point-inside-string-p)
       (er--move-point-backward-out-of-string)
     (when (and (not (use-region-p))
-               (er/looking-back-on-line "\\s\""))
+               (er-looking-back-on-line "\\s\""))
       (backward-char)
       (er--move-point-backward-out-of-string)))
   (when (looking-at "\\s\"")
@@ -159,7 +159,7 @@ period and marks next symbol."
   "Is point inside any pairs?"
   (> (car (syntax-ppss)) 0))
 
-(defun er/mark-inside-pairs ()
+(defun er-mark-inside-pairs ()
   "Mark inside pairs (as defined by the mode), not including the pairs."
   (interactive)
   (when (er--point-inside-pairs-p)
@@ -186,10 +186,10 @@ period and marks next symbol."
              (forward-list)
              (point)))))
 
-(defun er/mark-outside-pairs ()
+(defun er-mark-outside-pairs ()
   "Mark pairs (as defined by the mode), including the pair chars."
   (interactive)
-  (if (and (er/looking-back-on-line "\\s)+\\=")
+  (if (and (er-looking-back-on-line "\\s)+\\=")
            (not (er--looking-at-pair)))
       (ignore-errors (backward-list 1))
     (skip-chars-forward er--space-str))
@@ -204,19 +204,19 @@ period and marks next symbol."
 
 (require 'thingatpt)
 
-(defun er/mark-url ()
+(defun er-mark-url ()
   (interactive)
   (end-of-thing 'url)
   (set-mark (point))
   (beginning-of-thing 'url))
 
-(defun er/mark-email ()
+(defun er-mark-email ()
   (interactive)
   (end-of-thing 'email)
   (set-mark (point))
   (beginning-of-thing 'email))
 
-(defun er/mark-defun ()
+(defun er-mark-defun ()
   "Mark defun around or in front of point."
   (interactive)
   (end-of-defun)
@@ -225,7 +225,7 @@ period and marks next symbol."
   (beginning-of-defun)
   (skip-chars-forward er--space-str))
 
-(defun er/mark-line ()
+(defun er-mark-line ()
   "Mark one line."
   (interactive)
   (when (not (or (string-match-p
@@ -238,7 +238,7 @@ period and marks next symbol."
       (push-mark nil t t)
       (back-to-indentation))))
 
-(defun er/mark-paragraph ()
+(defun er-mark-paragraph ()
   "Marks one paragraph."
   (interactive)
   (when (not (or (and (member major-mode '(lisp-mode emacs-lisp-mode lisp-interaction-mode))
@@ -248,30 +248,30 @@ period and marks next symbol."
                           (looking-back ")")))))
     (mark-paragraph)))
 
-(defun er/mark-page ()
+(defun er-mark-page ()
   "Marks one page."
   (interactive)
   (mark-page))
 
 ;; Methods to try expanding to
-(setq er/try-expand-list
-      (append '(er/mark-word
-                er/mark-symbol
-                er/mark-symbol-with-prefix
-                er/mark-next-accessor
-                er/mark-method-call
-                er/mark-inside-quotes
-                er/mark-outside-quotes
-                er/mark-inside-pairs
-                er/mark-outside-pairs
-                er/mark-comment
-                er/mark-url
-                er/mark-email
-                er/mark-defun
-                er/mark-line
-                er/mark-paragraph
-                er/mark-page)
-              er/try-expand-list))
+(setq er-try-expand-list
+      (append '(er-mark-word
+                er-mark-symbol
+                er-mark-symbol-with-prefix
+                er-mark-next-accessor
+                er-mark-method-call
+                er-mark-inside-quotes
+                er-mark-outside-quotes
+                er-mark-inside-pairs
+                er-mark-outside-pairs
+                er-mark-comment
+                er-mark-url
+                er-mark-email
+                er-mark-defun
+                er-mark-line
+                er-mark-paragraph
+                er-mark-page)
+              er-try-expand-list))
 
 (provide 'er-basic-expansions)
 ;;; er-basic-expansions.el ends here

@@ -1,4 +1,4 @@
-;;; python-mode-expansions.el --- python-mode-specific expansions for expand-region
+;;; python-mode-expansions.el --- python-mode-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Felix Geller
 
@@ -31,9 +31,9 @@
 ;;    - `py-mark-block'
 ;;    - `py-mark-class'
 ;;  - Additions implemented here:
-;;    - `er/mark-inside-python-string'
-;;    - `er/mark-outside-python-string'
-;;    - `er/mark-outer-python-block'
+;;    - `er-mark-inside-python-string'
+;;    - `er-mark-outside-python-string'
+;;    - `er-mark-outer-python-block'
 ;;  - Supports multi-line strings
 ;;  - Supports incremental expansion of nested blocks
 
@@ -52,7 +52,7 @@
 (declare-function py-end-of-clause-bol "python-mode")
 (defvar py-indent-offset)
 
-(defun er/mark-outside-python-string ()
+(defun er-mark-outside-python-string ()
   "Marks region outside a (possibly multi-line) Python string"
   (interactive)
   (let ((string-beginning (py-in-string-p)))
@@ -62,7 +62,7 @@
       (forward-sexp)
       (exchange-point-and-mark))))
 
-(defun er/mark-inside-python-string ()
+(defun er-mark-inside-python-string ()
   "Marks region inside a (possibly multi-line) Python string"
   (interactive)
   (let ((string-beginning (py-in-string-p)))
@@ -84,7 +84,7 @@ block-starting key word syntactically."
     (forward-line -1)
     (py-beginning-of-block)))
 
-(defun er/mark-outer-python-block ()
+(defun er-mark-outer-python-block ()
   "Attempts to mark a surrounding block by moving to the previous
 line and selecting the surrounding block."
   (interactive)
@@ -96,7 +96,7 @@ line and selecting the surrounding block."
         (set-mark (point))
         (goto-char block-beginning)))))
 
-(defun er/mark-x-python-compound-statement ()
+(defun er-mark-x-python-compound-statement ()
   "Mark the current compound statement (if, while, for, try) and all clauses."
   (interactive)
   (let ((secondary-re
@@ -120,27 +120,27 @@ line and selecting the surrounding block."
       (forward-line -1) (end-of-line)
       (exchange-point-and-mark))))
 
-(defun er/add-python-mode-expansions ()
+(defun er-add-python-mode-expansions ()
   "Adds python-mode-specific expansions for buffers in python-mode"
   (let ((try-expand-list-additions '(
-                                     er/mark-inside-python-string
-                                     er/mark-outside-python-string
+                                     er-mark-inside-python-string
+                                     er-mark-outside-python-string
                                      py-mark-expression
                                      py-mark-statement
                                      py-mark-block
                                      py-mark-def
                                      py-mark-clause
-                                     er/mark-x-python-compound-statement
-                                     er/mark-outer-python-block
+                                     er-mark-x-python-compound-statement
+                                     er-mark-outer-python-block
                                      py-mark-class
                                      )))
     (set (make-local-variable 'expand-region-skip-whitespace) nil)
-    (set (make-local-variable 'er/try-expand-list)
-         (remove 'er/mark-inside-quotes
-                 (remove 'er/mark-outside-quotes
-                         (append er/try-expand-list try-expand-list-additions))))))
+    (set (make-local-variable 'er-try-expand-list)
+         (remove 'er-mark-inside-quotes
+                 (remove 'er-mark-outside-quotes
+                         (append er-try-expand-list try-expand-list-additions))))))
 
-(er/enable-mode-expansions 'python-mode 'er/add-python-mode-expansions)
+(er-enable-mode-expansions 'python-mode 'er-add-python-mode-expansions)
 
 (provide 'python-mode-expansions)
 

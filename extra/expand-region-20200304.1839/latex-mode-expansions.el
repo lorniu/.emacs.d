@@ -1,4 +1,4 @@
-;;; latex-mode-expansions.el --- LaTeX-specific expansions for expand-region
+;;; latex-mode-expansions.el --- LaTeX-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Ivan Andrus
 
@@ -35,10 +35,10 @@
 (defvar texmathp-tex-commands1)
 (defvar texmathp-onoff-regexp)
 (defvar LaTeX-mode-hook)
-(declare-function LaTeX-mark-environment "latex") 
+(declare-function LaTeX-mark-environment "latex")
 (declare-function texmathp "texmathp")
 
-(defun er/mark-LaTeX-inside-environment ()
+(defun er-mark-LaTeX-inside-environment ()
   "Like `LaTeX-mark-environment' but marks the inside of the environment.
 Skips past [] and {} arguments to the environment."
   (interactive)
@@ -58,7 +58,7 @@ Skips past [] and {} arguments to the environment."
     (skip-syntax-backward " ")
     (exchange-point-and-mark)))
 
-(defun er/mark-LaTeX-math ()
+(defun er-mark-LaTeX-math ()
   "Mark current math environment."
   (interactive)
   (when (texmathp)
@@ -68,7 +68,7 @@ Skips past [] and {} arguments to the environment."
            (type (cadr reason)))
       (cond
        ((eq type 'env-on) ;; environments equation, align, etc.
-        (er/mark-LaTeX-inside-environment))
+        (er-mark-LaTeX-inside-environment))
        ((eq type 'arg-on) ;; \ensuremath etc.
         (goto-char pos)
         (set-mark (point))
@@ -85,18 +85,18 @@ Skips past [] and {} arguments to the environment."
         (exchange-point-and-mark))
        (t (error (format "Unknown reason to be in math mode: %s" type)))))))
 
-(defun er/add-latex-mode-expansions ()
+(defun er-add-latex-mode-expansions ()
   "Adds expansions for buffers in latex-mode"
-  (set (make-local-variable 'er/try-expand-list)
+  (set (make-local-variable 'er-try-expand-list)
        (append
-        er/try-expand-list
+        er-try-expand-list
         '(LaTeX-mark-environment
           LaTeX-mark-section
-          er/mark-LaTeX-inside-environment
-          er/mark-LaTeX-math))))
+          er-mark-LaTeX-inside-environment
+          er-mark-LaTeX-math))))
 
 (let ((latex-mode-hook LaTeX-mode-hook))
-  (er/enable-mode-expansions 'latex-mode 'er/add-latex-mode-expansions)
+  (er-enable-mode-expansions 'latex-mode 'er-add-latex-mode-expansions)
   (setq LaTeX-mode-hook latex-mode-hook))
 
 (provide 'latex-mode-expansions)

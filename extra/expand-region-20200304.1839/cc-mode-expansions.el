@@ -1,4 +1,4 @@
-;;; cc-mode-expansions.el --- C-specific expansions for expand-region
+;;; cc-mode-expansions.el --- C-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 François Févotte
 
@@ -23,20 +23,20 @@
 ;;
 ;; Extra expansions for C-like modes that I've found useful so far:
 ;;
-;; er/c-mark-statement
+;; er-c-mark-statement
 ;;     Captures simple and more complex statements.
 ;;
-;; er/c-mark-fully-qualified-name
+;; er-c-mark-fully-qualified-name
 ;;     Captures identifiers composed of several '::'-separated parts.
 ;;
-;; er/c-mark-function-call[-1|-2]
+;; er-c-mark-function-call[-1|-2]
 ;;     Captures an identifier followed by a '()'-enclosed block.
 ;;
-;; er/c-mark-statement-block[-1|-2]
+;; er-c-mark-statement-block[-1|-2]
 ;;     Captures a statement followed by a '{}'-enclosed block.
 ;;     This matches function definitions and if/for/... constructs.
 ;;
-;; er/c-mark-vector-access[-1|-2]
+;; er-c-mark-vector-access[-1|-2]
 ;;     Captures an identifier followed by a '[]'-enclosed block.
 ;;
 ;; Feel free to contribute any other expansions for C at
@@ -49,7 +49,7 @@
 (require 'er-basic-expansions)
 (require 'cc-cmds)
 
-(defun er/c-mark-statement ()
+(defun er-c-mark-statement ()
   "Mark the current C statement.
 
 This function tries to ensure that pair-delimited substring are
@@ -62,7 +62,7 @@ either fully inside or fully outside the statement."
       (exchange-point-and-mark))
 
   ;; Contract the region a bit to make the
-  ;; er/c-mark-statement function idempotent
+  ;; er-c-mark-statement function idempotent
   (when (>= (- (point) (mark)) 2)
     (exchange-point-and-mark)
     (forward-char)
@@ -73,7 +73,7 @@ either fully inside or fully outside the statement."
     ;; Determine boundaries of the outside-pairs region
     (save-mark-and-excursion
       (c-end-of-statement)
-      (er/mark-outside-pairs)
+      (er-mark-outside-pairs)
       (setq beg (point)
             end (mark)))
 
@@ -93,17 +93,17 @@ either fully inside or fully outside the statement."
            (c-end-of-statement)
            (c-beginning-of-statement 1)))))
 
-(defun er/c-mark-fully-qualified-name ()
+(defun er-c-mark-fully-qualified-name ()
   "Mark the current C++ fully qualified identifier.
 
 This function captures identifiers composed of multiple
 '::'-separated parts."
   (interactive)
-  (er/mark-symbol)
+  (er-mark-symbol)
   (when (use-region-p)
     (when (> (point) (mark))
       (exchange-point-and-mark))
-    (while (er/looking-back-exact "::")
+    (while (er-looking-back-exact "::")
       (backward-char 2)
       (skip-syntax-backward "_w"))
     (exchange-point-and-mark)
@@ -112,7 +112,7 @@ This function captures identifiers composed of multiple
       (skip-syntax-forward "_w"))
     (exchange-point-and-mark)))
 
-(defmacro er/c-define-construct (name mark-first-part open-brace doc)
+(defmacro er-c-define-construct (name mark-first-part open-brace doc)
   (let ((docstring (make-symbol "docstring-tmp")))
     (setq docstring
           (concat
@@ -156,30 +156,30 @@ This function captures identifiers composed of multiple
                (,mark-first-part)
                (set-mark end))))))))
 
-(er/c-define-construct er/c-mark-function-call er/c-mark-fully-qualified-name "("
+(er-c-define-construct er-c-mark-function-call er-c-mark-fully-qualified-name "("
                        "Mark the current function call.")
-(er/c-define-construct er/c-mark-statement-block er/c-mark-statement "{"
+(er-c-define-construct er-c-mark-statement-block er-c-mark-statement "{"
                        "Mark the current block construct (like if, for, etc.)")
-(er/c-define-construct er/c-mark-vector-access er/c-mark-fully-qualified-name "\\["
+(er-c-define-construct er-c-mark-vector-access er-c-mark-fully-qualified-name "\\["
                        "Mark the current vector access.")
 
-(defun er/add-cc-mode-expansions ()
+(defun er-add-cc-mode-expansions ()
   "Adds expansions for buffers in c-mode."
-  (set (make-local-variable 'er/try-expand-list)
-       (append er/try-expand-list
-               '(er/c-mark-statement
-                 er/c-mark-fully-qualified-name
-                 er/c-mark-function-call-1   er/c-mark-function-call-2
-                 er/c-mark-statement-block-1 er/c-mark-statement-block-2
-                 er/c-mark-vector-access-1   er/c-mark-vector-access-2))))
+  (set (make-local-variable 'er-try-expand-list)
+       (append er-try-expand-list
+               '(er-c-mark-statement
+                 er-c-mark-fully-qualified-name
+                 er-c-mark-function-call-1   er-c-mark-function-call-2
+                 er-c-mark-statement-block-1 er-c-mark-statement-block-2
+                 er-c-mark-vector-access-1   er-c-mark-vector-access-2))))
 
-(er/enable-mode-expansions 'c-mode 'er/add-cc-mode-expansions)
-(er/enable-mode-expansions 'c++-mode 'er/add-cc-mode-expansions)
-(er/enable-mode-expansions 'objc-mode 'er/add-cc-mode-expansions)
-(er/enable-mode-expansions 'java-mode 'er/add-cc-mode-expansions)
-(er/enable-mode-expansions 'idl-mode 'er/add-cc-mode-expansions)
-(er/enable-mode-expansions 'pike-mode 'er/add-cc-mode-expansions)
-(er/enable-mode-expansions 'awk-mode 'er/add-cc-mode-expansions)
+(er-enable-mode-expansions 'c-mode 'er-add-cc-mode-expansions)
+(er-enable-mode-expansions 'c++-mode 'er-add-cc-mode-expansions)
+(er-enable-mode-expansions 'objc-mode 'er-add-cc-mode-expansions)
+(er-enable-mode-expansions 'java-mode 'er-add-cc-mode-expansions)
+(er-enable-mode-expansions 'idl-mode 'er-add-cc-mode-expansions)
+(er-enable-mode-expansions 'pike-mode 'er-add-cc-mode-expansions)
+(er-enable-mode-expansions 'awk-mode 'er-add-cc-mode-expansions)
 
 (provide 'cc-mode-expansions)
 

@@ -1,4 +1,4 @@
-;;; html-mode-expansions.el --- HTML-specific expansions for expand-region
+;;; html-mode-expansions.el --- HTML-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011 Magnar Sveen
 
@@ -22,9 +22,9 @@
 
 ;; Extra expansions for HTML that I've found useful so far:
 ;;
-;;     er/mark-html-attribute
-;;     er/mark-inner-tag
-;;     er/mark-outer-tag
+;;     er-mark-html-attribute
+;;     er-mark-inner-tag
+;;     er-mark-outer-tag
 ;;
 ;; Feel free to contribute any other expansions for HTML at
 ;;
@@ -35,14 +35,14 @@
 (require 'expand-region-core)
 (require 'sgml-mode)
 
-(defun er/mark-html-attribute ()
+(defun er-mark-html-attribute ()
   "Mark html-attribute presumes that point is at the assignment part of attr=\"value\".
 If point is inside the value-string, the quotes will be marked
 first anyway.  Does not support html-attributes with spaces
 around the equal sign or unquotes attributes atm."
   (interactive)
   (when (or (looking-at "\\(\\s_\\|\\sw\\)*=")
-            (er/looking-back-exact "="))
+            (er-looking-back-exact "="))
     (search-backward " ")
     (forward-char 1)
     (set-mark (point))
@@ -63,7 +63,7 @@ around the equal sign or unquotes attributes atm."
   (save-excursion
     (not (null (sgml-get-context)))))
 
-(defun er/mark-outer-tag ()
+(defun er-mark-outer-tag ()
   "Mark from opening to closing tag, including the tags."
   (interactive)
   (when (and (er--inside-tag-p)
@@ -75,7 +75,7 @@ around the equal sign or unquotes attributes atm."
     (sgml-skip-tag-forward 1)
     (exchange-point-and-mark)))
 
-(defun er/mark-inner-tag ()
+(defun er-mark-inner-tag ()
   "Mark the contents of an open tag, not including the tags."
   (interactive)
   (goto-char (aref (car (last (sgml-get-context))) 3))
@@ -85,18 +85,18 @@ around the equal sign or unquotes attributes atm."
   (search-backward "</")
   (exchange-point-and-mark))
 
-(defun er/add-html-mode-expansions ()
+(defun er-add-html-mode-expansions ()
   "Adds HTML-specific expansions for buffers in html-mode"
-  (set (make-local-variable 'er/try-expand-list) (append
-                                                  er/try-expand-list
-                                                  '(er/mark-html-attribute
-                                                    er/mark-inner-tag
-                                                    er/mark-outer-tag))))
+  (set (make-local-variable 'er-try-expand-list) (append
+                                                  er-try-expand-list
+                                                  '(er-mark-html-attribute
+                                                    er-mark-inner-tag
+                                                    er-mark-outer-tag))))
 
-(er/enable-mode-expansions 'html-mode 'er/add-html-mode-expansions)
-(er/enable-mode-expansions 'rhtml-mode 'er/add-html-mode-expansions)
-(er/enable-mode-expansions 'nxhtml-mode 'er/add-html-mode-expansions)
-(er/enable-mode-expansions 'web-mode 'er/add-html-mode-expansions)
+(er-enable-mode-expansions 'html-mode 'er-add-html-mode-expansions)
+(er-enable-mode-expansions 'rhtml-mode 'er-add-html-mode-expansions)
+(er-enable-mode-expansions 'nxhtml-mode 'er-add-html-mode-expansions)
+(er-enable-mode-expansions 'web-mode 'er-add-html-mode-expansions)
 
 (provide 'html-mode-expansions)
 

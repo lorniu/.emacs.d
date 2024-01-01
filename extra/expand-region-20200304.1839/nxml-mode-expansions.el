@@ -1,4 +1,4 @@
-;;; nxml-mode-expansions.el --- Nxml-specific expansions for expand-region
+;;; nxml-mode-expansions.el --- Nxml-specific expansions for expand-region  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Ivan Andrus
 
@@ -32,34 +32,34 @@
 (require 'html-mode-expansions)
 (require 'nxml-mode)
 
-(defun er/mark-nxml-tag ()
+(defun er-mark-nxml-tag ()
   "Marks one nxml element e.g. <p>"
   (interactive)
   (cond ((looking-at "<")
          (nxml-mark-token-after))
-        ((er/looking-back-exact ">")
+        ((er-looking-back-exact ">")
          (backward-char 1)
          (nxml-mark-token-after))
-        ((er/looking-back-max "<[^<>]*" 1000)
+        ((er-looking-back-max "<[^<>]*" 1000)
          (nxml-mark-token-after))))
 
-(defun er/mark-nxml-element ()
+(defun er-mark-nxml-element ()
   "Marks one nxml element e.g. <p>...</p>"
   (interactive)
   (if (not (looking-at "<[^/]"))
-      (er/mark-nxml-containing-element)
+      (er-mark-nxml-containing-element)
     (set-mark (point))
     (nxml-forward-element)
     (exchange-point-and-mark)))
 
-(defun er/mark-nxml-containing-element ()
+(defun er-mark-nxml-containing-element ()
   "Marks one nxml element, but always e.g. <p>...</p>"
   (interactive)
   (nxml-up-element)
   (set-mark (point))
   (nxml-backward-element))
 
-(defun er/mark-nxml-inside-element ()
+(defun er-mark-nxml-inside-element ()
   "Marks the inside Nxml statement, eg. <p>...</p>"
   (interactive)
   (let ((nxml-sexp-element-flag nil))
@@ -69,10 +69,10 @@
     (nxml-backward-up-element)
     (nxml-forward-balanced-item 1)))
 
-(defun er/inside-nxml-attribute-string? ()
+(defun er-inside-nxml-attribute-string? ()
   "Returns the attribute from `xmltok-attributes' array that
 point is in, or otherwise nil"
-  (save-excursion 
+  (save-excursion
     (forward-char 1)
     (nxml-token-before))
   (cl-find-if (lambda (att)
@@ -80,45 +80,46 @@ point is in, or otherwise nil"
 		     (>= (xmltok-attribute-value-end att) (point))))
 	      xmltok-attributes))
 
-(defun er/mark-nxml-attribute-inner-string ()
+(defun er-mark-nxml-attribute-inner-string ()
   "Marks an attribute string"
   (interactive)
-  (let ((attr (er/inside-nxml-attribute-string?)))
+  (let ((attr (er-inside-nxml-attribute-string?)))
     (when attr
       (set-mark (xmltok-attribute-value-start attr))
       (goto-char (xmltok-attribute-value-end attr))
       (exchange-point-and-mark))))
 
-(defun er/mark-nxml-attribute-string ()
+(defun er-mark-nxml-attribute-string ()
   "Marks an attribute string inside quotes."
   (interactive)
-  (let ((attr (er/inside-nxml-attribute-string?)))
-    (when attr      
+  (let ((attr (er-inside-nxml-attribute-string?)))
+    (when attr
       (set-mark (1- (xmltok-attribute-value-start attr)))
       (goto-char (1+ (xmltok-attribute-value-end attr)))
       (exchange-point-and-mark))))
 
-(defun er/add-nxml-mode-expansions ()
+(defun er-add-nxml-mode-expansions ()
   "Adds Nxml-specific expansions for buffers in nxml-mode"
   (interactive)
-  (set (make-local-variable 'er/try-expand-list)
+  (set (make-local-variable 'er-try-expand-list)
        (append
-        '(nxml-mark-paragraph
+        '(
+          ;;nxml-mark-paragraph
           ;; nxml-mark-token-after ;; Marks the current tag, etc.  It's a bit schizophrenic
-          er/mark-nxml-tag
-          er/mark-nxml-inside-element
-          er/mark-nxml-element
-          er/mark-nxml-containing-element
-          er/mark-nxml-attribute-string
-          er/mark-nxml-attribute-inner-string
+          er-mark-nxml-tag
+          er-mark-nxml-inside-element
+          er-mark-nxml-element
+          er-mark-nxml-containing-element
+          er-mark-nxml-attribute-string
+          er-mark-nxml-attribute-inner-string
           ;; Steal from html-mode-expansions
-          er/mark-html-attribute)
+          er-mark-html-attribute)
         ;; some normal marks are more hindrance than help:
-        (remove 'er/mark-method-call
-                (remove 'er/mark-symbol-with-prefix
-                        (remove 'er/mark-symbol er/try-expand-list))))))
+        (remove 'er-mark-method-call
+                (remove 'er-mark-symbol-with-prefix
+                        (remove 'er-mark-symbol er-try-expand-list))))))
 
-(er/enable-mode-expansions 'nxml-mode 'er/add-nxml-mode-expansions)
+(er-enable-mode-expansions 'nxml-mode 'er-add-nxml-mode-expansions)
 
 (provide 'nxml-mode-expansions)
 

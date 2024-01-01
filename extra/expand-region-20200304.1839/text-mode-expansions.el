@@ -1,4 +1,4 @@
-;;; text-mode-expansions.el --- Expansions for expand-region to be used in text
+;;; text-mode-expansions.el --- Expansions for expand-region to be used in text  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012 Ivan Andrus
 
@@ -29,7 +29,7 @@
 
 (require 'expand-region-core)
 
-(defun er/mark-text-sentence ()
+(defun er-mark-text-sentence ()
   "Marks one sentence."
   (interactive)
   ;; The obvious
@@ -40,25 +40,25 @@
   (set-mark (point))
   (backward-sentence 1))
 
-(defun er/mark-text-paragraph ()
+(defun er-mark-text-paragraph ()
   "Marks one paragraph."
   (interactive)
   (mark-paragraph)
   (skip-chars-forward er--space-str))
 
-(defun er/add-text-mode-expansions ()
+(defun er-add-text-mode-expansions ()
   "Adds expansions for buffers in `text-mode' except for `html-mode'.
 Unfortunately `html-mode' inherits from `text-mode' and
 text-mode-expansions don't work well in `html-mode'."
   (unless (member major-mode expand-region-exclude-text-mode-expansions)
-    (set (make-local-variable 'er/try-expand-list)
+    (set (make-local-variable 'er-try-expand-list)
          (append
-          er/try-expand-list
-          '(er/mark-text-sentence
-            er/mark-text-paragraph
+          er-try-expand-list
+          '(er-mark-text-sentence
+            er-mark-text-paragraph
             mark-page)))))
 
-(er/enable-mode-expansions 'text-mode 'er/add-text-mode-expansions)
+(er-enable-mode-expansions 'text-mode 'er-add-text-mode-expansions)
 
 (provide 'text-mode-expansions)
 
