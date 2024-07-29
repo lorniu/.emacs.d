@@ -14,6 +14,10 @@
                    ((string= "C-g" key) "q")
                    (t key))))))
 
+(defun:around transient--lookup-key (fn keymap key)
+  (unless (string-blank-p (format "%s" key))
+    (funcall fn keymap key)))
+
 ;; Imenu Support
 (with-eval-after-load 'lisp-mode
   (add-to-list 'lisp-imenu-generic-expression
