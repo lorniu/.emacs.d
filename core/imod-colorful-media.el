@@ -49,9 +49,10 @@
                (split-string s " ")))
        (message "%S" mpv-default-options))))
 
-(x mpvi/e
+(x mpvi
    :init
-   (setq mpvi-danmaku2ass (file-truename (loce "share/danmaku2ass.py"))))
+   (setq mpvi-danmaku2ass (file-truename (loce "share/danmaku2ass.py")))
+   :commands (mpvi-open mpvi-open-from-favors mpvi-seek mpvi-insert mpvi-clip mpvi-emms-add mpvi-org-link-init))
 
 
 ;;; Image

@@ -3,15 +3,13 @@
 ;;; Code:
 
 (x dupan
-   :init
-   (require 'dupan nil t))
+   :commands (dupan-find dupan-browser))
 
 (x dropbox
    :ref ("https://www.dropbox.com/home"
          "https://www.dropbox.com/developers/apps"
          "https://www.dropbox.com/developers/documentation")
-   :init
-   (require 'dropbox nil t))
+   :commands (dropbox-find dropbox-browser))
 
 
 

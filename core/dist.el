@@ -67,28 +67,34 @@
 
 
 (defmacro p/loads (&rest packages-required)
-  `(let ((tip "\n(progn\n  (call-interactively #'p/repo)\n  (call-interactively #'im/proxy)\n  (setq package-check-signature nil)\n  (p/install)\n)\n"))
-     (defun p/packages ()
-       (cl-loop for o in ',packages-required
-                for p = (if (listp o) (if (eval (cadr o)) (car o)) o)
-                if (and p (not (package-disabled-p p nil))) collect p))
-     (defun p/packages-lacks ()
-       (cl-remove-if #'package-installed-p (p/packages)))
+  `(cl-labels
+       ((tip () "
+(progn
+  (call-interactively #'p/repo)
+  (call-interactively #'im/proxy)
+  (setq package-check-signature nil)
+  (p/install)\n)\n")
+        (all ()
+          (cl-loop for o in ',packages-required
+                   for p = (if (listp o) (if (eval (cadr o)) (car o)) o)
+                   if (and p (not (package-disabled-p p nil))) collect p))
+        (lacks ()
+          (cl-remove-if #'package-installed-p (all))))
      (defun p/install (&optional dont-select)
        (interactive "P")
        (package-refresh-contents)
-       (dolist (p (p/packages-lacks)) (package-install p dont-select))
+       (dolist (p (lacks)) (package-install p dont-select))
        (message "Install Finished."))
-     (when-let (lacks (p/packages-lacks))
-       (if (= (length lacks) (length (p/packages)))
-           (warn "Have you installed any packages?\n\nMaybe:\n%s" tip))
+     (when-let (lacks (lacks))
+       (if (= (length lacks) (length (all)))
+           (warn "Have you installed any packages?\n\nMaybe:\n%s" (tip)))
        (warn "Total %s packages missing:\n\n%s\n\nPlease install first:\n%s\n\n"
              (length lacks)
              (with-temp-buffer
                (insert (format "%s" lacks))
                (fill-region (point-min) (point-max))
                (buffer-string))
-             tip))))
+             (tip)))))
 
 (p/loads (use-package (< emacs-major-version 29))
          delight ; lighter
