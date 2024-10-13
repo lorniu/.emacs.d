@@ -58,6 +58,7 @@
                                                                           (t (format " class='%s'" props)))
                                                                     summary))))))))
 
+(setq org-confirm-elisp-link-function nil)
 (setq org-confirm-babel-evaluate nil)
 (setq org-src-window-setup 'current-window)
 (setq org-link-abbrev-alist `(("google"  . "https://www.google.com/search?q=")
@@ -203,7 +204,7 @@
 
    ;; Display full link in minibuffer when cursor/mouse is over it
    (defun:before-until org-eldoc-documentation-function (&rest _)
-     (when-let (link (org-element-property :raw-link (org-element-context)))
+     (when-let* ((link (org-element-property :raw-link (org-element-context))))
        (format "Link: %s" link)))
 
    ;; Highlight broken file link

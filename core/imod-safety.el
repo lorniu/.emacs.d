@@ -53,7 +53,7 @@
   (require 'auth-source-pass)
   (when (stringp (car params))
     (setq params (cons :user params)))
-  (when-let (match (car (apply 'auth-source-search params)))
+  (when-let* ((match (car (apply 'auth-source-search params))))
     (let ((secret (plist-get match :secret)))
       (if (functionp secret)
           (funcall secret)

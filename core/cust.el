@@ -37,7 +37,12 @@
 
 (defun im:host (&optional user host) (concat (or user ic/host-user) "@" (or host ic/host)))
 
-(defcustom ic/external-paths (list (loce "bin/x") (loco "bin"))
+(defcustom ic/external-paths
+  (let ((lst (list (loco "bin"))))
+    (if IS-WIN (push (loce "bin/win") lst))
+    (if IS-MAC (push (loce "bin/mac") lst))
+    (if IS-LINUX (push (loce "bin/nix") lst))
+    lst)
   "Extend the PATH environment."
   :type '(repeat string))
 
@@ -123,7 +128,7 @@
 (setenv "LC_ALL" "en_US.UTF-8")
 
 (when IS-WIN
-  (when-let (realhome (and (null (getenv-internal "HOME")) (getenv "USERPROFILE")))
+  (when-let* ((realhome (and (null (getenv-internal "HOME")) (getenv "USERPROFILE"))))
     (setenv "HOME" realhome)
     (setq abbreviated-home-dir nil)))
 

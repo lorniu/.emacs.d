@@ -192,7 +192,7 @@
          (flatten (cl-loop for item in refs ; flatten items like: ("r3" "r4")
                            if (and (listp item) (not (symbolp (car item)))) append (cl-loop for r in item collect r)
                            else collect item))
-         (merged (if-let (oldrs (and (not (member :force flags)) (ignore-errors (funcall fun t))))
+         (merged (if-let* ((oldrs (and (not (member :force flags)) (ignore-errors (funcall fun t)))))
                      (append oldrs flatten) flatten))) ; multiple invoke, merge all items together (if no keyword :force)
     `(defun ,fun (&optional noninteractive)
        ,(if (and (stringp (car merged)) (not (cdr merged))) "" "*") ; document string
@@ -231,7 +231,7 @@
                                                                    (car item)
                                                                    (if (string-prefix-p "`" label) (cl-subseq label 1) (concat "(" label ")"))))
                                                (add-face-text-property (length (car-safe item)) (length label) 'font-lock-doc-face nil label))
-                                             (when-let (group (cadddr item))
+                                             (when-let* ((group (cadddr item)))
                                                (setq label (propertize label 'group group)))
                                              (propertize label 'rlink (caddr item))))) ; pass real link with property, `minibuffer-allow-text-properties' should be set
                                        parsed))
@@ -396,7 +396,7 @@
   "Prompt and show bookmarks of the Browser."
   (interactive)
   (with-current-buffer (r/bookmark.sys-convert-to-org)
-    (when-let (headline (im:org-completing-read-headline))
+    (when-let* ((headline (im:org-completing-read-headline)))
       (goto-char (point-min))
       (re-search-forward (format org-complex-heading-regexp-format (regexp-quote headline)) nil t)
       (beginning-of-line 2)

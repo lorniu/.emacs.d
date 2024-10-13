@@ -82,7 +82,7 @@ note: Ensime is deprecated.
    :ref "remvee/android-mode"
    :init
    (defun im:maybe-android-h ()
-     (when-let (d (project-root (project-current)))
+     (when-let* ((d (project-root (project-current))))
        (when (cl-some (lambda (f) (file-exists-p (expand-file-name f d)))
                       (list "AndroidManifest.xml" "src/main/AndroidManifest.xml"))
          (android-mode +1))))

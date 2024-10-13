@@ -59,7 +59,7 @@
           (abort-recursive-edit)))
 
 (defmacro im:with-completions-window (&rest body)
-  `(when-let ((window (or (get-buffer-window "*Completions*" 0)
+  `(when-let* ((window (or (get-buffer-window "*Completions*" 0)
                           (progn (minibuffer-completion-help) (get-buffer-window "*Completions*" 0)))))
      (with-selected-window window (switch-to-completions) ,@body)))
 
@@ -312,7 +312,7 @@
 
 (defun im:completion-metadata-get (what)
   "Return completion for WHAT: category/display-sort-function/etc."
-  (when-let ((window (active-minibuffer-window)))
+  (when-let* ((window (active-minibuffer-window)))
     (with-current-buffer (window-buffer window)
       (completion-metadata-get
        (completion-metadata (buffer-substring-no-properties

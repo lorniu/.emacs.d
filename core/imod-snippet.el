@@ -103,10 +103,10 @@
 
 (defun im:yas-insert-by-name (name)
   "Insert snippet whose name is NAME."
-  (when-let (template
-             (and yas-minor-mode
-                  (cl-find name (yas--all-templates (yas--get-snippet-tables))
-                           :key #'yas--template-name :test #'equal)))
+  (when-let* ((template
+              (and yas-minor-mode
+                   (cl-find name (yas--all-templates (yas--get-snippet-tables))
+                            :key #'yas--template-name :test #'equal))))
     (yas-expand-snippet (yas--template-content template))))
 
 (defun im:autoinsert-yas-expand()

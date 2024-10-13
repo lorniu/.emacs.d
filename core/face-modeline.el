@@ -22,8 +22,8 @@
 (defun im:project-mode-line ()
   (or im:project-of-current-buffer
       (setq im:project-of-current-buffer
-            (if-let (pname (project-root (project-current)))
-                (propertize (if-let (r (file-remote-p default-directory))
+            (if-let* ((pname (project-root (project-current))))
+                (propertize (if-let* ((r (file-remote-p default-directory)))
                                 (format "{%s}  " (directory-file-name r))
                               (format "<%s>  " (file-name-nondirectory (directory-file-name pname))))
                             'face (if (facep 'project-mode-line-face) 'project-mode-line-face 'font-lock-comment-face))

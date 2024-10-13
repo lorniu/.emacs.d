@@ -120,7 +120,7 @@
 
 (defun im:the-file (file &optional default)
   "Use FILE if it exists, else use DEFAULT."
-  (when-let (f (or (if (file-exists-p file) file) default))
+  (when-let* ((f (or (if (file-exists-p file) file) default)))
     (expand-file-name f)))
 
 (defun file-name-parent-directory (dir)
@@ -145,7 +145,7 @@
       (when (zerop (call-process "file" nil t nil "--mime-type" "--brief" (file-truename file)))
         (string-trim (buffer-string))))
      (IS-WIN ; fallback to query from reg
-      (when-let (ext (if (string-match-p "\\." file) (file-name-extension file) file))
+      (when-let* ((ext (if (string-match-p "\\." file) (file-name-extension file) file)))
         (let ((name (concat "HKEY_LOCAL_MACHINE\\Software\\Classes\\." ext))
               (value "Content Type"))
           (when (zerop (call-process "reg.exe" nil t nil "query" name "/v" value))
@@ -250,7 +250,7 @@ PROMPT is string for minibuffer prompt."
   (declare (indent 1))
   (cl-flet ((norm (items)
               (when items
-                (cons (when-let (r (cl-remove-if #'symbolp items))
+                (cons (when-let* ((r (cl-remove-if #'symbolp items)))
                         (mapconcat (lambda (r) (format "%s" r)) r "\\|"))
                       (cl-remove-if-not #'symbolp items))))
             (filter (match cmd)
@@ -301,7 +301,7 @@ PROMPT is string for minibuffer prompt."
            (ladd "\n")
            (goto-char (point-max))
            (insert line)
-           (when-let (w (get-buffer-window (current-buffer) 'visible))
+           (when-let* ((w (get-buffer-window (current-buffer) 'visible)))
              (set-window-point w (point-max)))
            (set-buffer-modified-p nil))))))
 

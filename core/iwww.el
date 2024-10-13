@@ -120,7 +120,7 @@
 (defun im/network-dns-query (&optional host)
   (interactive (list (read-string "Host name: " nil 'im:network-dns-history)))
   (if (< (length host) 5) (user-error "Not valid host name: %s" (or host nil)))
-  (if-let (ip (dns-query host))
+  (if-let* ((ip (dns-query host)))
       (progn (kill-new ip) (message "%s" ip))
     (user-error "No available ip found for %s" host)))
 

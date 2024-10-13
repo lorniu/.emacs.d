@@ -26,7 +26,7 @@
    :init
    (defvar zero-dark-use-paddings-in-mode-line 3))
 
-(if-let (theme (f/get :theme)) (load-theme theme t))
+(if-let* ((theme (f/get :theme))) (load-theme theme t))
 
 (provide 'face-themes)
 

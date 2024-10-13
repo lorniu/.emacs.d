@@ -460,7 +460,7 @@ With argument N, make N copies."
 
 (defun im/yank-current-directory ()
   (interactive)
-  (if-let (d default-directory)
+  (if-let* ((d default-directory))
       (progn
         (kill-new d)
         (message "Yanked: %s" d))
@@ -607,7 +607,7 @@ With ARG not nil for prompt the trace logic."
       (goto-char (point-min))
       (while (re-search-forward "^(defun +\\([^ ]+\\)" nil t)
         (push (match-string 1) all)))
-    (if-let (funcs (completing-read-multiple "Functions (* for all, empty for clean): " all nil nil (which-function)))
+    (if-let* ((funcs (completing-read-multiple "Functions (* for all, empty for clean): " all nil nil (which-function))))
         (let ((logic (if arg (read--expression "Logic to run: "))))
           (if (equal (list "*") funcs) (setq funcs all))
           (message "[trace] Advice for trace: %s" funcs)

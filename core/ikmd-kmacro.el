@@ -18,7 +18,7 @@
             (define-key map (kbd "C-w") ; copy kmacro/definition
                         (lambda ()
                           (interactive)
-                          (when-let (cand (im:completion-compat :current))
+                          (when-let* ((cand (im:completion-compat :current)))
                             (with-temp-buffer
                               (if (funcall cmdp cand)
                                   (insert-kbd-macro (intern cand) t)
@@ -31,7 +31,7 @@
             (define-key map (kbd "C-r") ; name kmacro
                         (lambda ()
                           (interactive)
-                          (when-let (cand (im:completion-compat :current))
+                          (when-let* ((cand (im:completion-compat :current)))
                             (let ((km (or (consult--lookup-candidate cand cs) (user-error "You should select a kmacro without named")))
                                   (name (read-string "Name for this kbd macro: " "km/")))
                               (if (string-equal name "") (error "No command name given"))
@@ -44,7 +44,7 @@
             (define-key map (kbd "C-o") ; open/edit kmacro
                         (lambda ()
                           (interactive)
-                          (when-let (cand (im:completion-compat :current))
+                          (when-let* ((cand (im:completion-compat :current)))
                             (cond ((funcall cmdp cand) (throw 'miniquit `(edit . ,(intern cand))))
                                   ((= (im:completion-compat :index) 0) (throw 'miniquit `(edit)))
                                   (t (user-error "Can't edit current one"))))))
@@ -65,7 +65,7 @@
         (if (consp ret)
             (if (eq (car-safe ret) 'edit)
                 ;; edit kbd macro
-                (if-let (s (cdr ret))
+                (if-let* ((s (cdr ret)))
                     (cl-letf (((symbol-function 'read-command) (lambda (&rest _) s)))
                       (edit-named-kbd-macro))
                   (edit-last-kbd-macro))

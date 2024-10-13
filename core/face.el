@@ -123,7 +123,7 @@
      (let ((preset (f/get (or value 'def))))
        (cl-loop for (k . v) in f/params--backup do (set-frame-parameter nil k v))
        (f/mode-line-height 'unspecified)
-       (when-let (theme (plist-get preset :theme))
+       (when-let* ((theme (plist-get preset :theme)))
          (mapc #'disable-theme custom-enabled-themes)
          (load-theme theme t))
        (cl-loop for (k v) on preset by #'cddr do
@@ -377,13 +377,13 @@ With current-prefix-arg non-nil, edit before commit."
 
 ;;; Commons
 
-(when-let (ft (f/get :font))
+(when-let* ((ft (f/get :font)))
   (set-face-attribute 'default nil :font ft))
 
-(when-let (ft (f/get :font-cn))
+(when-let* ((ft (f/get :font-cn)))
   (cl-loop for r in '(han cjk-misc) do (set-fontset-font "fontset-default" r ft)))
 
-(when-let (ft (f/get :font-emoji))
+(when-let* ((ft (f/get :font-emoji)))
   (set-fontset-font "fontset-default" 'emoji ft))
 
 (cl-loop for (k v) on (f/get 'def) by #'cddr

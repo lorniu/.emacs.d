@@ -43,7 +43,7 @@
               (node-end (treesit-node-end node)))
          ;; Node fits the region exactly. Try its parent node instead.
          (when (and (= (region-beginning) node-start) (= (region-end) node-end))
-           (when-let ((node (treesit-node-parent node)))
+           (when-let* ((node (treesit-node-parent node)))
              (setq node-start (treesit-node-start node)
                    node-end (treesit-node-end node))))
          (set-mark node-end)
@@ -72,7 +72,7 @@
              "Edit file as Super User."
              (interactive)
              (if IS-WIN
-                 (if-let (f (buffer-file-name))
+                 (if-let* ((f (buffer-file-name)))
                      (start-process-shell-command (format-time-string "sudo-%s") nil (concat "wsudo notepad " f))
                    (user-error "No buffer-file found"))
                (let ((pt (point)) (old-buf (current-buffer))

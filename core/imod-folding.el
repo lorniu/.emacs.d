@@ -144,17 +144,17 @@
          (string-match "\\({{{\\|}}}\\)" (buffer-substring (line-beginning-position) (line-end-position))))
     (let ((tag (match-string 1 (buffer-substring (line-beginning-position) (line-end-position)))))
       (if (string-equal tag "{{{")
-          (when-let (end (save-mark-and-excursion
-                           (catch 'here
-                             (while (search-forward "}}}" nil t)
-                               (when (im:in-comment-p)
-                                 (throw 'here (line-end-position)))))))
+          (when-let* ((end (save-mark-and-excursion
+                            (catch 'here
+                              (while (search-forward "}}}" nil t)
+                                (when (im:in-comment-p)
+                                  (throw 'here (line-end-position))))))))
             (fold-this (line-beginning-position) end))
-        (when-let (beg (save-mark-and-excursion
-                         (catch 'here
-                           (while (search-backward "{{{" nil t)
-                             (when (im:in-comment-p)
-                               (throw 'here (line-beginning-position)))))))
+        (when-let* ((beg (save-mark-and-excursion
+                          (catch 'here
+                            (while (search-backward "{{{" nil t)
+                              (when (im:in-comment-p)
+                                (throw 'here (line-beginning-position))))))))
           (fold-this beg (line-end-position))))))
    ;; if on the line-break char, toggle fold-page
    ((or (and (eq (char-before) 10) (eq (char-after) 12))

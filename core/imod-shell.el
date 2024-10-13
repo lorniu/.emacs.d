@@ -59,7 +59,7 @@
                     (local-set-key (kbd "C-k")
                                    (lambda ()
                                      (interactive)
-                                     (when-let (idx (get-pos-property 0 'ring-idx (im:completion-compat :current)))
+                                     (when-let* ((idx (get-pos-property 0 'ring-idx (im:completion-compat :current))))
                                        (when (with-current-buffer buf (ring-remove eshell-history-ring idx))
                                          (im:completion-compat :delete))))))
                 (completing-read "Command: " (im:ordered-completion-table hists)
@@ -95,7 +95,7 @@
                              ic/workdir ic/srcdir ic/downloaddir (if IS-WIN (getenv "USERPROFILE"))))
                (collection (cl-remove-duplicates
                             (append (funcall normfn (car bufdirs) "c")
-                                    (when-let (d (project-root (project-current))) (funcall normfn (list d) "p"))
+                                    (when-let* ((d (project-root (project-current)))) (funcall normfn (list d) "p"))
                                     (funcall normfn (cdr bufdirs) "b" t)
                                     (funcall normfn others nil t))
                             :from-end t :test #'string=)))

@@ -40,8 +40,9 @@
 (x editorconfig/d
    :ref ("editorconfig/editorconfig-emacs" "https://editorconfig.org/")
    :init
-   (editorconfig-mode 1)
-   (add-to-list 'editorconfig-exclude-regexps "\\.\\(zip\\|\\(doc\\|xls\\|ppt\\)x\\)\\'"))
+   ;;(editorconfig-mode 1)
+   ;;(add-to-list 'editorconfig-exclude-regexps "\\.\\(zip\\|\\(doc\\|xls\\|ppt\\)x\\)\\'")
+   )
 
 (provide 'imod-project)
 

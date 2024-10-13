@@ -270,7 +270,7 @@ Item should be (win-id-list window-configuration buffers-info updated-at) style.
                           (use-local-map (make-composed-keymap nil (current-local-map)))
                           (local-set-key (kbd "C-k") (lambda ()
                                                        (interactive)
-                                                       (when-let (current (im:completion-compat :current))
+                                                       (when-let* ((current (im:completion-compat :current)))
                                                          (setq im:fullscreen-alist
                                                                (cl-remove-if (lambda (item) (equal (cadr (assoc current items)) (car item))) im:fullscreen-alist))
                                                          (throw 'fullscreen-minibuffer 'del))))
@@ -290,7 +290,7 @@ Item should be (win-id-list window-configuration buffers-info updated-at) style.
                                                 nil t nil nil (car items))))))
              (cond ((eq choosen 'del) (im/toggle-layout 'reopen))
                    ((eq choosen 'clear) (message "Clear done."))
-                   (t (if-let (wc (cadr (cdr (assoc choosen items)))) (set-window-configuration wc))))))))
+                   (t (if-let* ((wc (cadr (cdr (assoc choosen items))))) (set-window-configuration wc))))))))
     ;; single window: try to choose and switch to another layout
     (if (equal (selected-window) (next-window))
         (if (zerop (length im:fullscreen-alist))
@@ -328,7 +328,7 @@ Item should be (win-id-list window-configuration buffers-info updated-at) style.
 (defun im:treemacs-dired-current ()
   "Open current path in `dired'."
   (interactive)
-  (if-let (path (treemacs--prop-at-point :path))
+  (if-let* ((path (treemacs--prop-at-point :path)))
       (dired (if (file-directory-p path)
                  path
                (file-name-directory path)))

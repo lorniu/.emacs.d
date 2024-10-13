@@ -53,7 +53,7 @@ machine gitlab.com/api/v4 login USER^forge password TOKEN
 
    ;; mark the ORIG_HEAD commit in log buffer
    (defun:after magit-refresh-buffer//orig-head (&rest _args)
-     (when-let (ref (if (eq major-mode 'magit-log-mode) (magit-rev-verify "ORIG_HEAD")))
+     (when-let* ((ref (if (eq major-mode 'magit-log-mode) (magit-rev-verify "ORIG_HEAD"))))
        (save-excursion
          (goto-char (point-min))
          (when (re-search-forward (concat "^" (cl-subseq ref 0 7) ".*") nil t)

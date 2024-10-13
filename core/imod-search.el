@@ -21,8 +21,8 @@
                      (rg (read-from-minibuffer "Multi-Occurs: " str nil nil 'regexp-history)
                          (rg-read-files)
                          (read-directory-name "In directory: " nil default-directory t))
-                     (if-let (it (get-buffer-window "*rg*")) (select-window it))))
-   (defun:after occur//follow (&rest _) (if-let (it (get-buffer-window "*Occur*")) (select-window it))))
+                     (if-let* ((it (get-buffer-window "*rg*"))) (select-window it))))
+   (defun:after occur//follow (&rest _) (if-let* ((it (get-buffer-window "*Occur*"))) (select-window it))))
 
 (x rg
    "pacman -S ripgrep"
@@ -54,7 +54,7 @@
   (if (or (not word) (< (length word) 3))
       (message "word not available")
     (let* ((oldcmd grep-find-command)
-           (ext (if-let (it (file-name-extension (buffer-name))) (concat "." it) ""))
+           (ext (if-let* ((it (file-name-extension (buffer-name)))) (concat "." it) ""))
            (newcmd (format "find . -maxdepth 1 -type f -name '*%s' -exec grep -nH -e '%s' {} + " ext word)))
       (unwind-protect
           (progn
@@ -91,7 +91,7 @@
     (pcase-let*
         ((`(_ ,dir ,info) im:rg--candicates)
          (rg-required-command-line-flags
-          (if-let (glob (plist-get info :glob))
+          (if-let* ((glob (plist-get info :glob)))
               (cons (concat "--glob='" glob "'") rg-required-command-line-flags)
             rg-required-command-line-flags)))
       ;; dispatch query to rg.el
@@ -111,7 +111,7 @@
                              (search-forward (format "%s:%s:" file-name line-number) nil t))
                            (beginning-of-line)))))))
       ;; save input to history
-      (when-let (item (plist-get info :origin))
+      (when-let* ((item (plist-get info :origin)))
         (im:history-replace 'im:rg--search-history item)))))
 
 (defun im:rg-parse-input (string)
@@ -156,7 +156,7 @@
                                  (plist-get info :input)))
                         (search-backward "[.^.]")
                         (delete-region (point) (match-end 0))
-                        (insert (if-let (g (plist-get info :glob)) (concat "-g '" g "'") ""))
+                        (insert (if-let* ((g (plist-get info :glob))) (concat "-g '" g "'") ""))
                         (buffer-string)))
              (results (with-temp-buffer
                         (process-file-shell-command command nil (current-buffer))
@@ -228,14 +228,14 @@ Make sure package `rg.el' is installed."
                        (local-set-key (kbd "M-w")
                                       (lambda ()
                                         (interactive)
-                                        (when-let (c (ignore-errors (cadr (split-string (im:completion-compat :current) "[0-9]:"))))
+                                        (when-let* ((c (ignore-errors (cadr (split-string (im:completion-compat :current) "[0-9]:")))))
                                           (kill-new c)
                                           (throw 'miniquit 'Copy))))
                        (local-set-key (kbd "C-c C-o") #'im:rg-dispatch-to-rg.el))
                    (completing-read prompt table nil nil word 'im:rg--search-history))))
          (info (cl-third im:rg--candicates)))
     (if (symbolp line) (user-error "%s done" line))
-    (when-let (h (plist-get info :origin)) ; history item
+    (when-let* ((h (plist-get info :origin))) ; history item
       (im:history-replace 'im:rg--search-history h))
     (setq line (cl-subseq line (plist-get info :beg))) ; remove prefix 'group.glob ' in the result line
     (if (string-match (format "\\`\\(.*?\\):\\([0-9]+\\):\\(.*\\)\\'") line)

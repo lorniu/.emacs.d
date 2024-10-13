@@ -32,9 +32,9 @@
 (defun im/csharp-repl ()
   "Switch to the CSharpRepl buffer, creating it if necessary."
   (interactive)
-  (if-let (buf (get-buffer "*CSharpRepl*"))
+  (if-let* ((buf (get-buffer "*CSharpRepl*")))
       (pop-to-buffer buf)
-    (when-let (b (make-comint "CSharpRepl" "csharp"))
+    (when-let* ((b (make-comint "CSharpRepl" "csharp")))
       (switch-to-buffer-other-window b))))
 
 (transient-define-prefix im/transient-csharp-mode ()
