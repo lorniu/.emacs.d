@@ -17,11 +17,7 @@
 
 (x flymake)
 
-(x checkdoc
-   :config
-   (defun:around checkdoc-sentencespace-region-engine//use-the-default-value (fn beg end)
-     (let ((sentence-end-double-space t))
-       (funcall fn beg end))))
+(x checkdoc)
 
 (x which-func)
 

@@ -6,8 +6,8 @@
    :ref "jrblevin/markdown-mode"
    :bind (:map markdown-mode-map ("C-c l" . im/markdown-hide-levels))
    :config
-   (setopt markdown-hide-markup nil
-           markdown-fontify-code-blocks-natively nil)
+   (setq markdown-hide-markup nil
+         markdown-fontify-code-blocks-natively nil)
    (defun:hook markdown-mode-hook () (visual-line-mode 1))
    ;; fixup 'which-func-ff-hook error' (#578)
    (setq markdown-nested-imenu-heading-index nil))

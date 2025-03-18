@@ -17,11 +17,42 @@
 
 ;;; Code:
 
+
 (setq package-user-dir (loce "elpa"))
 
 (package-initialize)
 
 (add-hook 'package-menu-mode-hook (lambda () (hl-line-mode 1)))
+
+
+;;; Archives
+
+(defconst p/elpa-repos
+  '(:origin
+    (setq package-archives
+          `(("gnu"    . "https://elpa.gnu.org/packages/")
+            ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+            ("melpa"  . "https://melpa.org/packages/")))
+    :ustc
+    (setq package-archives
+          `(("gnu"    . "https://mirrors.ustc.edu.cn/elpa/gnu/")
+            ("nongnu" . "https://mirrors.ustc.edu.cn/elpa/nongnu/")
+            ("melpa"  . "https://mirrors.ustc.edu.cn/elpa/melpa/")))
+    :tsinghua
+    (setq package-archives
+          `(("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu")
+            ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu")
+            ("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa")))))
+
+(defvar ic/elpa :origin)
+
+(defun p/repo (&optional upstream)
+  (interactive (list (intern (completing-read "package-archives to use: " (cl-loop for m in p/elpa-repos by #'cddr collect (symbol-name m)) nil t))))
+  (unless upstream (setq upstream (car p/elpa-repos)))
+  (eval (plist-get p/elpa-repos upstream))
+  (if (called-interactively-p 'any) (message "%s" package-archives) (message "[ELPA] %s" upstream)))
+
+(p/repo ic/elpa) ; init package-archives
 
 
 ;;; Install packages
@@ -39,7 +70,7 @@
             posframe ; childframe
             pcre2el ; regexp
             ace-window treemacs ; window/workspace
-            corfu cape vertico orderless marginalia hyperbole embark-consult ; utils
+            corfu cape vertico orderless marginalia hyperbole consult embark embark-consult ; utils
             yasnippet license-templates ; templates
             all-the-icons ; icons
             standard-themes nano-theme gruvbox-theme srcery-theme ; themes
@@ -106,47 +137,25 @@
                         (lacks ()
                           (cl-remove-if #'package-installed-p (all)))
                         (report (lacks)
-                          (display-warning
-                           'packages
-                           (format
-                            "Total %d packages missing:\n\n%s\n\nPlease install first:\n%s\n\n" (length lacks)
-                            (with-temp-buffer (insert (format "%s" lacks)) (fill-region (point-min) (point-max)) (buffer-string))
-                            "\n(progn\n  (call-interactively #'p/repo)\n  (call-interactively #'im/proxy)\n  (setq package-check-signature nil)\n  (p/install)\n  (restart-emacs)\n )")
-                           :error "|Package-Loading|")))
+                          (format
+                           "Total %d packages missing:\n\n%s\n\nPlease install first:\n%s\n\n" (length lacks)
+                           (with-temp-buffer (insert (format "%s" lacks)) (fill-region (point-min) (point-max)) (buffer-string))
+                           "\n(progn\n  (call-interactively #'p/repo)\n  (call-interactively #'im/proxy)\n  (setq package-check-signature nil)\n  (p/install)\n  (restart-emacs)\n )")))
                      (defun p/install (&optional dont-select)
                        (interactive "P")
                        (package-refresh-contents)
-                       (dolist (p (lacks)) (package-install p dont-select))
+                       (cl-loop with lacks = (lacks)
+                                with len = (length lacks)
+                                for i from 1
+                                for p in lacks
+                                do (with-temp-message (format "Installing %d/%d..." i len)
+                                     (package-install p dont-select)))
                        (message "Install Finished."))
-                     (if-let* ((lst (lacks)))
-                         (if after-init-time
-                             (report lst)
-                           (add-hook 'emacs-startup-hook (lambda () (report lst))))))))
+                     (when-let* ((lst (lacks)) (msg (report lst)))
+                       (if after-init-time
+                           (display-warning 'packages msg :error "|-Package-Loading-|")
+                         (signal 'user-error msg))))))
     (ensure-packages-installed)))
-
-
-;;; Package Repo
-
-(defconst p/elpa-repos
-  '(:origin
-    (setq package-archives
-          `(("gnu"    . "https://elpa.gnu.org/packages/")
-            ("nongnu" . "https://elpa.nongnu.org/nongnu/")
-            ("melpa"  . "https://melpa.org/packages/")))
-    :ustc
-    (setq package-archives
-          `(("gnu"    . "https://mirrors.ustc.edu.cn/elpa/gnu/")
-            ("nongnu" . "https://mirrors.ustc.edu.cn/elpa/nongnu/")
-            ("melpa"  . "https://mirrors.ustc.edu.cn/elpa/melpa/")))
-    :tsinghua
-    (setq package-archives
-          `(("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu")
-            ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu")
-            ("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa")))))
-
-(defvar ic/elpa :origin)
-
-(with-eval-after-load 'dist (p/repo ic/elpa)) ; init package-archives
 
 
 ;;; Use-Package
@@ -162,17 +171,17 @@
                (options (cl-set-difference args doc-strings))
                (refs (prog1 (plist-get options :ref) (cl-remf options :ref)))
                (refs-name (if (and (cdr-safe refs) (symbolp (car-safe refs))) (pop refs) (intern mode-name)))
-               (fopts (delq nil (list (if (seq-contains-p flags ?e) :demand :defer) t
+               (fopts (delq-nil (list (if (seq-contains-p flags ?e) :demand :defer) t
                                       (if (seq-contains-p flags ?d) :diminish)
                                       (if (seq-contains-p flags ?i) :ensure)
                                       (if (seq-contains-p flags ?x) :disabled))))
                (name (intern name)))
-    (delq nil
-          `(progn
-             (if init-file-debug (message "Loading %s..." ',name))
-             ,(if doc-strings `(defhelper ,(intern mode-name) ,@doc-strings))
-             ,(if refs `(defreference ,refs-name ,refs))
-             (use-package ,name ,@fopts ,@options)))))
+    (delq-nil
+     `(progn
+        (if init-file-debug (message "Loading %s..." ',name))
+        ,(if doc-strings `(defhelper ,(intern mode-name) ,@doc-strings))
+        ,(if refs `(defreference ,refs-name ,refs))
+        (use-package ,name ,@fopts ,@options)))))
 
 
 ;;; Auxiliaries
@@ -186,12 +195,6 @@
             else if (stringp v) collect `(push ,v load-path) ; use this instead of elpa's one
             else if (null v) collect `(add-to-list 'package-load-list '(,p . nil)) ; don't load this
             else collect `',p)))
-
-(defun p/repo (&optional upstream)
-  (interactive (list (intern (completing-read "package-archives to use: " (cl-loop for m in p/elpa-repos by #'cddr collect (symbol-name m)) nil t))))
-  (unless upstream (setq upstream (car p/elpa-repos)))
-  (eval (plist-get p/elpa-repos upstream))
-  (if (called-interactively-p 'any) (message "%s" package-archives) (message "[ELPA] %s" upstream)))
 
 (defun p/clean-dups (&optional dry-run)
   (interactive "P")
@@ -216,11 +219,5 @@
                       (message "Deleting %s %s" d (if dry-run "[dry-run]" ""))
                       (unless dry-run (delete-directory d t))))
       (message "Nothing to clean."))))
-
-(defun p/add-to-load-path (path)
-  (interactive (list (read-directory-name "Directory to add: " nil nil t)))
-  (if (and path (file-directory-p path))
-      (add-to-list 'load-path path)
-    (user-error "Path '%s' is not available" path)))
 
 (provide 'dist)
