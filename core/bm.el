@@ -15,16 +15,15 @@
   (* 1000.0 (%time-subtract-seconds b a)))
 
 (defun imload (mod &optional maybe)
-  (condition-case err
-      (let ((start-time (current-time)))
-        ;; `require' waste much more time than `load' directly
-        (if maybe
-            (require mod nil 'noerror)
-          (condition-case err
-	          (load (expand-file-name (format "core/%s.el" mod) user-emacs-directory) nil (not init-file-debug) nil 'must-suffix)
-            (error (display-warning 'imload (format "%s.el - %s" mod err) nil "|Package-Loading|"))))
-        (push (cons mod (%time-subtract-millis (current-time) start-time)) bm/imload-times))
-    (error (display-warning mod (format "%s" err) :emergency "*startup*"))))
+  (let ((start-time (current-time)))
+    ;; `require' waste much more time than `load' directly
+    (if maybe
+        (require mod nil 'noerror)
+      (condition-case err
+	      (load (expand-file-name (format "core/%s.el" mod) user-emacs-directory) nil (not init-file-debug) nil 'must-suffix)
+        (user-error (user-error (cdr err)))
+        (error (display-warning 'imload (format "%s.el - %s" mod err) nil "|-Package-Loading-|"))))
+    (push (cons mod (%time-subtract-millis (current-time) start-time)) bm/imload-times)))
 
 (defalias 'imload- #'ignore)
 

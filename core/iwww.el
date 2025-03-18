@@ -11,8 +11,8 @@
 
 
 
-(x raq
-   :init (require 'raq))
+(x pdd
+   :init (require 'pdd))
 
 (x plz
    :ref ("alphapapa/plz.el"))

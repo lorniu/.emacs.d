@@ -172,7 +172,7 @@
    ((and (derived-mode-p 'org-mode) (org-at-heading-p))
     (call-interactively 'org-cycle))
    ;; if markdown-mode
-   ((and (derived-mode-p 'markdown-mode) (markdown-heading-at-point))
+   ((and (eq major-mode 'markdown-mode) (markdown-heading-at-point))
     (call-interactively 'markdown-cycle))
    ;; if outline-mode
    ((and (derived-mode-p 'outline-mode) (outline-on-heading-p))

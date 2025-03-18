@@ -199,10 +199,10 @@
        (interactive)
        (let* ((refs ',merged))
          (if noninteractive refs
-           (let* ((refs (delq nil ; deal item that is a form: eval and append the results
-                              (cl-loop for ref in refs
-                                       if (consp ref) append (ensure-list (eval ref))
-                                       else collect ref)))
+           (let* ((refs (delq-nil ; deal item that is a form: eval and append the results
+                         (cl-loop for ref in refs
+                                  if (consp ref) append (ensure-list (eval ref))
+                                  else collect ref)))
                   (parsed (if (null refs)  ; extract label from item, complete the abbrev links: (link-display label link)
                               (user-error "No suitable reference")
                             (mapcar (lambda (item)
