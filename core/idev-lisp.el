@@ -36,6 +36,7 @@
 
 (x lisp-mode
    :ref ("SLY: joaotavora/sly"
+         "Emacs by CL: lem-project/lem"
          "IRC-Log: https://irclog.tymoon.eu/libera/%23commonlisp")
    :init
    (pcase ic/lisp-dev
@@ -149,6 +150,11 @@
            (let ((exp (completing-read "Change to: " cs nil t)))
              (setq-local lisp-indent-function (intern exp))
              (message "Changed to `%s' locally." lisp-indent-function))))
+
+(defvar elisp-last-eval-sexp-value)
+
+(defun:before elisp--eval-last-sexp-print-value//record-last-value (value &rest _)
+  (setq elisp-last-eval-sexp-value value))
 
 (transient-define-prefix im/assist-debugger-mode ()
   [[ ("d" "debugger-step-through" debugger-step-through)

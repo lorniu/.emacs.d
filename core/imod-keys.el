@@ -65,7 +65,6 @@
  ( "C-x l"         .  consult-line                                )
  ( "C-c l"         .  consult-line                                )
  ( "C-x n"         .  im/transient-narrow                         )
- ( "C-x C-o"       .  ace-window                                  )
  ( "C-x 4 b"       .  consult-buffer-other-window                 )
  ( "C-x 5 b"       .  consult-buffer-other-frame                  )
  ( "C-x C-j"       .  ffap                                        )

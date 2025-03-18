@@ -11,11 +11,8 @@
 
 
 
-(x raq
-   :init (require 'raq))
-
-(x plz
-   :ref ("alphapapa/plz.el"))
+(x pdd
+   :init (require 'pdd))
 
 (x aria2
    "aria2c client in emacs."
@@ -63,25 +60,6 @@
 
 
 
-(x engine-mode
-   :init (engine-mode 1)
-   :config
-   (require 'format-spec)
-   (define-key engine-mode-map (kbd "C-x /") nil)
-
-   (defengine google         "https://google.com/search?q=%s")
-   (defengine google-cn      "https://google.com/search?q=%s&lr=lang_zh-CN")
-   (defengine dict-iciba     "https://www.iciba.com/%s")
-   (defengine github         "https://github.com/search?ref=simplesearch&q=%s")
-   (defengine stackoverflow  "https://stackoverflow.com/search?q=%s")
-   (defengine wikipedia      "https://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s")
-   (defengine arch-wiki      "https://wiki.archlinux.org/index.php?title=Special%%3ASearch&search=%s&go=Go" :browser 'eww-browse-url)
-   (defengine iconify        "https://iconify.design/icon-sets/?query=%s")
-   (defengine wolfram-alpha  "https://www.wolframalpha.com/input/?i=%s")
-   (defengine youtube        "https://www.youtube.com/results?aq=f&oq=&search_query=%s"))
-
-
-
 (defun im/httpd-here (&optional arg)
   (interactive "P")
   (let ((httpd-root default-directory)
@@ -114,20 +92,14 @@
 (defun im/network-ipinfo-query (ip)
   "Return ip info from ipinfo.io for IP."
   (interactive "sEnter IP to query (blank for own IP): ")
-  (require 'plz)
-  (plz 'get (concat "https://ipinfo.io/" ip)
-    :headers '(("User-Agent" . "Emacs ipinfo.io Client")
-               ("Accept" . "application/json")
-               ("Content-Type" . "application/json;charset=utf-8"))
-    :as 'json-read
-    :then (lambda (data)
+  (pdd (concat "https://ipinfo.io/" ip)
+    :headers `(json acc-json)
+    :done (lambda (data)
             (message
-             (mapconcat
-              (lambda (e)
-                (format "%10s: %s" (capitalize (symbol-name (car e))) (cdr e)))
-              data "\n")))
-    :else (lambda (err)
-            (message "Can't receive ipinfo. Error %S " err))))
+             (mapconcat (lambda (e)
+                          (format "%10s: %s" (capitalize (symbol-name (car e))) (cdr e)))
+                        data "\n")))
+    :fail (lambda (r) (message "Can't receive ipinfo. Error %S " r))))
 
 (defun im/network-dns-query (&optional host)
   (interactive (list (read-string "Host name: " nil 'im:network-dns-history)))

@@ -111,6 +111,79 @@
 
 
 
+(defvar im:license-templates nil)
+
+(defun im:license-templates ()
+  (or im:license-templates
+      (setq im:license-templates
+            (cl-coerce (pdd "https://api.github.com/licenses" :sync t) 'list))))
+
+(defun im:license-template-info (name)
+  (let* ((licenses (im:license-templates))
+         (license (cl-find-if (lambda (l) (equal name (alist-get 'key l))) licenses)))
+    (pdd (alist-get 'url license) :sync t)))
+
+(defun im/license-template-insert (name)
+  (interactive
+   (list (completing-read "License template: "
+                          (im:completion-table
+                           (mapcar (lambda (y) (alist-get 'key y)) (im:license-templates)))
+                          nil t)))
+  (insert (alist-get 'body (im:license-template-info name))))
+
+(defun im/license-template-new-file (name &optional dir)
+  (interactive
+   (list (completing-read "License template: "
+                          (im:completion-table
+                           (mapcar (lambda (y) (alist-get 'key y)) (im:license-templates)))
+                          nil t)
+         (if current-prefix-arg
+             (read-directory-name "Create license in directory: ")
+           default-directory)))
+  (let ((file (expand-file-name "LICENSE" dir)))
+    (when (file-exists-p file)
+      (user-error "Can't create '%s', because it already exists" (abbreviate-file-name file)))
+    (write-region (alist-get 'body (im:license-template-info name)) nil file)))
+
+
+
+(defvar im:gitignore-templates nil)
+
+(defun im:gitignore-templates ()
+  (or im:gitignore-templates
+      (setq im:gitignore-templates
+            (pdd "https://api.github.com/gitignore/templates"
+              :headers '(("Accept" . "application/vnd.github.v3+json"))
+              :done (lambda (rs) (cl-coerce rs 'list)) :sync t))))
+
+(defun im:gitignore-template-content (name)
+  (unless (member name (im:gitignore-templates))
+    (user-error "Invalid name %s" name))
+  (pdd (concat "https://api.github.com/gitignore/templates/" name)
+    :done (lambda (rs) (alist-get 'source rs)) :sync t))
+
+(defun im/gitignore-template-insert (name)
+  (interactive
+   (list (completing-read ".gitignore template: "
+                          (im:completion-table (im:gitignore-templates))
+                          nil t)))
+  (insert (im:gitignore-template-content name)))
+
+(defun im/gitignore-template-new-file (name &optional dir)
+  (interactive
+   (list (completing-read ".gitignore template: "
+                          (im:completion-table (im:gitignore-templates))
+                          nil t)
+         (if current-prefix-arg
+             (read-directory-name "Create .gitignore in directory: ")
+           default-directory)))
+  (let ((file (expand-file-name ".gitignore" dir)))
+    (when (file-exists-p file)
+      (user-error "Can't create '%s', because it already exists" (abbreviate-file-name file)))
+    (write-region (im:gitignore-template-content name) nil file)))
+
+
+
 (transient-define-prefix im/transient-yasnippet ()
   [[("n" "new-snippet"           yas-new-snippet)
     ("f" "open-snippet"          yas-visit-snippet-file)]

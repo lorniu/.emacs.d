@@ -17,6 +17,7 @@
 
 ;;; Code:
 
+
 (setq package-user-dir (loce "elpa"))
 
 (package-initialize)
@@ -24,108 +25,7 @@
 (add-hook 'package-menu-mode-hook (lambda () (hl-line-mode 1)))
 
 
-;;; Install packages
-
-(let ((ps '(diminish ; lighter
-            gcmh vundo emms wgrep trashed xterm-color erc-hl-nicks page-break-lines ; enhanced
-            evil ; viper -> evil-local-mode
-            rg ; ripgrep
-            hide-lines ; like occur
-            ztree ; dir diff
-            dired-dups ; dir dups
-            keycast ; show key-pressed
-            uuidgen aes ; enc
-            cal-china-x ; calc
-            posframe ; childframe
-            pcre2el ; regexp
-            ace-window treemacs ; window/workspace
-            corfu cape vertico orderless marginalia hyperbole embark-consult ; utils
-            yasnippet license-templates ; templates
-            all-the-icons ; icons
-            standard-themes nano-theme gruvbox-theme srcery-theme ; themes
-            vlf nov pdf-tools ; file
-
-            ;; external
-            gptel eat
-            disk-usage memory-usage
-            pyim pyim-basedict rime sis ; ime
-            magit git-timemachine ssh-agency git-modes ghub forge gitignore-templates ; git
-            docker dockerfile-mode kubernetes ; container
-
-            ;; org
-            org-contrib org-make-toc
-            org-reverse-datetree ; used in org-capture for journal
-            org-present ; simple presentation
-            org-roam org-roam-ui
-            ox-pandoc
-            org-noter org-noter-pdftools
-
-            ;; drawing/export
-            gnuplot
-            graphviz-dot-mode
-            plantuml-mode
-            auctex ; latex
-            cowsay ; figlet ; ascii art
-
-            ;; http
-            plz simple-httpd
-            websocket know-your-http-well
-            restclient ob-restclient httprepl ; rest
-            engine-mode
-
-            ;; development
-            dape ; debug
-            nhexl-mode ; binary
-            macrostep rainbow-mode rainbow-delimiters package-lint ; elisp
-            c-eldoc cmake-mode citre ; c/c++
-            emmet-mode web-beautify sass-mode web-mode htmlize ; html
-            typescript-mode ob-typescript ; typescript
-            rust-mode ; rust
-            php-mode ; php
-            go-mode ; go
-            robe ; ruby
-            erlang ; erlang
-            alchemist ; elixir
-            lua-mode ; lua
-            haskell-mode hindent attrap ; haskell
-            csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
-            kotlin-mode clojure-mode groovy-mode scala-mode ; jvm
-            jdecomp ; java decompile, use idea's fernflower.jar
-            android-mode ; easy to run android tools
-            markdown-mode markdown-toc ; markdown
-            bbdb sql-indent ; database
-            powershell ob-powershell
-            yaml-mode csv-mode systemd udev-mode
-            polymode edit-indirect)))
-  (cl-macrolet ((ensure-packages-installed ()
-                  `(cl-labels
-                       ((all ()
-                          (cl-loop for o in ps
-                                   for p = (if (listp o) (if (eval (cadr o)) (car o)) o)
-                                   if (and p (not (package-disabled-p p nil))) collect p))
-                        (lacks ()
-                          (cl-remove-if #'package-installed-p (all)))
-                        (report (lacks)
-                          (display-warning
-                           'packages
-                           (format
-                            "Total %d packages missing:\n\n%s\n\nPlease install first:\n%s\n\n" (length lacks)
-                            (with-temp-buffer (insert (format "%s" lacks)) (fill-region (point-min) (point-max)) (buffer-string))
-                            "\n(progn\n  (call-interactively #'p/repo)\n  (call-interactively #'im/proxy)\n  (setq package-check-signature nil)\n  (p/install)\n  (restart-emacs)\n )")
-                           :error "|Package-Loading|")))
-                     (defun p/install (&optional dont-select)
-                       (interactive "P")
-                       (package-refresh-contents)
-                       (dolist (p (lacks)) (package-install p dont-select))
-                       (message "Install Finished."))
-                     (if-let* ((lst (lacks)))
-                         (if after-init-time
-                             (report lst)
-                           (add-hook 'emacs-startup-hook (lambda () (report lst))))))))
-    (ensure-packages-installed)))
-
-
-;;; Package Repo
+;;; Archives
 
 (defconst p/elpa-repos
   '(:origin
@@ -146,7 +46,112 @@
 
 (defvar ic/elpa :origin)
 
-(with-eval-after-load 'dist (p/repo ic/elpa)) ; init package-archives
+(defun p/repo (&optional upstream)
+  (interactive (list (intern (completing-read "package-archives to use: " (cl-loop for m in p/elpa-repos by #'cddr collect (symbol-name m)) nil t))))
+  (unless upstream (setq upstream (car p/elpa-repos)))
+  (eval (plist-get p/elpa-repos upstream))
+  (if (called-interactively-p 'any) (message "%s" package-archives) (message "[ELPA] %s" upstream)))
+
+(p/repo ic/elpa) ; init package-archives
+
+
+;;; Install packages
+
+(let ((ps '(diminish ; lighter
+            gcmh vundo emms wgrep trashed xterm-color erc-hl-nicks page-break-lines ; enhanced
+            evil ; viper -> evil-local-mode
+            hide-lines ; like occur
+            ztree ; dir diff
+            dired-dups ; dir dups
+            keycast ; show key-pressed
+            uuidgen aes ; enc
+            cal-china-x ; calc
+            posframe ; childframe
+            pcre2el ; regexp
+            corfu cape vertico orderless marginalia consult hyperbole ; utils
+            yasnippet ; templates
+            all-the-icons ; icons
+            standard-themes nano-theme gruvbox-theme srcery-theme ; themes
+            vlf nov pdf-tools ; file
+
+            ;; external
+            gptel eat
+            disk-usage memory-usage
+            pyim pyim-basedict rime sis ; ime
+            magit git-timemachine ssh-agency git-modes ghub forge ; git
+            docker dockerfile-mode kubernetes ; container
+
+            ;; org
+            org-contrib org-make-toc
+            org-reverse-datetree ; used in org-capture for journal
+            org-present ; simple presentation
+            ox-pandoc
+            denote denote-org org-noter org-noter-pdftools
+
+            ;; drawing/export
+            gnuplot
+            graphviz-dot-mode
+            plantuml-mode
+            auctex ; latex
+            cowsay ; figlet ; ascii art
+
+            ;; http
+            plz simple-httpd
+            websocket know-your-http-well
+            restclient ob-restclient httprepl ; rest
+
+            ;; development
+            dape ; debug
+            nhexl-mode ; binary
+            macrostep rainbow-mode rainbow-delimiters package-lint ; elisp
+            c-eldoc cmake-mode citre ; c/c++
+            emmet-mode web-beautify sass-mode web-mode htmlize ; html
+            typescript-mode ob-typescript ; typescript
+            rust-mode ; rust
+            php-mode ; php
+            go-mode ; go
+            robe ; ruby
+            erlang ; erlang
+            lua-mode ; lua
+            haskell-mode hindent attrap ; haskell
+            csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
+            kotlin-mode clojure-mode groovy-mode scala-mode ; jvm
+            jdecomp ; java decompile, use idea's fernflower.jar
+            android-mode ; easy to run android tools
+            markdown-mode markdown-toc ; markdown
+            bbdb sql-indent ; database
+            powershell ob-powershell
+            yaml-mode csv-mode systemd udev-mode
+            polymode edit-indirect)))
+  (cl-macrolet ((ensure-packages-installed ()
+                  `(cl-labels
+                       ((all ()
+                          (cl-loop for o in ps
+                                   for p = (if (listp o) (if (eval (cadr o)) (car o)) o)
+                                   if (and p (not (package-disabled-p p nil))) collect p))
+                        (lacks ()
+                          (cl-remove-if #'package-installed-p (all)))
+                        (report (lacks)
+                          (format
+                           "Total %d packages missing:\n\n%s\n\nPlease install first:\n%s\n\n" (length lacks)
+                           (with-temp-buffer (insert (format "%s" lacks)) (fill-region (point-min) (point-max)) (buffer-string))
+                           "\n(progn\n  (call-interactively (function p/repo))\n  (call-interactively (function im/proxy))\n  (setq package-check-signature nil)\n  (p/install)\n  (restart-emacs)\n )")))
+                     (defun p/install (&optional dont-select)
+                       (interactive "P")
+                       (package-refresh-contents)
+                       (let* ((lacks (lacks)) (len (length lacks)) (i 0))
+                         (dolist (p lacks)
+                           (cl-incf i)
+                           (setq mode-line-process (format ":Installing %d/%d [%s]..." i len p))
+                           (force-mode-line-update)
+                           (redisplay 'force)
+                           (package-install p dont-select)))
+                       (message "Install Finished."))
+                  (when-let* ((lst (lacks)) (msg (report lst)))
+                    (if after-init-time
+                        (display-warning 'packages msg :error "|-Package-Loading-|")
+                      (signal 'user-error msg))))))
+  (ensure-packages-installed)))
 
 
 ;;; Use-Package
@@ -162,17 +167,17 @@
                (options (cl-set-difference args doc-strings))
                (refs (prog1 (plist-get options :ref) (cl-remf options :ref)))
                (refs-name (if (and (cdr-safe refs) (symbolp (car-safe refs))) (pop refs) (intern mode-name)))
-               (fopts (delq nil (list (if (seq-contains-p flags ?e) :demand :defer) t
+               (fopts (delq-nil (list (if (seq-contains-p flags ?e) :demand :defer) t
                                       (if (seq-contains-p flags ?d) :diminish)
                                       (if (seq-contains-p flags ?i) :ensure)
                                       (if (seq-contains-p flags ?x) :disabled))))
                (name (intern name)))
-    (delq nil
-          `(progn
-             (if init-file-debug (message "Loading %s..." ',name))
-             ,(if doc-strings `(defhelper ,(intern mode-name) ,@doc-strings))
-             ,(if refs `(defreference ,refs-name ,refs))
-             (use-package ,name ,@fopts ,@options)))))
+    (delq-nil
+     `(progn
+        (if init-file-debug (message "Loading %s..." ',name))
+        ,(if doc-strings `(defhelper ,(intern mode-name) ,@doc-strings))
+        ,(if refs `(defreference ,refs-name ,refs))
+        (use-package ,name ,@fopts ,@options)))))
 
 
 ;;; Auxiliaries
@@ -186,12 +191,6 @@
             else if (stringp v) collect `(push ,v load-path) ; use this instead of elpa's one
             else if (null v) collect `(add-to-list 'package-load-list '(,p . nil)) ; don't load this
             else collect `',p)))
-
-(defun p/repo (&optional upstream)
-  (interactive (list (intern (completing-read "package-archives to use: " (cl-loop for m in p/elpa-repos by #'cddr collect (symbol-name m)) nil t))))
-  (unless upstream (setq upstream (car p/elpa-repos)))
-  (eval (plist-get p/elpa-repos upstream))
-  (if (called-interactively-p 'any) (message "%s" package-archives) (message "[ELPA] %s" upstream)))
 
 (defun p/clean-dups (&optional dry-run)
   (interactive "P")
@@ -216,11 +215,5 @@
                       (message "Deleting %s %s" d (if dry-run "[dry-run]" ""))
                       (unless dry-run (delete-directory d t))))
       (message "Nothing to clean."))))
-
-(defun p/add-to-load-path (path)
-  (interactive (list (read-directory-name "Directory to add: " nil nil t)))
-  (if (and path (file-directory-p path))
-      (add-to-list 'load-path path)
-    (user-error "Path '%s' is not available" path)))
 
 (provide 'dist)

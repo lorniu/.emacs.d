@@ -69,8 +69,7 @@
   (imload 'imod-diff)
   (imload 'imod-vcs)
   (imload 'imod-shell)
-  (imload 'imod-tui-actions)
-  (imload 'imod-workspace)
+  (imload 'imod-hyperbole)
   (imload 'imod-evil)
   (imload 'imod-ime)
   (imload 'imod-gpt)
@@ -83,7 +82,7 @@
   (imload 'iorg)
   (imload 'iorg+TeX)
   (imload 'iorg-notes)
-  (imload 'iorg-roam)
+  (imload 'iorg-denote)
 
   (imload 'idevs)
   (imload 'idev-treesit)
@@ -108,7 +107,8 @@
 
   (imload 'imsilly)
   (imload 'implay 'load-from-paths-if-it-exists)
-  (imload 'imsketch 'load-from-paths-if-it-exists)
+  (imload 'my-notes 'load-from-paths-if-it-exists)
+  (imload 'my-sketch 'load-from-paths-if-it-exists)
   (imload 'over))
 
 ;;; init.el ends here
