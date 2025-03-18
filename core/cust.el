@@ -72,7 +72,9 @@
               fill-column 80
 
               truncate-lines t
-              fringes-outside-margins t)
+              fringes-outside-margins t
+
+              lexical-binding t)
 
 (setq track-eol t
       custom-unlispify-tag-names nil

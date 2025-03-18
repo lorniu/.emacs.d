@@ -28,10 +28,6 @@
         ("\\*[cC]ompilation\\*"
          (display-buffer-reuse-window display-buffer-at-bottom))
 
-        ("\\*Messages\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom)
-         (reusable-frames . t))
-
         ("\\*sly-macroexpansion\\*\\|\\*Pp Macroexpand Output\\*"
          (display-buffer-reuse-window %display-buffer-in-direction-or-below-selected)
          (direction . right))
@@ -48,6 +44,11 @@
         ("\\*Async Shell Command\\*"
          (%display-buffer-at-bottom-follows-with-quit)
          (window-height . 0.3))
+
+        ("magit: "
+         (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom)
+         (direction . right)
+         (window-height . 0.35))
 
         ("\\*org-roam\\*"
          (display-buffer-in-direction)
@@ -152,27 +153,35 @@
 (defun im/toggle-messages-buffer()
   "Toggle show the *Messages* buffer."
   (interactive)
-  (im/hide-or-show-buffer "*Messages*" (call-interactively 'view-echo-area-messages)))
+  (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom)
+                                 (direction . right)
+                                 (window-height . 0.4)
+                                 (window-width . 0.4)))))
+    (im/hide-or-show-buffer "*Messages*" (call-interactively 'view-echo-area-messages))))
 
 (defun im/toggle-scratch-buffer (&optional ielmp)
   "Toggle show the *Scratch* buffer."
   (interactive "P")
   (im/hide-or-show-buffer "*scratch*"
-    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom) (direction . right)))))
+    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom)
+                                   (direction . right)
+                                   (window-height . 0.4)))))
       (scratch-buffer))))
 
 (defun im/toggle-ielm-buffer (&optional ielmp)
   "Toggle show the *ielm* buffer."
   (interactive "P")
   (im/hide-or-show-buffer "*ielm*"
-    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom) (direction . right)))))
+    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom)
+                                   (direction . right)))))
       (ielm))))
 
 (defun im/toggle-gnus ()
   "Toggle show the *Group* buffer."
   (interactive)
   (im/hide-or-show-buffer "*Group*"
-    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window display-buffer-in-direction) (direction . right)))))
+    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window display-buffer-in-direction)
+                                   (direction . right)))))
       (display-buffer it))
     (require 'gnus-start)
     (user-error "You should start GNUS first")))
@@ -180,7 +189,8 @@
 (defun im/toggle-common-lisp-dev-buffer ()
   "Toggle show SLIME/SLY buffer."
   (interactive)
-  (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-below-selected) (direction . right)))))
+  (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-below-selected)
+                                 (direction . right)))))
     (im/hide-or-show-buffer (lambda (b) (string-match-p "^\\*sl.*-m?repl.*" (buffer-name b)))
       (pop-to-buffer it)
       (condition-case nil

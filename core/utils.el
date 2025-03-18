@@ -107,6 +107,8 @@ Use macro, can expand to the pretty lambda style."
 
 ;; list
 
+(defalias 'loop 'cl-loop)
+
 (defun delq-nil (lst)
   (delq nil lst))
 
@@ -299,7 +301,15 @@ PROMPT is string for minibuffer prompt."
 (defun im/smart-kill-ring-save ()
   "Copy-Current-Line-Or-Region."
   (interactive)
-  (cond ((use-region-p)
+  (cond ((eq last-command 'eval-last-sexp)
+         (let* ((obj (or elisp-last-eval-sexp-value
+                         (eval-expression (preceding-sexp) nil)))
+                (res (if current-prefix-arg
+                         (pp-to-string obj)
+                       (prin1-to-string obj))))
+           (kill-new res)
+           (message (concat (propertize "Saved: " 'face 'warning) res))))
+        ((use-region-p)
          (call-interactively 'kill-ring-save)
          (message "Region Yanked."))
         ((and (eq major-mode 'org-mode)
