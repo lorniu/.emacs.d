@@ -72,7 +72,9 @@
               fill-column 80
 
               truncate-lines t
-              fringes-outside-margins t)
+              fringes-outside-margins t
+
+              lexical-binding t)
 
 (setq track-eol t
       custom-unlispify-tag-names nil
@@ -88,8 +90,8 @@
       read-extended-command-predicate #'command-completion-default-include-p
 
       kill-ring-max 500
-      mark-ring-max 20
-      undo-limit 10000000
+      mark-ring-max 50
+      undo-limit 3200000
 
       resize-mini-windows t
       enable-recursive-minibuffers t

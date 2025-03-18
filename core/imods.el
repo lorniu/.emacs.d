@@ -115,4 +115,4 @@
 
 (x go-translate
    :ref "lorniu/go-translate"
-   :commands (gt-do-translate gt-do-setup gt-do-speak gt-qrcode))
+   :commands (gt-do-translate gt-do-setup gt-do-speak gt-qrcode gt-setup gt-speak gt-translate))
