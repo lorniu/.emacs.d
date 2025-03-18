@@ -31,6 +31,11 @@
   :type '(alist :key-type string)
   :group 'imfine)
 
+(defcustom ic/org-wip (loco "WIP/")
+  "Directory of WIP in notes repository."
+  :type 'string
+  :group 'imfine)
+
 (defcustom ic/bookmark.sys-file
   (cl-find-if #'file-exists-p
               (list "~/.config/microsoft-beta/Default/Bookmarks"
@@ -38,6 +43,21 @@
                     (substitute-in-file-name "$LOCALAPPDATA/Microsoft/Edge/User Data/Default/Bookmarks")))
   "Location of system browser's bookmark file."
   :type 'file
+  :group 'imfine)
+
+(defcustom ic/search-urls
+  '((google         "https://google.com/search?q=%s")
+    (google-cn      "https://google.com/search?q=%s&lr=lang_zh-CN")
+    (dict-iciba     "https://www.iciba.com/%s")
+    (github         "https://github.com/search?ref=simplesearch&q=%s")
+    (stackoverflow  "https://stackoverflow.com/search?q=%s")
+    (wikipedia      "https://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s")
+    (arch-wiki      "https://wiki.archlinux.org/index.php?title=Special%%3ASearch&search=%s&go=Go" :browser 'eww-browse-url)
+    (iconify        "https://iconify.design/icon-sets/?query=%s")
+    (wolfram-alpha  "https://www.wolframalpha.com/input/?i=%s")
+    (youtube        "https://www.youtube.com/results?aq=f&oq=&search_query=%s"))
+  "Urls used to search from web."
+  :type '(alist :key-type symbol)
   :group 'imfine)
 
 
@@ -199,10 +219,10 @@
        (interactive)
        (let* ((refs ',merged))
          (if noninteractive refs
-           (let* ((refs (delq nil ; deal item that is a form: eval and append the results
-                              (cl-loop for ref in refs
-                                       if (consp ref) append (ensure-list (eval ref))
-                                       else collect ref)))
+           (let* ((refs (delq-nil ; deal item that is a form: eval and append the results
+                         (cl-loop for ref in refs
+                                  if (consp ref) append (ensure-list (eval ref))
+                                  else collect ref)))
                   (parsed (if (null refs)  ; extract label from item, complete the abbrev links: (link-display label link)
                               (user-error "No suitable reference")
                             (mapcar (lambda (item)
@@ -437,6 +457,25 @@
         (current-buffer)))))
 
 
+;;; r/search-xxx (Search Web)
+
+(defun r:search-url (tag url)
+  (defalias (intern (format "r/search-%s" tag))
+    `(lambda (term)
+       ,(format "Search %s for selected text." (capitalize (symbol-name tag)))
+       (interactive
+        (list (if (use-region-p)
+                  (buffer-substring (region-beginning) (region-end))
+                (let ((current (thing-at-point 'symbol 'no-properties)))
+                  (read-string (concat (format "Search %s" (capitalize (symbol-name ',tag)))
+                                       (if current (format " (%s)" current))
+                                       ": ")
+                               nil nil (or current ""))))))
+       (browse-url (format ,url (url-hexify-string term))))))
+
+(cl-loop with urls = ic/search-urls for (tag url) in urls do (r:search-url tag url))
+
+
 ;;; Interface, C-x C-r
 
 (require 'transient)
@@ -468,16 +507,17 @@
    ("C-n"  "j"              (lambda () (interactive) (r:find-file (loco ""))))
    ("C-e"  "k"              (lambda () (interactive) (r:find-file (loce ""))))
    ("C-v"  "l"              (lambda () (interactive) (r:find-file ic/srcdir)))
-   ("C-w"  "m"              (lambda () (interactive) (r:find-file ic/workdir)))
-   ("d  "  "n"              (lambda () (interactive) (r:read-file ic/downdir)))
-   ("C-d"  "o"              (lambda () (interactive) (r:find-file ic/downdir)))
-   ("o  "  "p"              im/open-externally)
-   ("O  "  "q"              im/open-directory-externally)
-   ("C-o"  "r"              im/open-directory-externally)
-   ("t  "  "s"              trashed)
-   ("C-t"  "t"              trashed)
-   ("p  "  "u"              project-switch-project)
-   ("/  "  "v"              find-dired)]
+   ("C-w"  "m"              (lambda () (interactive) (r:find-file ic/org-wip)))
+   ("C-l"  "n"              (lambda () (interactive) (r:find-file ic/workdir)))
+   ("d  "  "o"              (lambda () (interactive) (r:read-file ic/downdir)))
+   ("C-d"  "p"              (lambda () (interactive) (r:find-file ic/downdir)))
+   ("o  "  "q"              im/open-externally)
+   ("O  "  "r"              im/open-directory-externally)
+   ("C-o"  "s"              im/open-directory-externally)
+   ("t  "  "t"              trashed)
+   ("C-t"  "u"              trashed)
+   ("p  "  "v"              project-switch-project)
+   ("/  "  "w"              find-dired)]
   [[("r"   "quicker"        r/quicker)
     ("a"   "Agenda.."       im/org-agenda-files)]
    [("s"   "websites"       r/websites)
@@ -486,7 +526,7 @@
     ("e"   "Emacs.."        (lambda () (interactive) (r:read-file (loce "") #'project-find-file)))]
    [("b"   "bookmark.sys"   r/bookmark.sys)
     ("v"   "Source Code.."  (lambda () (interactive) (r:read-file ic/srcdir nil #'vertico-sort-alpha)))]
-   [""
-    ("w"
-     (lambda () (concat "Workdir.." (propertize "     [Download Trashed Open..]" 'face 'font-lock-comment-face)))
+   [("w"   "wip.."          (lambda () (interactive) (let ((default-directory ic/org-wip)) (call-interactively #'find-file))))
+    ("l"
+     (lambda () (concat "Local Workdir.." (propertize "     [Download Trashed Open..]" 'face 'font-lock-comment-face)))
      (lambda () (interactive) (r:read-file ic/workdir)))]])

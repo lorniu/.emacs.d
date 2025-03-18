@@ -28,10 +28,6 @@
         ("\\*[cC]ompilation\\*"
          (display-buffer-reuse-window display-buffer-at-bottom))
 
-        ("\\*Messages\\*"
-         (display-buffer-reuse-window display-buffer-at-bottom)
-         (reusable-frames . t))
-
         ("\\*sly-macroexpansion\\*\\|\\*Pp Macroexpand Output\\*"
          (display-buffer-reuse-window %display-buffer-in-direction-or-below-selected)
          (direction . right))
@@ -49,6 +45,11 @@
          (%display-buffer-at-bottom-follows-with-quit)
          (window-height . 0.3))
 
+        ("magit: "
+         (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom)
+         (direction . right)
+         (window-height . 0.35))
+
         ("\\*org-roam\\*"
          (display-buffer-in-direction)
          (direction . right)
@@ -64,15 +65,10 @@
    (define-key winner-mode-map [C-left] 'winner-undo)
    (define-key winner-mode-map [C-right] 'winner-redo))
 
-(x ace-window
-   "Can `M-x windmove-swap-states-default-keybindings' then use S-M-arrow to swap."
-   :config
-   (setopt aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
-
 (defun im/swap-windows ()
   (interactive)
   (if (> (length (window-list)) 2)
-      (ace-swap-window)
+      (user-error "Two many windows, can not swap")
     (window-swap-states)))
 
 (defun im/transpose-window-layout ()
@@ -103,9 +99,6 @@
 (defun im/other-window-with-special ()
   (interactive)
   (cond
-   ((equal (treemacs-current-visibility) 'visible)
-    (let ((treemacs-select-when-already-in-treemacs 'goto-next))
-      (treemacs-select-window)))
    (t (call-interactively #'other-window))))
 
 (transient-define-prefix im/transient-windows () ; C-x w
@@ -121,8 +114,6 @@
    ("l"  "g"  enlarge-window-horizontally :transient t)
    ("j"  "h"  shrink-window :transient t)
    ("k"  "i"  enlarge-window :transient t)
-   ("f"  "j"  im/treemacs-follow)
-   ("a"  "k"  treemacs-add-and-display-current-project)
    ("n"  "l"  winner-undo :transient t)
    ("o"  "m"  im/other-window-with-special)]
   [[("s" "swap"         im/swap-windows)]
@@ -130,8 +121,7 @@
    [("b" "balance"      balance-windows)]
    [("d" "dedicate"     toggle-window-dedicated)]
    [("F" "follow-mode"  follow-mode)]
-   [("p" (lambda () (!tdesc "n p" "winner")) winner-redo :format "%d" :transient t)]
-   [("w" (lambda () (!tdesc "w a f" "treemacs")) treemacs :format "%d")]])
+   [("p" (lambda () (!tdesc "n p" "winner")) winner-redo :format "%d" :transient t)]])
 
 
 ;;; Toggle show
@@ -152,27 +142,35 @@
 (defun im/toggle-messages-buffer()
   "Toggle show the *Messages* buffer."
   (interactive)
-  (im/hide-or-show-buffer "*Messages*" (call-interactively 'view-echo-area-messages)))
+  (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom)
+                                 (direction . right)
+                                 (window-height . 0.4)
+                                 (window-width . 0.4)))))
+    (im/hide-or-show-buffer "*Messages*" (call-interactively 'view-echo-area-messages))))
 
 (defun im/toggle-scratch-buffer (&optional ielmp)
   "Toggle show the *Scratch* buffer."
   (interactive "P")
   (im/hide-or-show-buffer "*scratch*"
-    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom) (direction . right)))))
+    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom)
+                                   (direction . right)
+                                   (window-height . 0.4)))))
       (scratch-buffer))))
 
 (defun im/toggle-ielm-buffer (&optional ielmp)
   "Toggle show the *ielm* buffer."
   (interactive "P")
   (im/hide-or-show-buffer "*ielm*"
-    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom) (direction . right)))))
+    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom)
+                                   (direction . right)))))
       (ielm))))
 
 (defun im/toggle-gnus ()
   "Toggle show the *Group* buffer."
   (interactive)
   (im/hide-or-show-buffer "*Group*"
-    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window display-buffer-in-direction) (direction . right)))))
+    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window display-buffer-in-direction)
+                                   (direction . right)))))
       (display-buffer it))
     (require 'gnus-start)
     (user-error "You should start GNUS first")))
@@ -180,7 +178,8 @@
 (defun im/toggle-common-lisp-dev-buffer ()
   "Toggle show SLIME/SLY buffer."
   (interactive)
-  (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-below-selected) (direction . right)))))
+  (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-below-selected)
+                                 (direction . right)))))
     (im/hide-or-show-buffer (lambda (b) (string-match-p "^\\*sl.*-m?repl.*" (buffer-name b)))
       (pop-to-buffer it)
       (condition-case nil
@@ -260,16 +259,18 @@ Item should be (win-id-list window-configuration buffers-info updated-at) style.
                                                          (interactive)
                                                          (setq im:fullscreen-alist nil)
                                                          (throw 'fullscreen-minibuffer 'clear)))))
-                  (choosen (minibuffer-with-setup-hook keys
-                             (catch 'fullscreen-minibuffer
-                               (unless items (user-error "Nop"))
-                               (completing-read "Layout: "
-                                                (lambda (input pred action)
-                                                  (if (eq action 'metadata)
-                                                      `(metadata (category . toggle-fullscreen)
-                                                                 (display-sort-function . ,#'sort-fn))
-                                                    (complete-with-action action items input pred)))
-                                                nil t nil nil (car items))))))
+                  (choosen (if (length= items 1)
+                               (car items)
+                             (minibuffer-with-setup-hook keys
+                               (catch 'fullscreen-minibuffer
+                                 (unless items (user-error "Nop"))
+                                 (completing-read "Layout: "
+                                                  (lambda (input pred action)
+                                                    (if (eq action 'metadata)
+                                                        `(metadata (category . toggle-fullscreen)
+                                                                   (display-sort-function . ,#'sort-fn))
+                                                      (complete-with-action action items input pred)))
+                                                  nil t nil nil (car items)))))))
              (cond ((eq choosen 'del) (im/toggle-layout 'reopen))
                    ((eq choosen 'clear) (message "Clear done."))
                    (t (if-let* ((wc (cadr (cdr (assoc choosen items))))) (set-window-configuration wc))))))))

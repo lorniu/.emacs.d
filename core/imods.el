@@ -99,11 +99,13 @@
    :commands (alert)
    :config
    (setopt alert-default-fade-time 8
-           alert-default-style (cond ((executable-find "dunstify") 'dunstify)
-                                     ((executable-find "notify-send") 'libnotify)
-                                     ((executable-find "powershell") 'powershell)
-                                     ((executable-find "growlnotify") 'growl)
-                                     ((executable-find "terminal-notifier") 'notifier))))
+           alert-default-style
+           (cond (IS-MAC 'osx-notifier)
+                 ((executable-find "dunstify") 'dunstify)
+                 ((executable-find "notify-send") 'libnotify)
+                 ((executable-find "powershell") 'powershell)
+                 ((executable-find "growlnotify") 'growl)
+                 ((executable-find "terminal-notifier") 'notifier))))
 
 
 
@@ -115,4 +117,4 @@
 
 (x go-translate
    :ref "lorniu/go-translate"
-   :commands (gt-do-translate gt-do-setup gt-do-speak gt-qrcode))
+   :commands (gt-do-translate gt-do-setup gt-do-speak gt-qrcode gt-setup gt-speak gt-translate))

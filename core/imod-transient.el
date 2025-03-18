@@ -66,7 +66,6 @@
     ("j" (lambda () (!tdesc "j/ " "Register")) consult-register :format " %d")
     ]
    [""
-    ("w " "Treemacs"       im/treemacs-follow)
     ("` " "Diagnostics"    im/toggle-diagnostics-buffer)
     ("e " "Compile Errors" consult-compile-error)
     ]
@@ -109,14 +108,14 @@
    ("C-t"  "0"  gt-do-translate)
    ("C-."  "1"  r/websites)
    ("C-,"  "2"  im/transient-desktop)]
-  [[("g"  "Google"          engine/search-google)]
-   [("f"  "Wolfram"         engine/search-wolfram-alpha)]
-   [("h"  "Github"          engine/search-github)]
-   [("s"  "StackOverflow"   engine/search-stackoverflow)]
-   [("v"  "Wikipedia"       engine/search-wikipedia)]
-   [("a"  "ArchWiki"        engine/search-arch-wiki)]
+  [[("g"  "Google"          r/search-google)]
+   [("f"  "Wolfram"         r/search-wolfram-alpha)]
+   [("h"  "Github"          r/search-github)]
+   [("s"  "StackOverflow"   r/search-stackoverflow)]
+   [("v"  "Wikipedia"       r/search-wikipedia)]
+   [("a"  "ArchWiki"        r/search-arch-wiki)]
    [("t"  "Translate"       gt-do-translate)]
-   [("i"  "Iconify"         engine/search-iconify)]
+   [("i"  "Iconify"         r/search-iconify)]
    [("."  "Websites"        r/websites)]
    [(","  "Destktop"        im/transient-desktop)]]
   (interactive)

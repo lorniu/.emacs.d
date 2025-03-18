@@ -165,14 +165,11 @@
      (if (cl-find-if (lambda (ov) (eq (overlay-get ov 'invisible) 'gnus-sum)) (overlays-at (line-end-position)))
          'gnus-summary-show-thread
        'gnus-summary-hide-thread)))
-   ;; if treemacs-mode
-   ((derived-mode-p 'treemacs-mode)
-    (call-interactively 'treemacs-toggle-node))
    ;; if org-mode
    ((and (derived-mode-p 'org-mode) (org-at-heading-p))
     (call-interactively 'org-cycle))
    ;; if markdown-mode
-   ((and (derived-mode-p 'markdown-mode) (markdown-heading-at-point))
+   ((and (eq major-mode 'markdown-mode) (markdown-heading-at-point))
     (call-interactively 'markdown-cycle))
    ;; if outline-mode
    ((and (derived-mode-p 'outline-mode) (outline-on-heading-p))
@@ -219,9 +216,6 @@
      (if (cl-find-if (lambda (ov) (eq (overlay-get ov 'invisible) 'gnus-sum)) (car (overlay-lists)))
          'gnus-summary-show-all-threads
        'gnus-summary-hide-all-threads)))
-   ;; if treemacs-mode
-   ((derived-mode-p 'treemacs-mode)
-    (call-interactively 'treemacs-collapse-all-projects))
    ;; if org-mode
    ((derived-mode-p 'org-mode)
     (call-interactively 'org-global-cycle))

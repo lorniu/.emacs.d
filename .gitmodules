@@ -22,6 +22,6 @@
 [submodule "el-easydraw"]
 	path = site-lisp/el-easydraw
 	url = https://github.com/misohena/el-easydraw
-[submodule "repo/raq.el"]
-	path = repo/raq.el
-	url = git@github.com:lorniu/raq.el
+[submodule "repo/pdd.el"]
+	path = repo/pdd.el
+	url = git@github.com:lorniu/pdd.el

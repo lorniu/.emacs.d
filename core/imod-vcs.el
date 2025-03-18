@@ -19,9 +19,6 @@
 (x git-auto-commit
    :commands (im/git-commit im/git-commit-and-push))
 
-(x gitignore-templates
-   :ref (git "gitignore: xuchunyang/gitignore-templates.el"))
-
 (x magit
    "To use ghub/forge, add something like below in ~/.authinfo:
 

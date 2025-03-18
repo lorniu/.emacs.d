@@ -148,7 +148,9 @@
 
    ;; Highlight broken file link
    (org-link-set-parameters "file" :face (lambda (path)
-                                           (if (or (file-remote-p path) (file-exists-p path)) 'org-link 'warning)))
+                                           (when (or (file-remote-p path)
+                                                     (file-exists-p path))
+                                             'org-link 'warning)))
 
    ;; Open file links in current window, rather than new ones
    (setf (alist-get 'file org-link-frame-setup) #'find-file)
@@ -276,9 +278,8 @@
   ;; Enable org-expose-emphasis-markers-mode
   (when org-hide-emphasis-markers
     (defun:hook org-mode-hook/auto-expose-hidden-markers ()
-      ;;(require 'org-expose-emphasis-markers)
-      ;;(org-expose-emphasis-markers-mode 1)
-      )))
+      (require 'org-expose-emphasis-markers)
+      (org-expose-emphasis-markers-mode 1))))
 
 (defun:override org-element--parse-generic-emphasis//for-export (mark type)
   "Enhance for export *NonAscii*, correspond to value of `org-emphasis-regexp-components'."

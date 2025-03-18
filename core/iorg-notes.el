@@ -131,50 +131,17 @@
   (message "\n>>> Publish Alist (%s):\n" default-directory)
   (pp org-publish-project-alist))
 
-;; make sitemap generating customable
-
-(defvar org-publish-sitemap-custom-function)
-
-(defun:around org-publish-sitemap//override-by-custom-function (f &rest args)
-  "If you want to use your own sitemap generated function, specific IT to `org-publish-sitemap-custom-function'."
-  (if (and (boundp 'org-publish-sitemap-custom-function)
-           (symbol-value 'org-publish-sitemap-custom-function))
-      (apply (symbol-value 'org-publish-sitemap-custom-function) args)
-    (apply f args)))
-
-(defun org-publish-sitemap-2 (project &optional sitemap-filename)
-  "Predefined sitemap generated function.
-Used as values of `org-publish-sitemap-custom-function', see \\='notes/.dir-locals.el' for more."
-  (let* ((root (expand-file-name (file-name-as-directory (org-publish-property :base-directory project))))
-         (sitemap-filename (concat root (or sitemap-filename "sitemap.org")))
-         (title (or (org-publish-property :sitemap-title project) (concat "Sitemap for project " (car project))))
-         (sitemap-builder (or (org-publish-property :sitemap-function project) #'org-publish-sitemap-default))
-         (format-entry (or (org-publish-property :sitemap-format-entry project) #'org-publish-sitemap-default-entry))
-         (fullfill-dirs (lambda (dirs until)
-                          (cl-labels ((parent-dir (dir) (file-name-directory (directory-file-name dir)))
-                                      (lookup (dir)
-                                        (if (cl-search until dir)
-                                            (let ((pd (parent-dir dir)))
-                                              (when (cl-search until pd)
-                                                (cl-pushnew pd dirs :test 'string=)
-                                                (lookup pd)))
-                                          (cl-delete dir dirs :test 'string=))))
-                            (cl-loop for d in dirs do (lookup d) finally (return dirs)))))
-         (sort-predicate (lambda (a b)
-                           (if (string-equal (cl-substitute ?! ?/ (file-name-directory a))
-                                             (cl-substitute ?! ?/ (file-name-directory b)))
-                               (string-lessp a b)
-                             (string-lessp (cl-substitute ?! ?/ (file-name-directory a))
-                                           (cl-substitute ?! ?/ (file-name-directory b)))))))
-    (message "Generating sitemap for %s" title)
-    (with-temp-file sitemap-filename
-      (insert
-       (let ((files (remove sitemap-filename (org-publish-get-base-files project))))
-         (setq files (nconc (remove root
-                                    (org-uniquify (funcall fullfill-dirs (mapcar #'file-name-directory files) root)))
-                            files))
-         (setq files (sort files sort-predicate))
-         (funcall sitemap-builder title (org-publish--sitemap-files-to-lisp files project 'tree format-entry)))))))
+(defun:filter-args org-publish--sitemap-files-to-lisp (args)
+  "Sort files according filename instead of title.
+Add missing directories, e.g. ~/.notes/Data/, this maybe a bug."
+  (let (files)
+    (dolist (f (car args))
+      (when (directory-name-p f)
+        (let ((p (file-name-directory (directory-file-name f))))
+          (unless (member p files) (push p files))))
+      (push f files))
+    (setq files (sort files (lambda (a b) (org-string<= a b))))
+    (cons files (cdr args))))
 
 
 
