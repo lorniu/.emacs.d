@@ -24,11 +24,11 @@
   (cl-labels
       ((dirs (project)
          (delete-dups
-          (delq nil
-                (mapcar (lambda (f)
-                          (cl-subseq (file-name-directory f)
-                                     (length (expand-file-name (project-root project)))))
-                        (project-files project))))))
+          (delq-nil
+           (mapcar (lambda (f)
+                     (cl-subseq (file-name-directory f)
+                                (length (expand-file-name (project-root project)))))
+                   (project-files project))))))
     (let* ((project (or (project-current)
                         (user-error "No project detected")))
            (root (project-root project))

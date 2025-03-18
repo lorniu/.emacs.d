@@ -21,13 +21,14 @@
 
 (defun im/proxy (&optional url)
   (interactive (list (completing-read "Proxy to enable: "
-                                      (delq nil (list
-                                                 ic/proxy
-                                                 "sock://127.0.0.1:1080"
-                                                 "http://127.0.0.1:1081"
-                                                 "sock://10.1.1.1:1080"
-                                                 "http://10.1.1.1:1081"
-                                                 (if ic/host (format "http://%s:11181" ic/host)))))))
+                                      (delq-nil
+                                       (list
+                                        ic/proxy
+                                        "sock://127.0.0.1:1080"
+                                        "http://127.0.0.1:1081"
+                                        "sock://10.1.1.1:1080"
+                                        "http://10.1.1.1:1081"
+                                        (if ic/host (format "http://%s:11181" ic/host)))))))
   (cond ((= (length url) 0)
          (setq url-gateway-method 'native
                url-proxy-services nil

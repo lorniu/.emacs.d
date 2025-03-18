@@ -107,6 +107,8 @@ Use macro, can expand to the pretty lambda style."
 
 ;; list
 
+(defalias 'loop 'cl-loop)
+
 (defun delq-nil (lst)
   (delq nil lst))
 
