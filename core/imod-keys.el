@@ -20,7 +20,7 @@
  ( [f12]           .  im/local-assist                             )
 
  ( "C-."           .  im/transient-retrieve                       )
- ( "C-x C-r"       .  im/transient-fast                           )
+ ( "C-x C-r"       .  im/transient-quicker                        )
  ( "C-x i"         .  im/transient-goto                           )
  ( "C-x w"         .  im/transient-windows                        )
  ( "C-x /"         .  find-dired                                  )

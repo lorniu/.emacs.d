@@ -21,11 +21,11 @@
                                       (delq-nil
                                        (list
                                         ic/proxy
-                                        "sock5://127.0.0.1:1080"
-                                        "http://127.0.0.1:1081"
-                                        "sock5://10.1.1.1:1080"
-                                        "http://10.1.1.1:1081"
-                                        (if ic/host (format "http://%s:11181" ic/host)))))))
+                                        "sock5://127.0.0.1:11180"
+                                        "sock5://127.0.0.1:11181"
+                                        "http://127.0.0.1:11182"
+                                        "http://127.0.0.1:11183"
+                                        (if ic/host (format "http://%s:11182" ic/host)))))))
   (if (= (length url) 0)
       (progn
         (setq url-gateway-method 'native

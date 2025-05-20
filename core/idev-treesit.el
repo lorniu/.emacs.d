@@ -1,5 +1,7 @@
 ;;; -*- lexical-binding: t -*-
 
+;; M-x treesit-install-language-grammar
+
 ;;; Code:
 
 (x treesit

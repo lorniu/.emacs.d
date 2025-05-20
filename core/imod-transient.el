@@ -37,7 +37,7 @@
    [("n"  "Network"    im/network-interface)
     ("w"  "Windows"    im/transient-windows)]
    [("y"  "Happy"      (lambda () (interactive) (im:run-choose-command 'emms 'mpv-play 'gnus 'erc 'doctor)))
-    ("r"  "Rs/Fast"    im/transient-fast)]
+    ("r"  "Rs/Fast"    im/transient-quicker)]
    [("e"  "Ediff"      im/transient-ediff)
     ("."  "Retrieve"   im/transient-retrieve)]
    [("p"  "Print"      im/print)
@@ -106,7 +106,6 @@
   [:hide
    (lambda () t)
    ("C-t"  "0"  gt-do-translate)
-   ("C-."  "1"  r/websites)
    ("C-,"  "2"  im/transient-desktop)]
   [[("g"  "Google"          r/search-google)]
    [("f"  "Wolfram"         r/search-wolfram-alpha)]
@@ -116,7 +115,6 @@
    [("a"  "ArchWiki"        r/search-arch-wiki)]
    [("t"  "Translate"       gt-do-translate)]
    [("i"  "Iconify"         r/search-iconify)]
-   [("."  "Websites"        r/websites)]
    [(","  "Destktop"        im/transient-desktop)]]
   (interactive)
   (let ((transient-map nil))

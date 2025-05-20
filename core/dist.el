@@ -77,7 +77,7 @@
             ;; external
             gptel eat
             disk-usage memory-usage
-            pyim pyim-basedict rime sis ; ime
+            pyim ; input method
             magit git-timemachine ssh-agency git-modes ghub forge ; git
             docker dockerfile-mode kubernetes ; container
 

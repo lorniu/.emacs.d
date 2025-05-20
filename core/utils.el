@@ -76,6 +76,33 @@ Use macro, can expand to the pretty lambda style."
           (cons 'metadata r))
       (complete-with-action action collection input pred))))
 
+(defmacro im:with-current-view-buffer (buffer &rest keywords-and-body)
+  "Open a dedicated buffer for view. (:focus/:append/:wc/:keywords)."
+  (declare (indent 1))
+  (let (append focus wc keywords body)
+    (setq body
+          (cl-loop for lst on keywords-and-body by #'cddr
+                   if (and (keywordp (car lst)) (cdr lst))
+                   do (pcase (car lst)
+                        (:append (setq append (cadr lst)))
+                        (:focus (setq focus (cadr lst)))
+                        (:wc (setq wc (cadr lst)))
+                        (:keywords (setq keywords (cadr lst))))
+                   else return lst))
+    `(with-current-buffer ,buffer
+       (let ((inhibit-read-only t))
+         (goto-char (point-max))
+         ,(if append
+              `(insert (if (> (point) (point-min)) "\n" ""))
+            `(erase-buffer))
+         (save-excursion ,@body)
+         (special-mode)
+         ,@(when keywords
+             `((font-lock-add-keywords nil ,keywords)
+               (font-lock-flush)))
+         (set-buffer-modified-p nil)
+         (,(if focus 'pop-to-buffer 'display-buffer) (current-buffer) ,wc)))))
+
 ;; string
 
 (defun im:string-pad (item &optional needle)

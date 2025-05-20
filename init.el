@@ -34,9 +34,9 @@
 
   (imload 'utils)
   (imload 'cust)
+  (imload 'quicker)
 
   (imload 'imod-assoc)
-  (imload 'imod-fast)
   (imload 'imod-proxy)
 
   (imload 'dist)

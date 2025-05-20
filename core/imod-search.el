@@ -4,9 +4,6 @@
 
 (require 'grep)
 
-(defreference search
-  "ripgrep download page: BurntSushi/ripgrep/releases")
-
 (x isearch
    :config
    (setopt isearch-lazy-count t

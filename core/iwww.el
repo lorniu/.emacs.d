@@ -21,6 +21,15 @@
          "aria2.el: https://gitlab.com/ukaszg/aria2")
    :commands (aria2 aria2-add-uris aria2-add-file))
 
+(defmacro pdd-with-progress-reporter (&rest body)
+  (declare (indent 1))
+  `(let* ((reporter (progress-reporter-make "Downloading"))
+          (pdd-peek (lambda (headers)
+                      (let* ((total (string-to-number (alist-get 'content-length headers)))
+                             (percent (format "%.1f%%" (/ (* 100.0 (buffer-size)) total))))
+                        (progress-reporter-update reporter percent)))))
+     (pdd ,@body)))
+
 
 
 (x eww

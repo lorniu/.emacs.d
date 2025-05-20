@@ -10,19 +10,19 @@
 ;;
 ;;    - define references directly with 'defreference' macro
 ;;    - define references for package with ':ref' keyword in x macro
-;;    - common ones: 'r/emacs', 'r/websites'
+;;    - common ones: 'r/emacs', 'r/links.ee'
 ;;
-;; 'r/favors.org' used to view links in favors.org:
+;; 'r/links.org' used to view links in links.org:
 ;;
 ;;    - two modes 1) open in org-buffer 2) completing-read links
 ;;    - edit direcly or use `org-capture' to manage the links in org
 ;;
-;; 'r/bookmark.sys' used to view the bookmarks of system browser.
+;; 'r/links.system' used to view the bookmarks of system browser.
 ;;
 ;;    - two modes 1) open in org-buffer 2) completing-read links
 ;;    - support edge and chrome
 ;;
-;; All in all, a top interface `im/transient-fast' is provided, run it with 'C-x C-r'.
+;; All in all, a top interface `im/transient-quicker' is provided, run it with 'C-x C-r'.
 
 ;;; Code:
 
@@ -36,16 +36,17 @@
   :type 'string
   :group 'imfine)
 
-(defcustom ic/bookmark.sys-file
+(defcustom ic/system-links.bookmark
   (cl-find-if #'file-exists-p
               (list "~/.config/microsoft-beta/Default/Bookmarks"
                     "~/.config/microsoft-edge-beta/Default/Bookmarks"
+                    "~/Library/Application Support/Microsoft Edge/Default/Bookmarks"
                     (substitute-in-file-name "$LOCALAPPDATA/Microsoft/Edge/User Data/Default/Bookmarks")))
   "Location of system browser's bookmark file."
   :type 'file
   :group 'imfine)
 
-(defcustom ic/search-urls
+(defcustom ic/search-templates
   '((google         "https://google.com/search?q=%s")
     (google-cn      "https://google.com/search?q=%s&lr=lang_zh-CN")
     (dict-iciba     "https://www.iciba.com/%s")
@@ -56,7 +57,7 @@
     (iconify        "https://iconify.design/icon-sets/?query=%s")
     (wolfram-alpha  "https://www.wolframalpha.com/input/?i=%s")
     (youtube        "https://www.youtube.com/results?aq=f&oq=&search_query=%s"))
-  "Urls used to search from web."
+  "Url templates used to search from web."
   :type '(alist :key-type symbol)
   :group 'imfine)
 
@@ -77,6 +78,8 @@
                                       (common (loce "share/xmonad/xmonad.hs")))
                                   (if (file-exists-p local) local common)))
     ("conf: pacman.conf"        "/sudo::/etc/pacman.conf"                            (file-exists-p "/etc/pacman.conf"))
+    ("conf: ime/fcitx"          ime:fcitx-user-data-dir)
+    ("conf: ime/rime"           ime:rime-user-data-dir)
 
     ("lisp: emacs/init.lisp"    (loce "share/lisp/init.lisp"))
     ("lisp: private-init.lisp"  (loco (format "share/lisp/init-%s.lisp" system-name)))
@@ -194,7 +197,7 @@
     (if (called-interactively-p 'any) (message "Resource '%s' added successfully." label) label)))
 
 
-;;; r/reference (links)
+;;; r/xxx (links)
 
 ;; (defreference xxx
 ;;   :force :trim
@@ -207,94 +210,108 @@
 
 (defmacro defreference (name &rest refs)
   (declare (indent 1))
-  (let* ((fun (intern (concat "r/" (symbol-name name))))
-         (flags (cl-loop for i in refs while (keywordp i) collect (pop refs))) ; :force for not append / :trim for short url display
-         (flatten (cl-loop for item in refs ; flatten items like: ("r3" "r4")
-                           if (and (listp item) (not (symbolp (car item)))) append (cl-loop for r in item collect r)
-                           else collect item))
-         (merged (if-let* ((oldrs (and (not (member :force flags)) (ignore-errors (funcall fun t)))))
-                     (append oldrs flatten) flatten))) ; multiple invoke, merge all items together (if no keyword :force)
-    `(defun ,fun (&optional noninteractive)
-       ,(if (and (stringp (car merged)) (not (cdr merged))) "" "*") ; document string
-       (interactive)
-       (let* ((refs ',merged))
-         (if noninteractive refs
-           (let* ((refs (delq-nil ; deal item that is a form: eval and append the results
-                         (cl-loop for ref in refs
-                                  if (consp ref) append (ensure-list (eval ref))
-                                  else collect ref)))
-                  (parsed (if (null refs)  ; extract label from item, complete the abbrev links: (link-display label link)
-                              (user-error "No suitable reference")
-                            (mapcar (lambda (item)
-                                      (if (symbolp item) item ; command
-                                        (let ((link item) label group slink)
-                                          (when (string-match "^\\(.+\\): +\\([^ ]+\\)\\(?: +\\([[:alnum:]]\\)\\)?$" item) ; parse "label: link :group"
-                                            (setq link (match-string 2 item) label (match-string 1 item) group (match-string 3 item)))
-                                          (when (not (string-prefix-p "http" link)) ; complete for github
-                                            (setq link (format "https://github.com/%s" link)))
-                                          (setq slink (if (member :trim ',flags) (car (split-string (car (split-string link "?")) "#")) link))
-                                          (list slink label link group))))
-                                    refs)))
-                  (maxlen (cl-loop for i in parsed ; max length url, used to format partial display string
-                                   if (car-safe (cdr-safe i))
-                                   maximize (1+ (length (car i)))))
-                  (groups (cl-loop for r in parsed ; groups info fetch from all items
-                                   if (cadddr r) collect (cadddr r) into gs
-                                   finally (return (if gs (concat "[" (string-join (delete-dups gs)) "]")))))
-                  (propertized (mapcar (lambda (item) ; propertize item with face
-                                         (if (symbolp item)
-                                             (propertize (symbol-name item) 'face 'font-lock-function-name-face)
-                                           (let ((label (cadr item)))
-                                             (if (null label)
-                                                 (setq label (car item))
-                                               (setq label (format (format "%%-%ds %%s" maxlen)
-                                                                   (car item)
-                                                                   (if (string-prefix-p "`" label) (cl-subseq label 1) (concat "(" label ")"))))
-                                               (add-face-text-property (length (car-safe item)) (length label) 'font-lock-doc-face nil label))
-                                             (when-let* ((group (cadddr item)))
-                                               (setq label (propertize label 'group group)))
-                                             (propertize label 'rlink (caddr item))))) ; pass real link with property, `minibuffer-allow-text-properties' should be set
-                                       parsed))
-                  (ref (minibuffer-with-setup-hook
-                           (lambda ()
-                             (let ((map (make-composed-keymap nil (current-local-map))))
-                               (define-key map (kbd "M-w")
-                                           (lambda ()
-                                             (interactive)
-                                             (im:exit-minibuffer-with-message (ref (im:completion-compat :current))
-                                               (setq ref (car (split-string ref " ")))
-                                               (when (string-match-p "^http" ref)
-                                                 (kill-new ref)
-                                                 (message "Copy reference: %s" ref)))))
-                               (use-local-map map)))
-                         (let ((completion-ignore-case t)
-                               (minibuffer-allow-text-properties t)
-                               (prompt (concat "Reference of " ,(symbol-name name) (if groups (concat " " groups)) ": ")))
-                           (completing-read prompt
-                                            (lambda (input _pred action)
-                                              (let (group (str input))
-                                                (when (string-match "^\\([[:alnum:]]\\) +\\(.*\\)$" input)
-                                                  (let ((g (match-string 1 input)))
-                                                    (when (string-match-p groups g)
-                                                      (setq group g)
-                                                      (setq str (match-string 2 input))
-                                                      (add-face-text-property (minibuffer-prompt-end) (+ 1 (minibuffer-prompt-end)) 'warning))))
-                                                (pcase action
-                                                  (`metadata `(metadata (category . fast)
-                                                                        (display-sort-function . ,#'identity)))
-                                                  (`(boundaries . ,suffix)
-                                                   `(boundaries . ,(cons (if group 2 0) (length suffix))))
-                                                  (_ (let ((collection
-                                                            (cl-loop for r in propertized
-                                                                     if (or (null group) (string= group (get-text-property 1 'group r)))
-                                                                     collect r)))
-                                                       (complete-with-action action collection str nil))))))
-                                            nil t)))))
-             (if (string-match-p (concat "^\\(?:" groups " \\)?http") ref)
-                 (let ((link (get-text-property 3 'rlink ref))) ; link
-                   (message (concat "Link " (propertize link 'face 'font-lock-doc-face) " opened in browser."))
-                   (browse-url link))
-               (call-interactively (intern ref)))))))))
+  (let ((fun (intern (concat "r/" (symbol-name name)))) flags cx-co)
+    (while (keywordp (car refs))
+      (if (equal (car refs) :cx-co)
+          (setq cx-co (progn (pop refs) (pop refs))) ; :cx-co to supply C-x C-o function
+        (push (pop refs) flags))) ; :force for not append / :trim for short url display
+    (let* ((flatten (cl-loop
+                     for item in refs ; flatten items like: ("r3" "r4")
+                     if (and (listp item) (not (symbolp (car item)))) append (cl-loop for r in item collect r)
+                     else collect item))
+           (merged (if-let* ((oldrs (and (not (member :force flags)) (ignore-errors (funcall fun t)))))
+                       (append oldrs flatten) flatten))) ; multiple invoke, merge all items together (if no keyword :force)
+      `(defun ,fun (&optional noninteractive)
+         ,(if (and (stringp (car merged)) (not (cdr merged))) "" "*") ; document string
+         (interactive)
+         (let* ((refs ',merged))
+           (if noninteractive refs
+             (let* ((refs (delq-nil ; deal item that is a form: eval and append the results
+                           (cl-loop for ref in refs
+                                    if (consp ref) append (ensure-list (eval ref))
+                                    else collect ref)))
+                    (parsed (if (null refs)  ; extract label from item, complete the abbrev links: (link-display label link)
+                                (user-error "No suitable reference")
+                              (mapcar (lambda (item)
+                                        (if (symbolp item) item ; command
+                                          (let ((link item) label group slink)
+                                            (when (string-match "^\\(.+\\): +\\([^ ]+\\)\\(?: +\\([[:alnum:]]\\)\\)?$" item) ; parse "label: link :group"
+                                              (setq link (match-string 2 item) label (match-string 1 item) group (match-string 3 item)))
+                                            (when (not (string-prefix-p "http" link)) ; complete for github
+                                              (setq link (format "https://github.com/%s" link)))
+                                            (setq slink (if (member :trim ',flags) (car (split-string (car (split-string link "?")) "#")) link))
+                                            (list slink label link group))))
+                                      refs)))
+                    (maxlen (cl-loop for i in parsed ; max length url, used to format partial display string
+                                     if (car-safe (cdr-safe i))
+                                     maximize (1+ (length (car i)))))
+                    (groups (cl-loop for r in parsed ; groups info fetch from all items
+                                     if (cadddr r) collect (cadddr r) into gs
+                                     finally (return (if gs (concat "[" (string-join (delete-dups gs)) "]")))))
+                    (propertized (mapcar (lambda (item) ; propertize item with face
+                                           (if (symbolp item)
+                                               (propertize (symbol-name item) 'face 'font-lock-function-name-face)
+                                             (let ((label (cadr item)))
+                                               (if (null label)
+                                                   (setq label (car item))
+                                                 (setq label (format (format "%%-%ds %%s" maxlen)
+                                                                     (car item)
+                                                                     (if (string-prefix-p "`" label) (cl-subseq label 1) (concat "(" label ")"))))
+                                                 (add-face-text-property (length (car-safe item)) (length label) 'font-lock-doc-face nil label))
+                                               (when-let* ((group (cadddr item)))
+                                                 (setq label (propertize label 'group group)))
+                                               (propertize label 'rlink (caddr item))))) ; pass real link with property, `minibuffer-allow-text-properties' should be set
+                                         parsed))
+                    (ref (minibuffer-with-setup-hook
+                             (lambda ()
+                               (let ((map (make-composed-keymap nil (current-local-map))))
+                                 (define-key map (kbd "M-w")
+                                             (lambda ()
+                                               (interactive)
+                                               (im:exit-minibuffer-with-message (ref (im:completion-compat :current))
+                                                 (setq ref (car (split-string ref " ")))
+                                                 (when (string-match-p "^http" ref)
+                                                   (kill-new ref)
+                                                   (message "Copy reference: %s" ref)))))
+                                 (define-key map (kbd "C-c C-o")
+                                             (lambda ()
+                                               (interactive)
+                                               ,(if cx-co
+                                                    `(funcall ,cx-co (im:completion-compat :current))
+                                                  `(message "no :open specified."))))
+                                 (use-local-map map)))
+                           (let ((completion-ignore-case t)
+                                 (minibuffer-allow-text-properties t)
+                                 (prompt (concat "reference of " ,(symbol-name name) (if groups (concat " " groups)) ": ")))
+                             (completing-read prompt
+                                              (lambda (input _pred action)
+                                                (let (group (str input))
+                                                  (when (string-match "^\\([[:alnum:]]\\) +\\(.*\\)$" input)
+                                                    (let ((g (match-string 1 input)))
+                                                      (when (string-match-p groups g)
+                                                        (setq group g)
+                                                        (setq str (match-string 2 input))
+                                                        (add-face-text-property (minibuffer-prompt-end) (+ 1 (minibuffer-prompt-end)) 'warning))))
+                                                  (pcase action
+                                                    (`metadata `(metadata (category . quicker)
+                                                                          (display-sort-function . ,#'identity)))
+                                                    (`(boundaries . ,suffix)
+                                                     `(boundaries . ,(cons (if group 2 0) (length suffix))))
+                                                    (_ (let ((collection
+                                                              (cl-loop for r in propertized
+                                                                       if (or (null group) (string= group (get-text-property 1 'group r)))
+                                                                       collect r)))
+                                                         (complete-with-action action collection str nil))))))
+                                              nil t)))))
+               (if (string-match-p (concat "^\\(?:" groups " \\)?http") ref)
+                   (let ((link (get-text-property 3 'rlink ref))) ; link
+                     (message (concat "link " (propertize link 'face 'font-lock-doc-face) " opened in browser."))
+                     (browse-url link))
+                 (call-interactively (intern ref))))))))))
+
+(defun r:group (char &rest items)
+  (declare (indent 1))
+  (cl-loop for i in items collect (format "%s %c" i char)))
 
 (defreference emacs
   "Mail List:   https://lists.gnu.org/archive/html/"
@@ -314,11 +331,10 @@
   "Windows Alpha:    https://alpha.gnu.org/gnu/emacs/pretest/windows/"
   "Windows Mirror:   https://mirrors.ustc.edu.cn/gnu/emacs/windows/")
 
-(defun r:group (char &rest items)
-  (declare (indent 1))
-  (cl-loop for i in items collect (format "%s %c" i char)))
+
+;;; r/links.ee (links)
 
-(defreference websites
+(defreference links.ee
   "Arch: https://archive.archlinux.org/"
   (r:group ?s
     "Draw:            https://excalidraw.com"
@@ -371,11 +387,18 @@
       "WizTree/DiskAnalyzer: https://diskanalyzer.com/download")))
 
 
-;;; r/favors.org (links)
+;;; r/links.org (links)
 
-(defreference favors.org
+(defreference links.org
   :force :trim
-  (with-current-buffer (find-file-noselect org-default-favors-file)
+  :cx-co (lambda (item)
+           (im:exit-minibuffer-with-message nil
+             (setq item (car (split-string item)))
+             (pop-to-buffer (find-file-noselect org-default-links-file))
+             (goto-char (point-min))
+             (search-forward item nil t)
+             (org-show-entry)))
+  (with-current-buffer (find-file-noselect org-default-links-file)
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
         (let (hls title (p (org-element-lineage link '(headline))))
@@ -386,14 +409,14 @@
           (when title
             (format "`* %s: %s" title (org-element-property :raw-link link))))))))
 
-(defun r/favors.org-1 ()
-  "Prompt and show the `org-default-favors-file' buffer."
+(defun r/links.org-1 ()
+  "Prompt and show the `org-default-links-file' buffer."
   (interactive)
-  (unless (file-exists-p org-default-favors-file)
-    (user-error "org-default-favors-file (%s) not exists" org-default-favors-file))
+  (unless (file-exists-p org-default-links-file)
+    (user-error "org-default-links-file (%s) not exists" org-default-links-file))
   (require 'org)
-  (let ((headline (im:org-completing-read-headline org-default-favors-file)))
-    (pop-to-buffer (find-file-noselect org-default-favors-file))
+  (let ((headline (im:org-completing-read-headline org-default-links-file)))
+    (pop-to-buffer (find-file-noselect org-default-links-file))
     (when headline
       (goto-char (point-min))
       (re-search-forward (format org-complex-heading-regexp-format (regexp-quote headline)) nil t)
@@ -401,11 +424,18 @@
       (im:org-show-plain-text-and-children-headlines))))
 
 
-;;; r/bookmark.sys (links)
+;;; r/links.system (links)
 
-(defreference bookmark.sys
+(defreference links.system
   :force :trim
-  (with-current-buffer (r/bookmark.sys-convert-to-org)
+  :cx-co (lambda (item)
+           (setq item (car (split-string item)))
+           (im:exit-minibuffer-with-message nil
+             (with-current-buffer (find-file ic/system-links.bookmark)
+               (goto-char (point-min))
+               (search-forward item nil t)
+               (back-to-indentation))))
+  (with-current-buffer (r/view-system-links-as-org)
     (org-element-map (org-element-parse-buffer) 'link
       (lambda (link)
         (let ((title (car (org-element-property :title (org-element-lineage link '(headline)))))
@@ -413,10 +443,10 @@
           (when (and (stringp title) (< (length path) 100))
             (format "`(%s) %s: %s" title (caddr link) path)))))))
 
-(defun r/bookmark.sys-1 ()
+(defun r/links.system-1 ()
   "Prompt and show bookmarks of the Browser."
   (interactive)
-  (with-current-buffer (r/bookmark.sys-convert-to-org)
+  (with-current-buffer (r/view-system-links-as-org)
     (when-let* ((headline (im:org-completing-read-headline)))
       (goto-char (point-min))
       (re-search-forward (format org-complex-heading-regexp-format (regexp-quote headline)) nil t)
@@ -424,19 +454,19 @@
       (outline-show-subtree)
       (pop-to-buffer (current-buffer)))))
 
-(defun r/bookmark.sys-convert-to-org ()
+(defun r/view-system-links-as-org ()
   "Sync bookmark of system browser to org buffer."
   (interactive)
-  (unless (file-readable-p ic/bookmark.sys-file)
-    (user-error "Bookmark file not found. Correct `ic/bookmark.sys-file' first"))
+  (unless (and ic/system-links.bookmark (file-readable-p ic/system-links.bookmark))
+    (user-error "Bookmark file not found. Correct `ic/system-links.bookmark' first"))
   (require 'org)
   (let ((data (let ((json-object-type 'alist)
                     (json-array-type  'list)
                     (json-key-type    'symbol)
                     (json-false       nil)
                     (json-null        nil))
-                (json-read-file ic/bookmark.sys-file))))
-    (with-current-buffer (get-buffer-create (format "*Bookmarks (%s)*" (if (string-match-p "edge" ic/bookmark.sys-file) "Edge" "Chrome")))
+                (json-read-file ic/system-links.bookmark))))
+    (with-current-buffer (get-buffer-create (format "*Bookmarks (%s)*" (if (string-match-p "edge" ic/system-links.bookmark) "Edge" "Chrome")))
       (let ((inhibit-read-only t))
         (erase-buffer)
         (cl-labels ((fn (al level)
@@ -459,7 +489,7 @@
 
 ;;; r/search-xxx (Search Web)
 
-(defun r:search-url (tag url)
+(defun r:define-search-function (tag url)
   (defalias (intern (format "r/search-%s" tag))
     `(lambda (term)
        ,(format "Search %s for selected text." (capitalize (symbol-name tag)))
@@ -473,7 +503,7 @@
                                nil nil (or current ""))))))
        (browse-url (format ,url (url-hexify-string term))))))
 
-(cl-loop with urls = ic/search-urls for (tag url) in urls do (r:search-url tag url))
+(cl-loop for (tag url) in ic/search-templates do (r:define-search-function tag url))
 
 
 ;;; Interface, C-x C-r
@@ -491,42 +521,36 @@
         (default-directory dir))
     (call-interactively (or cmd #'dired))))
 
-(transient-define-prefix im/transient-fast ()
+(transient-define-prefix im/transient-quicker ()
   :transient-non-suffix 'transient--do-exit
   [:hide
    (lambda () t)
-   ("R  "  "a"              r/quicker)
-   ("C-r"  "b"              r/quicker)
-   ("C-s"  "c"              r/websites)
-   ("f  "  "d"              r/favors.org-1)
-   ("C-f"  "e"              r/favors.org)
-   ("B  "  "f"              r/bookmark.sys-1)
-   ("C-b"  "g"              r/bookmark.sys-1)
-   ("A  "  "h"              im/org-agenda-lines)
-   ("C-a"  "i"              (lambda () (interactive) (r:find-file agenda-directory)))
-   ("C-n"  "j"              (lambda () (interactive) (r:find-file (loco ""))))
-   ("C-e"  "k"              (lambda () (interactive) (r:find-file (loce ""))))
-   ("C-v"  "l"              (lambda () (interactive) (r:find-file ic/srcdir)))
-   ("C-w"  "m"              (lambda () (interactive) (r:find-file ic/org-wip)))
-   ("C-l"  "n"              (lambda () (interactive) (r:find-file ic/workdir)))
-   ("d  "  "o"              (lambda () (interactive) (r:read-file ic/downdir)))
-   ("C-d"  "p"              (lambda () (interactive) (r:find-file ic/downdir)))
-   ("o  "  "q"              im/open-externally)
-   ("O  "  "r"              im/open-directory-externally)
-   ("C-o"  "s"              im/open-directory-externally)
-   ("t  "  "t"              trashed)
-   ("C-t"  "u"              trashed)
-   ("p  "  "v"              project-switch-project)
-   ("/  "  "w"              find-dired)]
-  [[("r"   "quicker"        r/quicker)
+   ("R  "    "a"            r/quicker)
+   ("C-r"    "b"            r/quicker)
+   ("A  "    "h"            im/org-agenda-lines)
+   ("i  "    "d"            (lambda () (interactive) (r:read-file ic/org-wip)))
+   ("C-a"    "i"            (lambda () (interactive) (r:find-file agenda-directory)))
+   ("C-n"    "j"            (lambda () (interactive) (r:find-file (loco ""))))
+   ("C-e"    "k"            (lambda () (interactive) (r:find-file (loce ""))))
+   ("C-s"    "l"            (lambda () (interactive) (r:find-file ic/srcdir)))
+   ("C-w"    "n"            (lambda () (interactive) (r:find-file ic/workdir)))
+   ("C-d"    "p"            (lambda () (interactive) (r:find-file ic/downdir)))
+   ("O  "    "r"            im/open-directory-externally)
+   ("C-o"    "s"            im/open-directory-externally)
+   ("l C-l"  "u"            r/links.org-1)
+   ("l C-s"  "v"            r/links.system-1)]
+  [[("r"   "Quicker.."      r/quicker)
+    ("p"   "Project.."      project-switch-project)
+    ("/"   "Search Web.."   im/transient-retrieve)]
+   [("l e" "links.ee"       r/links.ee)
+    ("l l" "links.org"      r/links.org)
+    ("l s" "links.system"   r/links.system)]
+   [("e"   "Emacs.."        (lambda () (interactive) (r:read-file (loce "") #'project-find-file)))
+    ("n"   "Notes.."        (lambda () (interactive) (r:read-file (loco "") #'project-find-file)))
     ("a"   "Agenda.."       im/org-agenda-files)]
-   [("s"   "websites"       r/websites)
-    ("n"   "Notes.."        (lambda () (interactive) (r:read-file (loco "") #'project-find-file)))]
-   [("f"   "favors.org"     r/favors.org)
-    ("e"   "Emacs.."        (lambda () (interactive) (r:read-file (loce "") #'project-find-file)))]
-   [("b"   "bookmark.sys"   r/bookmark.sys)
-    ("v"   "Source Code.."  (lambda () (interactive) (r:read-file ic/srcdir nil #'vertico-sort-alpha)))]
-   [("w"   "wip.."          (lambda () (interactive) (let ((default-directory ic/org-wip)) (call-interactively #'find-file))))
-    ("l"
-     (lambda () (concat "Local Workdir.." (propertize "     [Download Trashed Open..]" 'face 'font-lock-comment-face)))
-     (lambda () (interactive) (r:read-file ic/workdir)))]])
+   [("w"   "Workdir.."      (lambda () (interactive) (r:read-file ic/workdir)))
+    ("s"   "Source.."       (lambda () (interactive) (r:read-file ic/srcdir nil #'vertico-sort-alpha)))
+    ("d"   "Download.."     (lambda () (interactive) (r:read-file ic/downdir)))]
+   [("o"   "Open.."         im/open-externally)
+    ("f"   "Find.."         find-dired)
+    ("t"   "Trashed"        trashed)]])
