@@ -25,7 +25,7 @@
 (defvar diary-file               (im:loc-agenda-file ".diary" t))
 (defvar org-default-notes-file   (im:loc-agenda-file "notes.org"))
 (defvar org-default-tasks-file   (im:loc-agenda-file "tasks.org"))
-(defvar org-default-links-file  (im:loc-agenda-file "links.org"))
+(defvar org-default-links-file   (im:loc-agenda-file "links.org"))
 (defvar org-default-words-file   (im:loc-agenda-file "words.org"))
 (defvar org-default-working-file (im:loc-agenda-file "working.org"))
 (defvar org-default-journal-file (im:loc-agenda-file "z-journal.org"))

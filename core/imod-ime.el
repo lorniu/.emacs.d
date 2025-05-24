@@ -177,21 +177,21 @@ DarkTheme=Material-Color-Yellow"
 
 (defun ime/rime:wanxiang-lmdg.gram ()
   (interactive)
-  (pdd-let*
-      ((file (expand-file-name "wanxiang-lts-zh-hans.gram" ime:rime-user-data-dir))
-       (md5sum1 (pdd "https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/md5sum.txt"
-                  :done (lambda (r) (car (split-string r)))))
-       (_ (await (if (file-exists-p file)
-                     (message "File %s already exists" file)
-                   (pdd-with-progress-reporter "https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/wanxiang-lts-zh-hans.gram"
-                     (lambda (r)
-                       (let ((coding-system-for-write 'no-conversion))
-                         (write-region r nil file)))))))
-       (md5sum2 (pdd-exec t `[md5sum ,file]
-                  :done (lambda (r) (car (split-string r))))))
-    (unless (equal (await md5sum1) (await md5sum2))
-      (user-error "MD5SUM check failed, maybe you should delete %s and download again." file))
-    (message "MD5SUM check: the gramma file is correct.")))
+  (let ((file (expand-file-name "wanxiang-lts-zh-hans.gram" ime:rime-user-data-dir)))
+    (if (file-exists-p file)
+        (message "File `%s' already exists" file)
+      (pdd-let*
+          ((md5sum1 (pdd "https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/md5sum.txt"
+                      (lambda (r) (car (split-string r)))))
+           (md5sum2 (pdd-with-progress-reporter "https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/wanxiang-lts-zh-hans.gram"
+                      (lambda (r)
+                        (let ((coding-system-for-write 'no-conversion))
+                          (write-region r nil file))
+                        (pdd-exec t `[md5sum ,file]
+                          :done (lambda (r) (car (split-string r))))))))
+        (unless (equal (await md5sum1) (await md5sum2))
+          (user-error "MD5SUM check failed, maybe you should delete %s and download again." file))
+        (message "MD5SUM check: the gramma file is correct.")))))
 
 (defun ime/display-rime-installation ()
   (interactive)
@@ -247,7 +247,7 @@ That's all."))
 (defun ime/display-ziranma-shuangpin ()
   (interactive)
   (im:with-current-view-buffer (get-buffer-create "*ShuangPin/ZiRanMa*")
-    :focus t :wc '(display-buffer-at-bottom (window-height . 0.2))
+    :focus t :wc `((display-buffer-below-selected) (window-height . 8))
     :keywords '(("[A-Z]" . 'font-lock-keyword-face) ("^a.*" . 'font-lock-comment-face))
     (insert "
 Q(iu) W(ia,ua) E(e) R(uan) T(ue,ve) Y(ing,uai) U(sh,u) I (ch,i) O(o,uo) P(un)\n
@@ -260,7 +260,8 @@ a aa | ang ah | e ee | eng eg | o oo | ai an ao ei en er ou")))
     "Helper to reload/redeploy fcitx/rime."
     (interactive)
     (pdd-chain t
-      (lambda () (pdd-exec [fcitx5-remote -c]))
-      (lambda () (pdd-exec [rime_deploy --build]))
-      (lambda () (pdd-exec [fcitx5-remote -c]))
+      (lambda () (pdd-exec t [fcitx5-remote -e]))
+      (lambda () (pdd-exec [rime_deployer --build] :fail #'ignore))
+      (lambda () (pdd-exec t [fcitx5-remote -c]))
+      (lambda () (message "Reload done."))
       :fail (lambda (r) (message "> %s" r)))))

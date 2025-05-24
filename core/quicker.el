@@ -38,7 +38,7 @@
 
 (defcustom ic/system-links.bookmark
   (cl-find-if #'file-exists-p
-              (list "~/.config/microsoft-beta/Default/Bookmarks"
+              (list "~/.config/microsoft-edge/Default/Bookmarks"
                     "~/.config/microsoft-edge-beta/Default/Bookmarks"
                     "~/Library/Application Support/Microsoft Edge/Default/Bookmarks"
                     (substitute-in-file-name "$LOCALAPPDATA/Microsoft/Edge/User Data/Default/Bookmarks")))
