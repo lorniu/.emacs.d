@@ -38,6 +38,7 @@
         (lambda (r)
           (let ((coding-system-for-write 'no-conversion)
                 (target (concat file (if (string-suffix-p ".gz" url) ".gz"))))
+            (make-directory (file-name-directory target) t)
             (write-region r nil target)
             (when (string-suffix-p ".gz" url)
               (shell-command (format "gzip -d %s" target)))
@@ -57,6 +58,7 @@
 
 (defvar ime:rime-user-data-dir
   (cond (IS-MAC "~/Library/Rime/")
+        (IS-WIN (expand-file-name "AppData/Roaming/Rime/" (getenv "USERPROFILE")))
         (t "~/.local/share/fcitx5/rime/")))
 
 (cl-defmacro ime:with-file (file content &optional (enable? t))
@@ -136,8 +138,14 @@ DarkTheme=Material-Color-Yellow"
   show_notifications_when: never"
   IS-MAC)
 
-(ime:with-file rime:rime_ice.custom.yaml
+(ime:with-file rime:weasel.custom.yaml
   "patch:
+  \"style/color_schema\": aqua
+  \"show_notifications\": false"
+  IS-WIN)
+
+(ime:with-file rime:rime_ice.custom.yaml
+  (concat "patch:
   switches:
     - name: ascii_mode
       states: [中, A]
@@ -153,14 +161,17 @@ DarkTheme=Material-Color-Yellow"
       reset: 0
     - name: full_shape
       states: [半角, 全角]
-      reset: 0
+      reset: 0"
+          (unless IS-WIN
+            "
   grammar:
     language: wanxiang-lts-zh-hans
     collocation_max_length: 5
-    collocation_min_length: 2
+    collocation_min_length: 2")
+          "
   translator/contextual_suggestions: true
   translator/max_homophones: 7
-  translator/max_homographs: 7")
+  translator/max_homographs: 7"))
 
 (ime:with-file rime:luna_pinyin.custom.yaml
   "patch:
@@ -252,6 +263,21 @@ Remove default ABC input method:
   : Root/AppleEnabledInputSources/Item-with-ABC
 
 That's all."))
+
+     (IS-WIN (insert
+              (format "Install packages:
+
+  rm -rf %s
+  git clone https://github.com/iDvel/rime-ice.git %s --depth 1
+  winget install Weasel (under cmd)
+
+Execute commands to generate files:
+
+  M-x ime/rime:default.custom.yaml   # Global
+  M-x ime/rime:weasel.custom.yaml    # Style
+  M-x ime/rime:rime_ice.custom.yaml  # Schema
+  ### wanxiang-lmdg.gram makes system lag, not use ###
+" ime:rime-user-data-dir ime:rime-user-data-dir)))
 
      (t (insert "NO Tips for current OS.")))))
 

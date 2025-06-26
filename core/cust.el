@@ -157,7 +157,8 @@
 (cond (IS-WIN   (add-to-list 'im.external-paths (loce "bin/win")))
       (IS-MAC   (add-to-list 'im.external-paths (loce "bin"))
                 (add-to-list 'im.external-paths (loce "bin/mac"))
-                (add-to-list 'im.external-paths "/opt/homebrew/bin"))
+                (add-to-list 'im.external-paths "/opt/homebrew/bin")
+                (add-to-list 'im.external-paths "~/.local/bin/"))
       (IS-LINUX (add-to-list 'im.external-paths (loce "bin"))
                 (add-to-list 'im.external-paths (loce "bin/nix"))))
 
