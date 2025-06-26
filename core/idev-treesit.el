@@ -8,6 +8,8 @@
   :ref ("TreeSitter Home: https://github.com/tree-sitter/tree-sitter"
         "Precompiled Grammers: https://github.com/emacs-tree-sitter/tree-sitter-langs/releases"))
 
+(defvar ic.enable-treesiter (and (not IS-WIN) (treesit-available-p)))
+
 (setq treesit-extra-load-path (list (locate-user-emacs-file "tree-sitter")))
 
 (setq treesit-language-source-alist
@@ -44,19 +46,21 @@
         (markdown   "https://github.com/tree-sitter-grammars/tree-sitter-markdown" "split_parser" "tree-sitter-markdown/src")
         (markdown-inline "https://github.com/tree-sitter-grammars/tree-sitter-markdown" "split_parser" "tree-sitter-markdown-inline/src")))
 
-(setq major-mode-remap-alist
-      `(,@(when (treesit-available-p)
-            (delq-nil
-             `((c-mode . c-ts-mode)
-               (c++-mode . c++-ts-mode)
-               (yaml-mode . yaml-ts-mode)
-               (bash-mode . bash-ts-mode)
-               (js2-mode . js-ts-mode)
-               (typescript-mode . typescript-ts-mode)
-               (json-mode . json-ts-mode)
-               (css-mode . css-ts-mode)
-               (lua-mode . lua-ts-mode)
-               (java-mode . java-ts-mode)
-               (csharp-mode . csharp-ts-mode)
-               (python-mode . python-ts-mode)
-               ,(if (> emacs-major-version 30) '(markdown-mode . markdown-ts-mode)))))))
+(when ic.enable-treesiter
+  (setq major-mode-remap-alist
+        (append
+         (delq-nil
+          `((c-mode . c-ts-mode)
+            (c++-mode . c++-ts-mode)
+            (yaml-mode . yaml-ts-mode)
+            (bash-mode . bash-ts-mode)
+            (js2-mode . js-ts-mode)
+            (typescript-mode . typescript-ts-mode)
+            (json-mode . json-ts-mode)
+            (css-mode . css-ts-mode)
+            (lua-mode . lua-ts-mode)
+            (java-mode . java-ts-mode)
+            (csharp-mode . csharp-ts-mode)
+            (python-mode . python-ts-mode)
+            ,(if (> emacs-major-version 30) '(markdown-mode . markdown-ts-mode))))
+         major-mode-remap-alist)))

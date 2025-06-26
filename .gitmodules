@@ -25,3 +25,6 @@
 [submodule "repo/org-expose-emphasis-markers"]
 	path = repo/org-expose-emphasis-markers
 	url = git@github.com:lorniu/org-expose-emphasis-markers
+[submodule "repo/speak-buffer"]
+	path = repo/speak-buffer
+	url = git@github.com:lorniu/speak-buffer.el

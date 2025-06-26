@@ -11,9 +11,12 @@
    "
   :commands emms
   :init
-  (setq emms-show-formatoo "Playing: %s"
+  (setq emms-show-format "Playing: %s"
         emms-playlist-buffer-name " *EMMS*"
-        emms-directory (locc "emms"))
+        emms-directory (locc "emms")
+        emms-source-file-directory-tree-function (if IS-WIN
+                                                     'emms-source-file-directory-tree-internal
+                                                   'emms-source-file-directory-tree-find))
   :config
   (make-directory emms-directory t)
   (emms-all)
@@ -29,9 +32,3 @@
     (interactive)
     (load emms-cache-file t 'no-message t)
     (setq emms-cache-dirty nil)))
-
-(xzz mpvi
-  :ref "lorniu/mpvi"
-  :config
-  (setq mpvi-danmaku2ass (file-truename (loce "share/danmaku2ass.py")))
-  :commands (mpvi-open mpvi-open-from-favors mpvi-seek mpvi-insert mpvi-clip mpvi-emms-add mpvi-org-link-init))

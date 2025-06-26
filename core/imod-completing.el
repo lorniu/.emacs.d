@@ -218,9 +218,8 @@
       (add-hook hook (lambda () (setq-local corfu-auto t)))))
   (global-corfu-mode 1)
 
-  (require 'corfu-kind-grouping)
-  (require 'kind-all-the-icons)
-  (add-to-list 'corfu-margin-formatters #'kind-all-the-icons-margin-formatter))
+  (require 'corfu-grouping)
+  (require 'corfu-nerd-icons))
 
 (xzz cape
   :ref "minad/cape"
@@ -237,7 +236,7 @@
       (let ((old-point (point))
             (old-tick (buffer-chars-modified-tick)))
         (yas-expand)
-        (when (and (eq old-point (point))
+         (when (and (eq old-point (point))
                    (eq old-tick (buffer-chars-modified-tick)))
           (ignore-errors (yas-next-field))
           (when (and (eq old-point (point))
