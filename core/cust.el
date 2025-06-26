@@ -63,9 +63,7 @@
 
 ;;; Better default
 
-(setq-default default-directory "~/"
-
-              tab-width 4
+(setq-default tab-width 4
               tab-always-indent 'complete
               indent-tabs-mode nil
 
@@ -76,7 +74,9 @@
 
               lexical-binding t)
 
-(setq track-eol t
+(setq default-directory "~/"
+
+      track-eol t
       custom-unlispify-tag-names nil
 
       visible-bell nil
@@ -157,7 +157,8 @@
 (cond (IS-WIN   (add-to-list 'im.external-paths (loce "bin/win")))
       (IS-MAC   (add-to-list 'im.external-paths (loce "bin"))
                 (add-to-list 'im.external-paths (loce "bin/mac"))
-                (add-to-list 'im.external-paths "/opt/homebrew/bin"))
+                (add-to-list 'im.external-paths "/opt/homebrew/bin")
+                (add-to-list 'im.external-paths "~/.local/bin/"))
       (IS-LINUX (add-to-list 'im.external-paths (loce "bin"))
                 (add-to-list 'im.external-paths (loce "bin/nix"))))
 
@@ -171,7 +172,7 @@
 
 (setenv "TZ" "est-8")
 (setenv "LC_COLLATE" "C")
-(setenv "LC_ALL" "en_US.UTF-8")
+;; (setenv "LC_ALL" "en_US.UTF-8")
 
 (when IS-WIN
   (when-let* ((realhome (and (null (getenv-internal "HOME")) (getenv "USERPROFILE"))))

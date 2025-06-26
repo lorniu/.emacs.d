@@ -122,7 +122,7 @@
             bbdb sql-indent ; database
             powershell ob-powershell
             yaml-mode csv-mode systemd udev-mode
-            polymode edit-indirect)))
+            edit-indirect)))
   (cl-macrolet ((ensure-packages-installed ()
                   `(cl-labels
                        ((all ()

@@ -38,6 +38,7 @@
         (lambda (r)
           (let ((coding-system-for-write 'no-conversion)
                 (target (concat file (if (string-suffix-p ".gz" url) ".gz"))))
+            (make-directory (file-name-directory target) t)
             (write-region r nil target)
             (when (string-suffix-p ".gz" url)
               (shell-command (format "gzip -d %s" target)))
@@ -57,6 +58,7 @@
 
 (defvar ime:rime-user-data-dir
   (cond (IS-MAC "~/Library/Rime/")
+        (IS-WIN (expand-file-name "AppData/Roaming/Rime/" (getenv "USERPROFILE")))
         (t "~/.local/share/fcitx5/rime/")))
 
 (cl-defmacro ime:with-file (file content &optional (enable? t))
@@ -136,8 +138,51 @@ DarkTheme=Material-Color-Yellow"
   show_notifications_when: never"
   IS-MAC)
 
-(ime:with-file rime:rime_ice.custom.yaml
+(ime:with-file rime:weasel.custom.yaml
   "patch:
+  global_ascii: true
+  show_notifications: false
+  # style/color_scheme: purity_of_form_custom # aqua, google, youtube
+  style/+:
+    label_format: \"%s\"
+    inline_preedit: true
+    font_point: 13
+    label_font_point: 13
+    comment_font_point: 11
+    horizontal: true
+    color_scheme: wechat
+    layout:
+      max_height: 0
+      max_width: 1200
+      min_width: 10
+      margin_x: 10
+      margin_y: 8
+      candidate_spacing: 24
+      hilite_spacing: 6
+      hilite_padding: 3
+      hilite_padding_x: 8
+      corner_radius: 8
+      round_corner: 8
+      shadow_radius: 4
+  preset_color_schemes/+:
+    wechat:
+      name: \"微信／Wechat\"
+      text_color: 0x424242
+      label_color: 0x999999
+      back_color: 0xFFFFFF
+      border_color: 0xFFFFFF
+      comment_text_color: 0x999999
+      candidate_text_color: 0x3c3c3c
+      hilited_comment_text_color: 0xFFFFFF
+      hilited_back_color: 0x79af22
+      hilited_text_color: 0xFFFFFF
+      hilited_label_color: 0xFFFFFF
+      hilited_candidate_back_color: 0x79af22
+      shadow_color: 0x20000000
+" IS-WIN)
+
+(ime:with-file rime:rime_ice.custom.yaml
+  (concat "patch:
   switches:
     - name: ascii_mode
       states: [中, A]
@@ -160,7 +205,7 @@ DarkTheme=Material-Color-Yellow"
     collocation_min_length: 2
   translator/contextual_suggestions: true
   translator/max_homophones: 7
-  translator/max_homographs: 7")
+  translator/max_homographs: 7"))
 
 (ime:with-file rime:luna_pinyin.custom.yaml
   "patch:
@@ -175,25 +220,26 @@ DarkTheme=Material-Color-Yellow"
       states: [ 半角, 全角 ]
       reset: 0")
 
-(defun ime/rime:wanxiang-lmdg.gram ()
-  (interactive)
+(defun ime/rime:wanxiang-lmdg.gram (&optional skip-check)
+  (interactive "P")
   (let ((file (expand-file-name "wanxiang-lts-zh-hans.gram" ime:rime-user-data-dir)))
     (if (file-exists-p file)
         (message "File `%s' already exists" file)
       (pdd-let*
-          ((md5sum1 (pdd "https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/md5sum.txt"
-                      (lambda (r) (car (split-string r)))))
+          ((md5sum1 (unless skip-check
+                      (pdd "https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/md5sum.txt"
+                        (lambda (r) (car (split-string r))))))
            (md5sum2 (pdd-with-progress-reporter "https://github.com/amzxyz/RIME-LMDG/releases/download/LTS/wanxiang-lts-zh-hans.gram"
                       (lambda (r)
                         (let ((coding-system-for-write 'no-conversion))
                           (write-region r nil file))
                         (pdd-exec t `[md5sum ,file]
                           :done (lambda (r) (car (split-string r))))))))
-        (unless (equal (await md5sum1) (await md5sum2))
+        (when (and (null skip-check) (equal (await md5sum1) (await md5sum2)))
           (user-error "MD5SUM check failed, maybe you should delete %s and download again." file))
-        (message "MD5SUM check: the gramma file is correct.")))))
+        (message "The gram file is ready.")))))
 
-(defun ime/display-rime-installation ()
+(defun ime/guide-rime-installation ()
   (interactive)
   (im:with-current-view-buffer (get-buffer-create "*Input Method Tips*")
     :focus t :keywords '(("#.*" . 'font-lock-comment-face))
@@ -203,6 +249,8 @@ DarkTheme=Material-Color-Yellow"
 
   pacman -S fcitx5-im fcitx5-rime rime-ice-git
   pacman -S fcitx5-material-color # skins: yay -Ss fcitx5-skin
+
+  # dnf install fcitx5-rime librime-lua
 
   # or download rime-ice with git (including skins inside)
   rm -rf %s
@@ -214,7 +262,7 @@ Add to .xinitrc or .profile:
   export GTK_IM_MODULE=fcitx
   export QT_IM_MODULE=fcitx
   export SDL_IM_MODULE=fcitx
-  export XMODIFIERS=@im=fcitx
+  export XMODIFIERS=@im=fcitx # for wayland, only this. but add others to launch script for wps/wechat, they need them
 
 Execute commands to generate files:
 
@@ -252,6 +300,26 @@ Remove default ABC input method:
   : Root/AppleEnabledInputSources/Item-with-ABC
 
 That's all."))
+
+     (IS-WIN (insert
+              (format "Install packages:
+
+  rm -rf %s
+  git clone https://github.com/iDvel/rime-ice.git %s --depth 1
+  winget install Weasel (under cmd)
+
+Execute commands to generate files:
+
+  M-x ime/rime:default.custom.yaml   # Global
+  M-x ime/rime:weasel.custom.yaml    # Style
+  M-x ime/rime:rime_ice.custom.yaml  # Schema
+  M-x ime/rime:wanxiang-lmdg.gram    # Gramma (Download)
+
+To disable Ctrl+Space | avoid first letter lost:
+
+  reg delete \"HKCU\\Control Panel\\Input Method\\Hot Keys\\00000070\" /f
+  reg add \"HKCU\\Software\\Microsoft\\InputMethod\\Settings\\Common\" /v TouchKeyboardHasEverShown /t REG_DWORD /d 0 /f
+" ime:rime-user-data-dir ime:rime-user-data-dir)))
 
      (t (insert "NO Tips for current OS.")))))
 

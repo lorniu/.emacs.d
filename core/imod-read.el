@@ -5,7 +5,11 @@
 (xzz nov
   "EPUB reader."
   :ref "https://depp.brause.cc/nov.el/"
-  :mode ("\\.epub\\'" . nov-mode))
+  :mode ("\\.epub\\'" . nov-mode)
+  :config
+  (when IS-WIN
+    (setq nov-unzip-program (executable-find "bsdtar")
+          nov-unzip-args '("-xC" directory "-f" filename))))
 
 (xzz nov-xwidget
   :after nov

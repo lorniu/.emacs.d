@@ -767,7 +767,7 @@ not change display, depending on the window manager)."
 
 ;;; powershell
 
-(defvar alert-powershell-script (expand-file-name (loce "bin/x/ps-notify.ps1"))
+(defvar alert-powershell-script (expand-file-name (loce "bin/win/ps-notify.ps1"))
   "Script to send-notify under powershell.")
 
 (defun powershell-send-notify (title message &optional timeout)

@@ -1,5 +1,5 @@
 # -*- mode: snippet -*-
-# name: ic/org-mode (vip)
+# name: im.org-mode (vip)
 # key: ic
 # --
 
@@ -16,7 +16,7 @@
   (interactive)
   (when (and default-directory (string-match-p "/.notes/" default-directory))
     (alert "Reloading remote server..." :timeout 120 :severity 'low :title "Reload" :id 12879)
-    (url-retrieve (format "https://%s/sys/pull-and-reload" ic/host)
+    (url-retrieve (format "https://%s/sys/pull-and-reload" im.host)
                   (lambda (_)
                     (re-search-forward "\n\n")
                     (alert (format "%s" (buffer-substring (point) (point-max))) :title "Reload" :id 12879)
