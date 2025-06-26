@@ -12,11 +12,11 @@
   (tool-bar-mode -1))
 
 (prog1 :vertico
-  (require 'vertico)
+  (use-package vertico :ensure t)
   (vertico-mode 1))
 
 (prog1 :corfu
-  (require 'corfu)
+  (use-package corfu :ensure t)
   (setq corfu-auto t)
   (setq corfu-auto-prefix 1)
   (corfu-mode 1))

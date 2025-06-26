@@ -10,7 +10,7 @@
 
 (bind-keys
  ( [f2]            .  im/kmacros                                  )
- ( [f5]            .  gt-do-translate                             )
+ ( [f5]            .  gt-translate                                )
  ( [f7]            .  toggle-truncate-lines                       )
  ( [f8]            .  mpvi-seek                                   )
  ( [f9]            .  compile                                     )

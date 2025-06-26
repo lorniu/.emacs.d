@@ -70,7 +70,7 @@
             pcre2el ; regexp
             corfu cape vertico orderless marginalia consult hyperbole ; utils
             yasnippet ; templates
-            all-the-icons ; icons
+            nerd-icons ; icons
             standard-themes nano-theme gruvbox-theme srcery-theme ; themes
             vlf nov pdf-tools ; file
 
@@ -122,7 +122,7 @@
             bbdb sql-indent ; database
             powershell ob-powershell
             yaml-mode csv-mode systemd udev-mode
-            polymode edit-indirect)))
+            edit-indirect)))
   (cl-macrolet ((ensure-packages-installed ()
                   `(cl-labels
                        ((all ()

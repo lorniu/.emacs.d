@@ -10,10 +10,9 @@
                      `("\\`/db:" . dropbox-handler))
   :commands (dropbox-find dropbox-browser dropbox-handler))
 
-(xzz go-translate
-  :ref "lorniu/go-translate"
-  :commands ( gt-do-translate gt-do-setup gt-do-speak
-              gt-qrcode gt-setup gt-speak gt-translate ))
+(xzz gt
+  :ref "lorniu/gt.el"
+  :commands ( gt-translate gt-setup gt-speak gt-qrcode gt-setup ))
 
 (xzz bilibili
   :ref "lorniu/bilibli.el"
@@ -23,7 +22,21 @@
               bilibili-insert-upper-season-videos bilibili-insert-favs
               bilibili-insert-search bilibili-fav-it bilibili-triple-it))
 
+(xzz mpvi
+  :ref "lorniu/mpvi"
+  :config
+  ;; (setq mpvi-cmds-on-init
+  ;;       '(((set_property autofit-larger "50%"))
+  ;;         ((set_property geometry "1500:55"))))
+  :commands (mpvi-open mpvi-open-from-favors mpvi-seek
+                       mpvi-insert mpvi-clip mpvi-emms-add mpvi-org-link-init))
+
+(xzz speak-buffer
+  :ref "lorniu/speak-buffer.el"
+  :commands ( speak-buffer speak-buffer-interrupt ))
+
 
+;;; Hi AI
 
 (defvar im:hi-ai-prompts
   (list "润色、优化文本。返回最终结果"
@@ -92,70 +105,3 @@
                           :dislike-header t
                           :dislike-source t
                           :window-config '((display-buffer-below-selected))))))))
-
-
-(defvar im:speak-buffer-task nil)
-
-(defvar im:speak-buffer-engine 'local)
-
-(defvar im:speak-buffer-interval 0.3)
-
-(defvar im:speak-buffer-face 'font-lock-warning-face)
-
-(defvar-keymap im:speak-buffer-map
-  "<mouse-3>" 'im/speak-buffer-interrupt "C-g" 'im/speak-buffer-interrupt)
-
-(defun im/speak-buffer-interrupt ()
-  (interactive)
-  (when im:speak-buffer-task
-    (pdd-signal im:speak-buffer-task 'cancel)
-    (setq im:speak-buffer-task nil)))
-
-(defun im/speak-buffer-by-paragraphs ()
-  (interactive)
-  (require 'go-translate)
-  (im/speak-buffer-interrupt)
-  (let ((buf (current-buffer))
-        (ov (make-overlay 1 1 nil nil t)))
-    (overlay-put ov 'face im:speak-buffer-face)
-    (overlay-put ov 'keymap im:speak-buffer-map)
-    (letrec ((play-from
-              (lambda (pos)
-                (if-let* ((bounds (and (goto-char pos) (not (eobp))
-                                       (bounds-of-thing-at-point 'paragraph)))
-                          (beg (max pos (car bounds)))
-                          (end (save-excursion
-                                 (goto-char (cdr bounds))
-                                 (skip-chars-forward " \t\n\r\f")
-                                 (point))))
-                    ;; --- play paragraph ---
-                    (pdd-chain (buffer-substring-no-properties beg (cdr bounds))
-                      (lambda (text) ; fetch audio data
-                        (setq im:speak-buffer-task
-                              (gt-speech im:speak-buffer-engine text 'zh #'identity)))
-                      (lambda (data) ; highlight and play
-                        (with-current-buffer buf
-                          (move-overlay ov beg end)
-                          (setq im:speak-buffer-task (gt-play-audio data))))
-                      (lambda (_) ; unhighlight and play next
-                        (with-current-buffer buf
-                          (move-overlay ov end end)
-                          (setq im:speak-buffer-task
-                                (pdd-delay im:speak-buffer-interval
-                                  (lambda ()
-                                    ;; post: play next paragraph
-                                    (with-current-buffer buf (funcall play-from end))
-                                    ;; post: decoupe promise chain
-                                    nil)))))
-                      :fail
-                      (lambda (r)
-                        (with-current-buffer buf (delete-overlay ov))
-                        (setq im:speak-buffer-task nil)
-                        (unless (string-match-p "cancel" (format "%s" r))
-                          (message "Speak buffer error: %s" r))))
-                  ;; --- reach the end ---
-                  (delete-overlay ov)
-                  (setq im:speak-buffer-task nil)
-                  (message "Speak buffer finished.")))))
-      ;; play from current point
-      (funcall play-from (point)))))

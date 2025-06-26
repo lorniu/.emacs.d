@@ -105,7 +105,7 @@
   :transient-non-suffix 'transient--do-exit
   [:hide
    (lambda () t)
-   ("C-t"  "0"  gt-do-translate)
+   ("C-t"  "0"  gt-translate)
    ("C-,"  "2"  im/transient-desktop)]
   [[("g"  "Google"          r/search-google)]
    [("f"  "Wolfram"         r/search-wolfram-alpha)]
@@ -113,7 +113,7 @@
    [("s"  "StackOverflow"   r/search-stackoverflow)]
    [("v"  "Wikipedia"       r/search-wikipedia)]
    [("a"  "ArchWiki"        r/search-arch-wiki)]
-   [("t"  "Translate"       gt-do-translate)]
+   [("t"  "Translate"       gt-translate)]
    [("i"  "Iconify"         r/search-iconify)]
    [(","  "Destktop"        im/transient-desktop)]]
   (interactive)

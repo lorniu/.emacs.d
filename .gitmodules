@@ -7,6 +7,9 @@
 [submodule "repo/pdd"]
 	path = repo/pdd
 	url = git@github.com:lorniu/pdd.el
+[submodule "repo/gt"]
+	path = repo/gt
+	url = git@github.com:lorniu/gt.el
 [submodule "repo/mpvi"]
 	path = repo/mpvi
 	url = git@github.com:lorniu/mpvi
@@ -16,12 +19,12 @@
 [submodule "repo/dropbox"]
 	path = repo/dropbox
 	url = git@github.com:lorniu/dropbox.el
-[submodule "repo/go-translate"]
-	path = repo/go-translate
-	url = git@github.com:lorniu/go-translate
 [submodule "repo/ox-spectacle"]
 	path = repo/ox-spectacle
 	url = git@github.com:lorniu/ox-spectacle
 [submodule "repo/org-expose-emphasis-markers"]
 	path = repo/org-expose-emphasis-markers
 	url = git@github.com:lorniu/org-expose-emphasis-markers
+[submodule "repo/speak-buffer"]
+	path = repo/speak-buffer
+	url = git@github.com:lorniu/speak-buffer.el

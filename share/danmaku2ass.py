@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # The original author of this program, Danmaku2ASS, is StarBrilliant.
 # This file is released under General Public License version 3.
