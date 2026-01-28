@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# fake xmessage using Emacs
+
+LOG_FILE="/tmp/xmessage-output"
+
+# clean
+: > "$LOG_FILE"
+
+# catch from command line
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -default|-buttons|-geometry|-fn|-font|-timeout|-xrm)
+            shift; shift
+            ;;
+        -center|-nearmouse|-file|-print)
+            shift
+            ;;
+        *)
+            echo -e "$1" >> "$LOG_FILE"
+            echo "--------------------------------------------------" >> "$LOG_FILE"
+            shift
+            ;;
+    esac
+done
+
+# case: stdin existed
+if read -t 0 -N 0; then
+    cat >> "$LOG_FILE"
+fi
+
+if [ -s "$LOG_FILE" ]; then
+    emacsclient -n -c "$LOG_FILE"
+fi
