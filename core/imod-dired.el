@@ -15,10 +15,13 @@
 	      ( "^" . im/dired-up-directory-follow-symlink )
 	      ( "e" . wdired-change-to-wdired-mode )
           ( "g" . (lambda () (interactive) (im/dired-sort)) )
+          ( "o" . browse-url-of-dired-file )
+          ( "O" . im/open-directory-externally )
           ( "s" . im/dired-sort )
 	      ( "z" . im/dired-du-size )
 	      ( "Y" . im/dired-rsync )
           ( "," . im/dired--toggle-collapse )
+          ( ";" . dired-do-shell-command )
           ( "SPC" . im/dired-preview-file )
           :map wdired-mode-map
           ( "C-c SPC" . im/dired-preview-file ))
@@ -213,6 +216,33 @@ When 'current-prefix-arg' non-nil then fall back to builtin dired-sort."
   (if (eq major-mode 'dired-mode)
       (transient-setup 'im/transient-dired-sort)
     (user-error "Should be used in Dired")))
+
+
+;;; Windows Integrate
+
+(when IS-WIN
+  (with-eval-after-load 'dired
+    (require 'dired-x)
+    (setq dired-omit-verbose nil
+          dired-omit-files
+          (concat "^System Volume Information$"
+                  "\\|^\\$RECYCLE\\.BIN$"
+                  "\\|^Documents and Settings$"))
+    (add-hook 'dired-mode-hook #'dired-omit-mode))
+
+  (defun im:ignore-eacces-on-opendir (fn &rest args)
+    "Ignore errors like `Opening directory: Permission denied'."
+    (condition-case err
+        (apply fn args)
+      (error
+       (unless (eq (car err) 'permission-denied)
+         (signal (car err) (cdr err))))))
+
+  (dolist (fn '(directory-files
+                directory-files-and-attributes
+                file-name-all-completions
+                file-name-completion))
+    (advice-add fn :around #'im:ignore-eacces-on-opendir)))
 
 
 ;;; Interface (Helper)

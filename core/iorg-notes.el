@@ -66,8 +66,8 @@
 (defun %note-publish-html-head--suggest ()
   (cl-labels ((face-color (type)
                 (if (eq type 'bg)
-                    (let ((bg (face-background 'default))) (if (and IS-LINUX-NG (string= "unspecified-bg" bg)) "#333" bg))
-                  (let ((fg (face-foreground 'default))) (if (and IS-LINUX-NG (string= "unspecified-fg" fg)) "#eee" fg)))))
+                    (let ((bg (face-background 'default))) (if (and IS-NIX-NG (string= "unspecified-bg" bg)) "#333" bg))
+                  (let ((fg (face-foreground 'default))) (if (and IS-NIX-NG (string= "unspecified-fg" fg)) "#eee" fg)))))
     (format "<style>\n%s\n</style>"
             (im:string-pad
              (list "body  { padding:10px; font-size:13px; }"

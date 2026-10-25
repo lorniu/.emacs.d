@@ -133,7 +133,6 @@
 
 
 (xzz ghostel
-  :if (not IS-WIN)
   :ref "dakra/ghostel"
   :bind (:map ghostel-semi-char-mode-map
               ("C-k"  . (lambda ()
@@ -151,18 +150,22 @@
   :config
   (setq ghostel-buffer-name "*vterm*")
   (setq ghostel-buffer-name-function nil)
-  (add-to-list 'ghostel-eval-cmds '("magit-status-setup-buffer" magit-status-setup-buffer)))
+  (setq ghostel-module-directory (locc "ghostel"))
+  (add-to-list 'ghostel-eval-cmds '("magit-status-setup-buffer" magit-status-setup-buffer))
+
+  (when IS-WIN
+    (when-let* ((bash (executable-find "bash")))
+      (setq ghostel-shell (list bash "--login" "-i"))
+      (setq ghostel-environment '("CHERE_INVOKING=1")))))
 
 
 
 (defun im/toggle-vterm-buffer ()
   "Toggle show the *vterm* buffer, here is ghostel."
   (interactive)
-  (if IS-WIN
-      (call-interactively #'im/toggle-eshell-buffer)
-    (im/hide-or-show-buffer (lambda (b) (eq (buffer-local-value 'major-mode b) 'ghostel-mode))
-      (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom) (direction . right)))))
-        (ghostel)))))
+  (im/hide-or-show-buffer (lambda (b) (eq (buffer-local-value 'major-mode b) 'ghostel-mode))
+    (let ((display-buffer-alist '(("*" (display-buffer-reuse-window %display-buffer-in-direction-or-at-bottom) (direction . right)))))
+      (ghostel))))
 
 (defun im/toggle-eshell-buffer ()
   "Toggle show the *eshell* buffer."

@@ -9,7 +9,7 @@
 (xzz image-mode
   :mode "\\.otf\\'"
   :config
-  (define-key image-mode-map "c" 'im/yank-current-buffer-name))
+  (define-key image-mode-map "c" 'im/copy-current-buffer-name))
 
 (xzz gimp
   :commands (connect-gimp gimp-mode))

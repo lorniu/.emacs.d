@@ -258,6 +258,15 @@ Use macro, can expand to the pretty lambda style."
    (if nano (concat "%F %T.%" (number-to-string nano) "N") "%F %T")
    time))
 
+(defun im:event-window (e)
+  "Return the window associated with event E, or the selected window."
+  (or (and e (eventp e)
+           (let ((start (event-start e)))
+             (and start
+                  (windowp (posn-window start))
+                  (posn-window start))))
+      (selected-window)))
+
 (defun im:history-replace (hist-sym value)
   "Replace origin history ITEM with this new VALUE."
   (set hist-sym (cdr (symbol-value hist-sym)))
@@ -341,6 +350,11 @@ PROMPT is string for minibuffer prompt."
            (copy-region-as-kill (point-min) (point-max))
            (org-edit-src-exit)
            (message "Src-Block Yanked.")))
+        ((and (eq major-mode 'dired-mode)
+              (dired-get-filename nil t))
+         (let ((fn (expand-file-name (dired-get-file-for-visit))))
+           (kill-new fn)
+           (message "Current file name `%s' yanked." fn)))
         (t
          (copy-region-as-kill (line-beginning-position) (line-end-position))
          (message "No Region, Whole Line Yanked."))))
@@ -590,7 +604,7 @@ With argument N, make N copies."
   (interactive "P")
   (insert (format-time-string (if timep "%F %T" "%F"))))
 
-(defun im/yank-current-directory ()
+(defun im/copy-current-directory ()
   (interactive)
   (if-let* ((d default-directory))
       (progn
@@ -598,7 +612,7 @@ With argument N, make N copies."
         (message "Yanked: %s" d))
     (user-error "Nothing to copy")))
 
-(defun im/yank-current-buffer-name ()
+(defun im/copy-current-buffer-name ()
   (interactive)
   (let ((filename (buffer-file-name))
         (buffname (buffer-name)))
@@ -606,18 +620,19 @@ With argument N, make N copies."
     (kill-new buffname)
     (message "Yanked: %s" buffname)))
 
-(defun im/yank-current-full-name (e)
-  (interactive "e")
-  (let ((filename (buffer-file-name (window-buffer (caadr e)))) r)
-    (if filename (setq r filename)
-      (setq r (buffer-name)))
-    (kill-new r)
-    (message "Yanked: %s" r)))
+(defun im/copy-current-full-file-name (&optional e)
+  (interactive (list last-nonmenu-event))
+  (let* ((buf      (window-buffer (im:event-window e)))
+         (filename (buffer-file-name buf))
+         (result   (or filename (buffer-name buf))))
+    (kill-new result)
+    (message "Yanked: %s" result)))
 
-(defun im/yank-current-dir-and-buffer-name (e)
-  (interactive "e")
-  (let ((bn (buffer-name (window-buffer (caadr e))))
-        (dn default-directory))
+(defun im/copy-current-dir-and-buffer-name (&optional e)
+  (interactive (list last-nonmenu-event))
+  (let* ((buf (window-buffer (im:event-window e)))
+         (bn  (buffer-name buf))
+         (dn  (buffer-local-value 'default-directory buf)))
     (kill-new bn)
     (kill-new dn)
     (message "Yanked: %s - %s" bn dn)))

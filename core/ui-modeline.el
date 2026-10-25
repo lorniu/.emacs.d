@@ -41,8 +41,8 @@
                                                (or (buffer-file-name) default-directory))
                            'local-map mode-line-buffer-identification-keymap)))
 
-(define-key mode-line-buffer-identification-keymap [mode-line mouse-1] #'im/yank-current-full-name)
-(define-key mode-line-buffer-identification-keymap [mode-line mouse-3] #'im/yank-current-dir-and-buffer-name)
+(define-key mode-line-buffer-identification-keymap [mode-line mouse-1] #'im/copy-current-full-file-name)
+(define-key mode-line-buffer-identification-keymap [mode-line mouse-3] #'im/copy-current-dir-and-buffer-name)
 
 
 ;;; Show (point) on mode-line

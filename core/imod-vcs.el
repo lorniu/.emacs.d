@@ -36,16 +36,14 @@ machine gitlab.com/api/v4 login USER^forge password TOKEN"
   :config
   ;; encoding
   (modify-coding-system-alist 'process "git" 'utf-8)
-  ;; magit
+  ;; wip-mode
   (setq magit-wip-mode-lighter "")
-  (magit-wip-mode +1)
+  (magit-wip-mode (if IS-WIN -1 1))
+  ;; interface
   (transient-append-suffix 'magit-log   "i"  '("w" "Wip" magit-wip-log-current))
   (transient-append-suffix 'magit-log   "-A" '("-m" "Omit merge commits" "--no-merges"))
   (transient-append-suffix 'magit-pull  "-r" '("-a" "Autostash" "--autostash"))
-  (transient-append-suffix 'magit-fetch "-p" '("-t" "Fetch all tags" ("-t" "--tags")))
-  ;; forge
-  (setq forge-database-file (locc "forge-database.sqlite")
-        forge-post-heading-format "%-25a\t%-15C\t(%c)\n"))
+  (transient-append-suffix 'magit-fetch "-p" '("-t" "Fetch all tags" ("-t" "--tags"))))
 
 (defun:after magit-refresh-buffer//orig-head (&rest _args)
   ;; mark the ORIG_HEAD commit in log buffer

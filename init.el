@@ -12,15 +12,15 @@
 
 ;;; Constants
 
-  (defconst IS-MAC       (eq system-type 'darwin))
-  (defconst IS-BSD       (eq system-type 'berkeley-unix))
-  (defconst IS-LINUX     (eq system-type 'gnu/linux))
-  (defconst IS-WIN       (memq system-type '(cygwin windows-nt ms-dos)))
-  (defconst NATIVECOMP   (if (fboundp 'native-comp-available-p) (native-comp-available-p)))
-  (defconst IS-G         (display-graphic-p))
-  (defconst IS-NG        (not (display-graphic-p)))
-  (defconst IS-LINUX-G   (and IS-LINUX (display-graphic-p)))
-  (defconst IS-LINUX-NG  (and IS-LINUX (not (display-graphic-p))))
+  (defconst IS-MAC     (eq system-type 'darwin))
+  (defconst IS-BSD     (eq system-type 'berkeley-unix))
+  (defconst IS-NIX     (eq system-type 'gnu/linux))
+  (defconst IS-WIN     (memq system-type '(cygwin windows-nt ms-dos)))
+  (defconst IS-G       (display-graphic-p))
+  (defconst IS-NG      (not (display-graphic-p)))
+  (defconst IS-NIX-G   (and IS-NIX (display-graphic-p)))
+  (defconst IS-NIX-NG  (and IS-NIX (not (display-graphic-p))))
+  (defconst NATIVECOMP (if (fboundp 'native-comp-available-p) (native-comp-available-p)))
 
 ;;; Most first, personal + ignored by git
 
@@ -52,7 +52,7 @@
   (imload 'imod-tramp)
   (imload 'imod-scratch)
   (imload 'imod-session)
-  (imload 'imod-window)
+  (imload 'imod-display)
   (imload 'imod-edit)
   (imload 'imod-image)
   (imload 'imod-read)
@@ -110,6 +110,11 @@
   (imload 'implay 'load-from-paths-if-it-exists)
   (imload 'im-notes 'load-from-paths-if-it-exists)
   (imload 'im-sketch 'load-from-paths-if-it-exists)
+
+  (if IS-WIN (imload 'iarc-win))
+  (if IS-MAC (imload 'iarc-mac))
+  (if IS-NIX (imload 'iarc-nix))
+
   (imload 'over))
 
 ;;; init.el ends here

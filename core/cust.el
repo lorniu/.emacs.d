@@ -167,7 +167,7 @@
                 (add-to-list 'im.external-paths (loce "bin/mac"))
                 (add-to-list 'im.external-paths "/opt/homebrew/bin")
                 (add-to-list 'im.external-paths "~/.local/bin/"))
-      (IS-LINUX (add-to-list 'im.external-paths (loce "bin"))
+      (IS-NIX (add-to-list 'im.external-paths (loce "bin"))
                 (add-to-list 'im.external-paths (loce "bin/nix"))))
 
 (dolist (d im.external-paths exec-path)
@@ -249,9 +249,9 @@
 (when IS-G
   (require 'server)
   (setq server-auth-dir (locc "server/"))
-  (unless (server-running-p)
+  (unless (eq (server-running-p server-name) t)
     (ignore-errors
-      (delete-file (concat server-auth-dir "server")))
+      (delete-file (expand-file-name server-name server-auth-dir)))
     (server-start)))
 
 

@@ -266,11 +266,11 @@
 (with-eval-after-load 'org
   ;; Support NonASCII, see `org-set-emph-re' for detail (-pre*B BODY B*post-)
   (setq org-emphasis-regexp-components
-        '("-[:nonascii:][:space:]('\"{"          ; pre
-          "-[:nonascii:][:space:].,:!?;'\")}\\[" ; post
-          "[:space:]"  ; border (reverse match)
-          "[^​]"        ; body (zero-width space should not in BODY, used it as a fixtool)
-          1))          ; max newlines allowed
+        (list "-[:nonascii:][:space:]('\"{"          ; pre
+              "-[:nonascii:][:space:].,:!?;'\")}\\[" ; post
+              "[:space:]"                            ; border (reverse match)
+              (format "[^\n%c]" #x200b)              ; body (ZWSP excluded, no newline)
+              0))                                    ; max newlines allowed
   (org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
 
   ;; Auto hide emphasis markers
@@ -437,7 +437,7 @@
 
 (defun im/org-protocol-enable-for-linux ()
   (interactive)
-  (cl-assert IS-LINUX)
+  (cl-assert IS-NIX)
   (let ((path
          "~/.local/share/applications/org-protocol.desktop")
         (content
