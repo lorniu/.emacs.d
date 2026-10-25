@@ -100,7 +100,6 @@
                            :prompt #'identity)
                  :render (gt-buffer-render
                           :name (format "*hi-ai-%s*" model)
-                          :mode 'markdown-mode
                           :init (lambda () (markdown-toggle-markup-hiding 1))
                           :dislike-header t
                           :dislike-source t

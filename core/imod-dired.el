@@ -19,6 +19,7 @@
 	      ( "z" . im/dired-du-size )
 	      ( "Y" . im/dired-rsync )
           ( "," . im/dired--toggle-collapse )
+          ( ";" . dired-do-shell-command )
           ( "SPC" . im/dired-preview-file )
           :map wdired-mode-map
           ( "C-c SPC" . im/dired-preview-file ))

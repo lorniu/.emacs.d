@@ -28,6 +28,12 @@
 
 (advice-add #'display-startup-screen :override #'ignore)
 
+;; Native Compile
+
+(setq native-comp-jit-compiliation nil
+      native-comp-enable-subr-trampolines nil
+      package-native-compile nil)
+
 ;; Debug mode
 (when (or (getenv-internal "D") (getenv-internal "DEBUG") (getenv-internal "DM"))
   (setq init-file-debug t debug-on-error t benchmark-require t))

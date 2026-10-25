@@ -495,6 +495,11 @@
         (current-buffer)))))
 
 
+;;; Other references
+
+(defreference nix "Search: https://search.nixos.org/packages")
+
+
 ;;; r/search-xxx (Search Web)
 
 (defun r:define-search-function (tag url)

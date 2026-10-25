@@ -151,6 +151,7 @@
   :config
   (setq ghostel-buffer-name "*vterm*")
   (setq ghostel-buffer-name-function nil)
+  (setq ghostel-module-directory (locc "ghostel"))
   (add-to-list 'ghostel-eval-cmds '("magit-status-setup-buffer" magit-status-setup-buffer)))
 
 
