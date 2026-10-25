@@ -97,7 +97,7 @@ Layout=
 
 [GroupOrder]
 0=Default"
-  IS-LINUX)
+  IS-NIX)
 
 (ime:with-file fcitx:conf/classicui.conf
   "Vertical Candidate List=False
@@ -105,7 +105,7 @@ PerScreenDPI=False
 Font=\"Noto Sans Mono 15\"
 Theme=Material-Color-Red
 DarkTheme=Material-Color-Yellow"
-  IS-LINUX)
+  IS-NIX)
 
 (ime:with-file rime:default.custom.yaml
   "patch:
@@ -255,7 +255,7 @@ DarkTheme=Material-Color-Yellow"
   (im:with-current-view-buffer (get-buffer-create "*Input Method Tips*")
     :focus t :keywords '(("#.*" . 'font-lock-comment-face))
     (cond
-     (IS-LINUX (insert
+     (IS-NIX (insert
                 (format "Install packages:
 
   pacman -S fcitx5-im fcitx5-rime rime-ice-git
@@ -345,7 +345,7 @@ Q(iu) W(ia,ua) E(e) R(uan) T(ue,ve) Y(ing,uai) U(sh,u) I (ch,i) O(o,uo) P(un)\n
    Z(ei) X(ie) C(iao) V(zh,ui,v) B(ou) N(in) M(ian)\n\n
 a aa | ang ah | e ee | eng eg | o oo | ai an ao ei en er ou")))
 
-(when IS-LINUX
+(when IS-NIX
   (defun ime/reload-rime ()
     "Helper to reload/redeploy fcitx/rime."
     (interactive)

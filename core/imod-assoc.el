@@ -7,6 +7,7 @@
                 ("\\.scm\\'"             . scheme-mode)
                 ("\\.\\(ba\\)?sh\\'"     . sh-mode)
                 ("\\.xaml\\'"            . nxml-mode)
+                ("\\.md\\'"              . markdown-ts-mode)
                 ("\\.\\(ini\\|inf\\|nmconnection\\)\\'" . conf-mode))
               auto-mode-alist))
 

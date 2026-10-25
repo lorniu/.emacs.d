@@ -6,7 +6,7 @@
 
 (xzz emskin
   :ref "loyalpartner/emskin"
-  :if (and IS-LINUX-G (file-exists-p im:emskin-path))
+  :if (and IS-NIX-G (file-exists-p im:emskin-path))
   :commands (emskin-open-app emskin-open-native-app emskin-toggle-crosshair emskin-rofi)
   :init (add-to-list 'load-path im:emskin-path)
   :config

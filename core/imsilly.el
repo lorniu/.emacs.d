@@ -58,64 +58,14 @@
 
 ;;; Emacself
 
-(defun sl/emacs-recompile-els (&optional force)
+(defun si/emacs-recompile-els (&optional force)
   "Recompile .el files."
   (interactive "P")
   (let* ((def (loce "extra/"))
          (dir (read-directory-name "Byte recompile directory: " def def)))
     (byte-recompile-directory dir 0 force)))
 
-(defun sl/emacs-generate-configs-for-windows ()
-  "Invoke this and then (1) import `.reg' file (2) move `eee.cmd' to PATH."
-  (interactive)
-  (unless IS-WIN (error "This only works for Windows!"))
-
-  (cl-labels ((win-path (path &optional escp)
-                (replace-regexp-in-string "/" (if escp "\\\\" "\\") (file-truename path) t t))
-              (emacs-file (file &optional escp)
-                (win-path (concat (car (split-string exec-directory "libexec")) file) escp))
-              (s-bin (&optional escp) (emacs-file "bin/runemacs.exe" escp))
-              (c-bin (&optional escp) (emacs-file "bin/emacsclientw.exe" escp)))
-    ;; SetEnv: emacs-server-file
-    (start-process "a" " for-set-env" "setx" "EMACS_SERVER_FILE" (win-path (concat server-auth-dir "server")))
-
-    ;; Need copy this to PATH
-    (with-temp-file (emacs-file "eee.cmd" t)
-      (setq-local buffer-file-coding-system 'gbk)
-      (insert (format "\"%s\" -n -na \"%s\" \"%%1\"" (c-bin) (s-bin))))
-
-    ;; Need import this to REGEDIT
-    (with-temp-file (emacs-file "Open-With-Emacs.reg" t)
-      (setq-local buffer-file-coding-system 'gbk)
-      ;; [open-with-emacs]
-      (insert (string-join (cons "Windows Registry Editor Version 5.00\n"
-                                 (mapcar (lambda (subpath)
-                                           (format
-                                            (format (concat "[HKEY_CLASSES_ROOT\\%%s\\Shell\\Emacs]\n"
-                                                            "@=\"使用 %sEmacs 编辑\"\n"
-                                                            "\"Icon\"=\"%s\"\n\n"
-                                                            "[HKEY_CLASSES_ROOT\\%%s\\Shell\\Emacs\\Command]\n"
-                                                            "@=\"\\\"%s\\\" -n -na \\\"%s\\\" \\\"%%%%V\\\"\"\n")
-                                                    (if (string-match-p "Background" subpath) "" "&")
-                                                    (c-bin t) (c-bin t) (s-bin t))
-                                            subpath subpath))
-                                         '("*" "Directory" "Directory\\Background")))
-                           "\n\n"))
-      ;; [org-Protocol]
-      (insert "
-[HKEY_CLASSES_ROOT\\org-protocol]
-@=\"URL:Org Protocol\"
-\"URL Protocol\"=\"\"
-[HKEY_CLASSES_ROOT\\org-protocol\\shell]
-[HKEY_CLASSES_ROOT\\org-protocol\\shell\\open]
-[HKEY_CLASSES_ROOT\\org-protocol\\shell\\open\\command]" (format "
-@=\"\\\"%s\\\" \\\"%%1\\\"\"\n\n" (c-bin t))))
-
-    ;; Manually Step
-    (when (yes-or-no-p (format "Saved in %s. View ?" (emacs-file "\\")))
-      (w32-shell-execute "open" (emacs-file ".")))))
-
-(defun sl/emacs-current-build-configure ()
+(defun si/emacs-current-build-configure ()
   (interactive)
   (let ((cmd (format "./configure %s" system-configuration-options)))
     (kill-new cmd)
@@ -124,7 +74,7 @@
 
 ;;; Batch convert encodings
 
-(defun sl:convert-encodings-in-directory ()
+(defun si:convert-encodings-in-directory ()
   "Emacs style batch mode / change coding under the dir to UTF8."
   (im/walk-directory ("/var/www/" ".*\\.rb")
     (with-current-buffer (find-file-noselect it)
@@ -136,7 +86,7 @@
 
 ;;; Convert postgres to mysql
 
-(defun sl:sql-pg-to-mysql ()
+(defun si:sql-pg-to-mysql ()
   "Convert sql statement from Postgres to MySQL. Open the sql file, execute it, you will get the result."
   (interactive)
   (with-current-buffer (current-buffer)
@@ -149,7 +99,7 @@
        ("timestamp without time zone\\|timestamp" . "datetime")
        ("TABLE ONLY" . "TABLE")))))
 
-(cl-defun sl:dump-pg-to-mysql (table-name dest-file &optional (dbname "imdata"))
+(cl-defun si:dump-pg-to-mysql (table-name dest-file &optional (dbname "imdata"))
   "Dump table data from local Postgres to SQL file can be used by MySQL."
   (let ((cmd "pg_dump -U postgres %s -t %s --insert --column-inserts"))
     (setq cmd (format cmd dbname table-name))
@@ -157,13 +107,13 @@
         (message "File-already exist, rename first.")
       (with-temp-file dest-file
         (call-process-shell-command cmd nil (current-buffer))
-        (sl:sql-pg-to-mysql))
+        (si:sql-pg-to-mysql))
       (find-file dest-file))))
 
 
 ;;; ssh/nat
 
-(defun:when sl/generate-ssh-config-file (executable-find "ssh") ()
+(defun:when si/generate-ssh-config-file (executable-find "ssh") ()
   "Generate .ssh/config file."
   (interactive)
   (let ((file "~/.ssh/config")
@@ -180,7 +130,7 @@ Host github.com
   ProxyCommand nc -v -x 127.0.0.1:11180 %h %p")
       (pop-to-buffer (current-buffer)))))
 
-(defun:when sl/generate-nat-traverse-cmd (executable-find "cygrunsrv") (name vps inner)
+(defun:when si/generate-nat-traverse-cmd (executable-find "cygrunsrv") (name vps inner)
   (interactive (list (read-string "Please input [SERVICE_NAME]: ")
                      (read-string "Please Input [PUBLIC:PORT]: ")
                      (read-string "Please Input [INNER:PORT]: ")))
@@ -191,7 +141,7 @@ Host github.com
 
 ;;; OS
 
-(defun sl/edit-hosts-file ()
+(defun si/edit-hosts-file ()
   "Edit hosts file in Linux/Windows."
   (interactive)
   (let ((post (lambda (buf)
@@ -208,81 +158,7 @@ Host github.com
       (start-process-shell-command (format-time-string "host-%s") nil (concat "wsudo notepad " h2)))
      (t (user-error "No hosts file found for current system")))))
 
-(defun:when sl/systemd-new-unit (executable-find "systemctl") ()
-  "Snippet for new systemd unit file."
-  (interactive)
-  (let* ((dir (expand-file-name
-               (read-directory-name "Location: " "/etc/systemd/system/" nil t)))
-         (default-directory (if (string-match-p "^/home/" dir) dir
-                              (format "/sudo::%s" dir)))
-         (name (format "%s.service" (cl-gensym "systemd-unit-"))))
-    (unless (file-exists-p default-directory)
-      (user-error "Maybe `%s' is not available" default-directory))
-    (with-current-buffer (get-buffer-create name)
-      (insert "[Unit]
-Description=unit 1
-After=network.target network-online.target
-#Wants/After/Before=docker.service\n
-[Service]
-#User/Group=vip
-#Type=simple/forking/oneshot/notify/dbus/idle
-#Environment=PS1=1
-ExecStart=/usr/bin/x
-#ExecReload=/bin/kill -HUP $MAINPID
-#ExecStartPre/ExecStartPost/ExecStop/ExecStopPost=
-#Restart/RestartSec/PIDFile/TimeoutSec/KillMode\n
-[Install]
-WantedBy=multi-user.target")
-      (systemd-mode)
-      (pop-to-buffer (current-buffer)))))
-
-(defun:when sl/windows-install-scoop-or-chocolatey IS-WIN ()
-  (interactive)
-  (with-current-buffer (pop-to-buffer "*scoop-or-chocolatey-installation*")
-    (erase-buffer)
-    (insert "# Scoop Install
-
-## Setup
-Set-ExecutionPolicy RemoteSigned -scope CurrentUser;
-$env:SCOOP='C:\\Scoop'
-[Environment]::SetEnvironmentVariable('SCOOP', $env:SCOOP, 'User')
-
-## Install
-iwr -useb get.scoop.sh | iex
-#### if error, add hosts:
-199.232.68.133 raw.githubusercontent.com
-#### or use mirror like:
-iwr -useb https://gitee.com/RubyKids/scoop-cn/raw/master/install.ps1 | iex
-
-## [OPT] Config
-scoop install aria2
-scoop config aria2-enabled true
-
-## Install
-scoop update
-scoop install git
-scoop install sudo
-
-## Extra Repos
-scoop bucket known
-scoop bucket add extras
-scoop update
-
-
-
-# Chocolatey Install
-
-setx ChocolateyInstall C:\\Choco
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-
-choco config set proxy http://127.0.0.1:1081
-cinst ag dropbox ccleaner vcredist2012 sysinternals jdk8 -y
-")
-    (powershell-mode)
-    (im:make-buffer-buriable)
-    (goto-char (point-min))))
-
-(defun:when sl/kill-system-process (executable-find "ps") ()
+(defun:when si/kill-system-process (executable-find "ps") ()
   (interactive)
   (pdd-let* ((lines (pdd-exec [ps auxwe] :as 'line))
              (line (completing-read "Process to kill: " (cdr (await lines)) nil t))
@@ -297,7 +173,7 @@ cinst ag dropbox ccleaner vcredist2012 sysinternals jdk8 -y
 
 ;;; Misc
 
-(defun sl/youtube-dl-url (&optional url)
+(defun si/youtube-dl-url (&optional url)
   "Run \\='youtube-dl' over the URL. If URL is nil, use URL at point."
   (interactive (list
                 (let ((up (thing-at-point-url-at-point)))

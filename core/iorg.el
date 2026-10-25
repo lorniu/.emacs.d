@@ -437,7 +437,7 @@
 
 (defun im/org-protocol-enable-for-linux ()
   (interactive)
-  (cl-assert IS-LINUX)
+  (cl-assert IS-NIX)
   (let ((path
          "~/.local/share/applications/org-protocol.desktop")
         (content

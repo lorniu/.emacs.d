@@ -78,8 +78,9 @@
             gptel ghostel
             disk-usage memory-usage
             pyim ; input method
-            magit git-timemachine ssh-agency git-modes ghub forge ; git
+            magit git-timemachine ssh-agency git-modes ghub ; git
             docker dockerfile-mode kubernetes ; container
+            calibre ; e-book
 
             ;; org
             org-contrib org-make-toc
@@ -103,25 +104,22 @@
             ;; development
             dape ; debug
             nhexl-mode ; binary
+            markdown-ts-appear ; markdown
             macrostep rainbow-mode rainbow-delimiters package-lint ; elisp
             c-eldoc cmake-mode citre ; c/c++
             emmet-mode web-beautify sass-mode web-mode htmlize ; html
             typescript-mode ob-typescript ; typescript
-            rust-mode ; rust
-            php-mode ; php
-            go-mode ; go
+            zig-mode ; zig
             robe ; ruby
             erlang ; erlang
-            lua-mode ; lua
             haskell-mode hindent attrap ; haskell
             csproj-mode fsharp-mode sharper ob-fsharp ; dotnet
             kotlin-mode clojure-mode groovy-mode scala-mode ; jvm
             jdecomp ; java decompile, use idea's fernflower.jar
             android-mode ; easy to run android tools
-            markdown-mode markdown-toc ; markdown
             bbdb sql-indent ; database
             powershell ob-powershell
-            yaml-mode csv-mode systemd udev-mode
+            yaml-mode csv-mode systemd udev-mode nix-mode
             edit-indirect)))
   (cl-macrolet ((ensure-packages-installed ()
                   `(cl-labels

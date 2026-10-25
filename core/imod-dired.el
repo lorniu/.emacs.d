@@ -19,6 +19,7 @@
 	      ( "z" . im/dired-du-size )
 	      ( "Y" . im/dired-rsync )
           ( "," . im/dired--toggle-collapse )
+          ( ";" . dired-do-shell-command )
           ( "SPC" . im/dired-preview-file )
           :map wdired-mode-map
           ( "C-c SPC" . im/dired-preview-file ))
@@ -213,6 +214,24 @@ When 'current-prefix-arg' non-nil then fall back to builtin dired-sort."
   (if (eq major-mode 'dired-mode)
       (transient-setup 'im/transient-dired-sort)
     (user-error "Should be used in Dired")))
+
+
+;;; Windows Integrate
+
+(when IS-WIN
+  (defun im:ignore-eacces-on-opendir (fn &rest args)
+    "Ignore errors like `Opening directory: Permission denied'."
+    (condition-case err
+        (apply fn args)
+      (error
+       (unless (eq (car err) 'permission-denied)
+         (signal (car err) (cdr err))))))
+
+  (dolist (fn '(directory-files
+                directory-files-and-attributes
+                file-name-all-completions
+                file-name-completion))
+    (advice-add fn :around #'im:ignore-eacces-on-opendir)))
 
 
 ;;; Interface (Helper)
